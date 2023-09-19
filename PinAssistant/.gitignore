@@ -373,6 +373,3 @@ Environment.props
 
 # not the generated dll for thunderstore
 */Package/plugins/*
-
-# not the test project
-TestProject/

@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 2630564942
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: pin_assistant
+      Dependencies: {}
