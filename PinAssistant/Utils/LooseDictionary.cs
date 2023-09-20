@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Mono.Security.Cryptography;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -101,17 +102,16 @@ namespace WxAxW.PinAssistant.Utils
             return root.TryGetValueLoose(key, out value);
         }
 
-        public bool TryGetValueLooseLite(string key, out TValue value)
+        public bool TryGetValueLooseLite(string key, out TValue result)
         {
             key = key.ToLower();
-            value = default;
 
             if (altDictionary.TryGetValue(key, out TrieNode nodeResult))
             {
-                value = nodeResult.Value;
+                result = nodeResult.Value;
                 return true;
             }
-            return root.TryGetValueLooseRecursiveLite(key, out value);
+            return root.TryGetValueLooseRecursiveLite(key, out result);
         }
 
         public class TrieNode
@@ -179,7 +179,7 @@ namespace WxAxW.PinAssistant.Utils
                  *    u o - remove child o from f parent
                  *       o - remove child o from o parent
                  *        b - remove child b from o parent
-                 *     f - don't remove f cause node has value
+                 *     f - don't remove f cause node has result
                  *      o - remove child o from f parent
                  *       o - remove child o from o parent
                  *        b - remove child b from o parent
@@ -232,9 +232,12 @@ namespace WxAxW.PinAssistant.Utils
                 // keep checking until end of key, if true means there's more chars to check
                 if (currentIndex >= td.key.Length) return false;
 
+                // to check if the child entered gave no result, therefore get out of the child and remove a prefix to keep looping
+                // ex. entry = runestone | copper, search = rock4_copper, entered r child, but returned false all the way, but with this bool, it will keep continuing
+                bool enteredChild = true; 
+
                 char currentChar = td.key[currentIndex];
                 keyBuilder.Append(currentChar); // add char to keybuilder (to build the actual key that's found)
-
                 // if currentNode's children does not have the specified char key, exit this method to backtrack and check the next char
                 // ex. entry in current node: rock , r doesn't exist, check o next time.
                 // rock, ock, ck, k
@@ -243,9 +246,10 @@ namespace WxAxW.PinAssistant.Utils
                     if (td.exactMatchOnly) return false;
                     nodeToCheck = this;
                     keyBuilder.Clear(); // clear keybuilder because current path failed
+                    enteredChild = false; // set to false to not run this method again in this current TrieNode class
                 }
 
-                // if node exists, check if node is valid ie. node has value is node can only be found through exact match, or key search does not contain blacklisted words by node
+                // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
 
                 if (IsNodeValid(nodeToCheck, td.key, currentIndex, td.exactMatchOnly))
                 {
@@ -257,15 +261,23 @@ namespace WxAxW.PinAssistant.Utils
                     if (td.deleteNode) Remove(currentChar);
                     return true;
                 }
+                bool foundValid = false;
+                for (int i = 0; i < 2; i++)
+                {
+                    // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
+                    foundValid = nodeToCheck.TraverseRecursive(currentIndex + 1, keyBuilder, td);
 
-                // invalid node value therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
-                bool foundValid = nodeToCheck.TraverseRecursive(currentIndex + 1, keyBuilder, td);
-
-                // did not find any value
+                    // if this, traverse inside a child, get out and traverse in itself but with a different char index.
+                    if (foundValid) break; // if found a valid match, break out of loop to do delete check
+                    if (!enteredChild) break; // else if this, did not traverse inside a child (traversed itself) return false entirely
+                    // if (td.exactMatchOnly) return false; // not necessary because it's impossible to reach this point when exactmatch is true
+                    // else this, entered a child, therefore exit child and traverse itself but increment currentindex to check the next letter after that
+                    nodeToCheck = this;
+                    keyBuilder.Clear(); // clear keybuilder because current path 
+                }
                 if (!foundValid) return false;
-
-                // found value
-                // if in delete mode, run remove child method, if reached a node with value, end of deletion
+                // found result
+                // if in delete mode, run remove child method, if reached a node with result, end of deletion
                 if (!td.endOfDelete && td.deleteNode && m_children[currentChar].Value == null) Remove(currentChar);
                 return true;
             }
@@ -317,14 +329,18 @@ namespace WxAxW.PinAssistant.Utils
                 // keep checking until end of key, if true means there's more chars to check
                 if (currentIndex >= key.Length) return false;
 
+                bool enteredChild = true;
                 char currentChar = key[currentIndex];
                 // if currentNode's children does not have the specified char key, exit this method to backtrack and check the next char
                 // ex. entry in current node: rock , r doesn't exist, check o next time.
                 // rock, ock, ck, k
                 if (!m_children.TryGetValue(currentChar, out TrieNode nodeToCheck))
+                {
                     nodeToCheck = this;
+                    enteredChild = false;
+                }
 
-                // if node exists, check if node is valid ie. node has value is node can only be found through exact match, or key search does not contain blacklisted words by node
+                // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
 
                 if (IsNodeValid(nodeToCheck, key, currentIndex))
                 {
@@ -333,8 +349,22 @@ namespace WxAxW.PinAssistant.Utils
                     return true;
                 }
 
-                // invalid node value therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
-                return nodeToCheck.TryGetValueLooseRecursiveLite(key, out result, currentIndex + 1);
+                bool foundValid = false;
+                for (int i = 0; i < 2; i++)
+                {
+                    // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
+                    foundValid = nodeToCheck.TryGetValueLooseRecursiveLite(key, out result, currentIndex + 1);
+
+                    // if this, traverse inside a child, get out and traverse in itself but with a different char index.
+                    if (foundValid) break; // if found a valid match, break out of loop to do delete check
+                    if (!enteredChild) break; // else if this, did not traverse inside a child (traversed itself) return false entirely
+                    // if (td.exactMatchOnly) return false; // not necessary because it's impossible to reach this point when exactmatch is true
+                    // else this, entered a child, therefore exit child and traverse itself but increment currentindex to check the next letter after that
+                    nodeToCheck = this;
+                }
+
+                if (!foundValid) return false;
+                return true;
             }
 
             /* old search method
@@ -368,8 +398,8 @@ namespace WxAxW.PinAssistant.Utils
                     }
                     /* old condition setup (UGLI)
                     if (exactMatch && !noEarlyBreak) return false; // 2. return false (end method) if exactMatch is true and it's not valid
-                    else if (!noEarlyBreak && currNode.value == null) currNode = this; // 2. reset to root if found key is null then check the next chars (ie. o o b a)
-                    else if (!noEarlyBreak && currNode.value != null && currNode.nodeExactMatchOnly) return false;
+                    else if (!noEarlyBreak && currNode.result == null) currNode = this; // 2. reset to root if found key is null then check the next chars (ie. o o b a)
+                    else if (!noEarlyBreak && currNode.result != null && currNode.nodeExactMatchOnly) return false;
                     else if (noEarlyBreak && i > 0 && currNode.nodeExactMatchOnly) return false;
                     else if (noEarlyBreak) break; // 3. stop the loop if there's a valid loop match
 
@@ -380,7 +410,7 @@ namespace WxAxW.PinAssistant.Utils
                         //if (exactMatch) return false;       // end entirely because exact match only has 1 chance and that 1 chance ended early = no existing key
 
                         if (currNode == null                // since it's empty reset the current node to check the next char in the root node
-                         || currNode.m_nodeExactMatchOnly)    // happens when loop ended up in a node with a value that can only be searched through exact matching ex. entry is foo set to exactMatchOnly. searched 'foob' loose(exactMatch = false), key 'b' doesn't exist so end point is at o, but foo can only be searched when it's exact,
+                         || currNode.m_nodeExactMatchOnly)    // happens when loop ended up in a node with a result that can only be searched through exact matching ex. entry is foo set to exactMatchOnly. searched 'foob' loose(exactMatch = false), key 'b' doesn't exist so end point is at o, but foo can only be searched when it's exact,
                             currNode = this;                // therefore go to next loop and find oob ob b because search is set to loose
                     }
                     else // search is valid (completed the entire key search loop without encountering an empty node)

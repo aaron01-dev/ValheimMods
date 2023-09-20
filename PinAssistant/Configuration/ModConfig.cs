@@ -80,7 +80,8 @@ namespace WxAxW.PinAssistant.Configuration
                 );
             m_redundancyDistanceConfig = Config.Bind<float>(
                 Text.Get(TextType.CONFIG_CATEGORY_GENERAL),
-                Text.Get(TextType.CONFIG_NAME_VAL_DISTANCEREDUNDANCY), 30f,
+                Text.Get(TextType.CONFIG_NAME_VAL_DISTANCEREDUNDANCY),
+                20f,
                 new ConfigDescription(
                     Text.Get(TextType.CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY),
                     null,

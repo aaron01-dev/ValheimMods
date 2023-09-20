@@ -20,7 +20,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -64,13 +64,13 @@ namespace WxAxW.PinAssistant
         {
             if (m_isEnabled)
             {
-                if (ModConfig.Instance.PinLookedObjectConfig.Value.IsDown())
-                    Components.PinAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
                 if (ModConfig.Instance.TrackLookedObjectConfig.Value.IsDown())
                 {
                     GameObject obj = Components.PinAssistant.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value);
                     PinAssistantUI.Instance?.SetupTrackObject(obj);
                 }
+                if (ModConfig.Instance.PinLookedObjectConfig.Value.IsDown())
+                    Components.PinAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
                 if (ModConfig.Instance.ReloadTrackedObjectsConfig.Value.IsDown())
                     //AutoPinning.Instance.TrackLookedObjectToAutoPin(ModConfig.Instance.LookDistanceConfig.Value);
                     Components.PinAssistant.Instance.DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);

@@ -10,10 +10,10 @@ using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant.Components
 {
-    internal class PinAssistant
+    public class PinAssistant
     {
         [Serializable]
-        internal class TrackedObject
+        public class TrackedObject
         {
             private string m_objectID;
             private string m_name;
@@ -91,7 +91,7 @@ namespace WxAxW.PinAssistant.Components
 
         public event LoadedTrackedObjectsHandler LoadedTrackedObjects;
 
-        internal void Init(string serializedTrackedObjects)
+        public void Init(string serializedTrackedObjects)
         {
             DeserializeTrackedObjects(serializedTrackedObjects);
         }

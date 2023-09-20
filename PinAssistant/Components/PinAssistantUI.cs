@@ -358,7 +358,7 @@ namespace WxAxW.PinAssistant.Components
         {
             TrackedObject trackedObject = m_edittingObject;
             bool conflicting = false;
-            if (m_edittingObject.ObjectID.Equals(m_inputObjectID.text)) // check if the ID is still the same meaning same key still
+            if (trackedObject.ObjectID.Equals(m_inputObjectID.text)) // check if the ID is still the same meaning same key still so only modify the dictionary values like is exact and blacklist words
             {
                 // modify only if exact match or blacklsit changed cause dictionary needs these two, if false just modify tracked object cause class is reference type so editing tracked object here edits the one in the dictionary too.
                 if (trackedObject.IsExactMatchOnly != m_toggleCheckPin.isOn || !trackedObject.BlackListWords.Equals(m_inputBlackListWord.text))    

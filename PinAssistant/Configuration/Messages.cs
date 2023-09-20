@@ -29,7 +29,7 @@ namespace WxAxW.PinAssistant
         [Text("Enable or disable plugin\nTo auto pin you must enable '{0}' and look at the object")] CONFIG_MESSAGE_TOGGLE_MOD,
 
         [Text("Enable or disable auto pinning when looking at an object (only auto pins objects from '{0}'")] CONFIG_MESSAGE_TOGGLE_AUTOPINNING,
-        [Text("On what interval should the mod check for what you're looking at to pin")] CONFIG_MESSAGE_VAL_TICKRATE,
+        [Text("The tick rate for when to check the object you're looking at to attempt to pin it\nThe value is 'n seconds per tick'")] CONFIG_MESSAGE_VAL_TICKRATE,
         [Text("The minimum distance to prevent pinning multiple objects close together")] CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY,
         [Text("The maximum distance you can detect an object")] CONFIG_MESSAGE_VAL_DISTANCELOOK,
         [Text("Key to open the GUI\nTo register the object you're looking at to the list of objects to automaticaly pin")] CONFIG_MESSAGE_KEY_TRACKOBJECT,

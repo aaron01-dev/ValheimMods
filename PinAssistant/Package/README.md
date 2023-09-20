@@ -60,7 +60,8 @@ Technical stuff: Most of the system uses dictionaries especially the tracked ent
 ## I recommend using Pinnacle by ComfyMods
 You can check it out [here](https://valheim.thunderstore.io/package/ComfyMods/Pinnacle/)
 
-# How to use
+# Tutorial
+## How to use
 Let's say you want to track Copper deposits, 
 - press the GUI key, (default: Ctrl + T) while looking to prefill the proper values, 
 - Copper deposits' ID is called MineRock_Copper(Clone), 
@@ -80,13 +81,19 @@ I've learned quite a lot with modding valheim and got a lot of experience from u
 
 I made this mod due to auto pin mods like HotPin or Locator having troubles with their plugin, Locator had a problem with their console commands and HotPin just won't let you open the console. I found Locator from Purps to be pretty good, but it wasn't that user friendly with tracking custom objects, it lacked a few features but was really decent, so I thought about my own ideas.
 
-If not for the many source mods out there like [Locator](https://valheim.thunderstore.io/package/purpledxd/Locator/), [Pinnacle](https://valheim.thunderstore.io/package/ComfyMods/Pinnacle/), [PressurePlate](https://valheim.thunderstore.io/package/MSchmoecker/PressurePlate/) and other plugins, I would have had a hard time making this as it referenced a lot of valheim codes from them Locator mostly, but the logics like dictionary is mostly from Google :v
+If not for the many source codes out there like [Locator](https://valheim.thunderstore.io/package/purpledxd/Locator/), [Pinnacle](https://valheim.thunderstore.io/package/ComfyMods/Pinnacle/), [PressurePlate](https://valheim.thunderstore.io/package/MSchmoecker/PressurePlate/) and other plugins, I would have had a hard time making this as it referenced a lot of valheim codes from them Locator mostly, but the logics like dictionary is mostly from Google :v
 
 Also, thank you to the mod developers who helped me setup to start on this project or gave me info with things i had trouble with.
+
+
+# Technical
+## Have a suggestion?
+You can contact me on Discord, 'WxAaRoNxW', make a post on [Nexus](https://www.nexusmods.com/valheim/mods/2531) or add a 'New Issue' on [Github](https://github.com/aaron-yang0327-development/ValheimMods/issues).
 
 ## Changelog
 v1.0.0 - Initial release
 
 ## Known issues
--you tell me!
+- you tell me!
+
 If you have a problem you can find the github [here](https://github.com/aaron-yang0327-development/ValheimMods) and add an issue
