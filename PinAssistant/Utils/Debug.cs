@@ -1,5 +1,5 @@
 ﻿using WxAxW.PinAssistant.Configuration;
-using Text = WxAxW.PinAssistant.TextAttribute;
+using Text = WxAxW.PinAssistant.Configuration.TextAttribute;
 
 namespace WxAxW.PinAssistant.Utils
 {

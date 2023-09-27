@@ -1,5 +1,4 @@
-﻿using Mono.Security.Cryptography;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -33,6 +32,9 @@ namespace WxAxW.PinAssistant.Utils
                 this.exactMatchOnly = exactMatch;
             }
         }
+
+        [JsonProperty("Version")]
+        private readonly string m_version = "1.0";
 
         [JsonProperty("Alternate Dictionary")]
         public readonly Dictionary<string, TrieNode> altDictionary = new Dictionary<string, TrieNode>(); // dictionary to easily find/count/delete words instead of traversing trie dictionary
@@ -234,7 +236,7 @@ namespace WxAxW.PinAssistant.Utils
 
                 // to check if the child entered gave no result, therefore get out of the child and remove a prefix to keep looping
                 // ex. entry = runestone | copper, search = rock4_copper, entered r child, but returned false all the way, but with this bool, it will keep continuing
-                bool enteredChild = true; 
+                bool enteredChild = true;
 
                 char currentChar = td.key[currentIndex];
                 keyBuilder.Append(currentChar); // add char to keybuilder (to build the actual key that's found)
@@ -273,7 +275,7 @@ namespace WxAxW.PinAssistant.Utils
                     // if (td.exactMatchOnly) return false; // not necessary because it's impossible to reach this point when exactmatch is true
                     // else this, entered a child, therefore exit child and traverse itself but increment currentindex to check the next letter after that
                     nodeToCheck = this;
-                    keyBuilder.Clear(); // clear keybuilder because current path 
+                    keyBuilder.Clear(); // clear keybuilder because current path
                 }
                 if (!foundValid) return false;
                 // found result

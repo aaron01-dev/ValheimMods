@@ -1,14 +1,17 @@
 using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
 using Jotunn.Entities;
 using Jotunn.Managers;
 using Jotunn.Utils;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using WxAxW.PinAssistant.Components;
 using WxAxW.PinAssistant.Configuration;
+using WxAxW.PinAssistant.Core;
 using WxAxW.PinAssistant.Utils;
 using Debug = WxAxW.PinAssistant.Utils.Debug;
 
@@ -20,7 +23,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.1.0";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -46,8 +49,6 @@ namespace WxAxW.PinAssistant
             // To learn more about Jotunn's features, go to
             // https://valheim-modding.github.io/Jotunn/tutorials/overview.html
             ModConfig.Instance.Init(Config);
-            Components.PinAssistant.Instance.Init(ModConfig.Instance.TrackedObjectsConfig.Value);
-
             // add to dictionary (change this I guess)
             //m_trackedTypes.Add(m_objectIds, m_objectIds.Value);
             ModConfig.Instance.IsEnabledConfig.SettingChanged += OnTogglePluginConfig;    // add permanent listener to mod toggle
@@ -66,14 +67,14 @@ namespace WxAxW.PinAssistant
             {
                 if (ModConfig.Instance.TrackLookedObjectConfig.Value.IsDown())
                 {
-                    GameObject obj = Components.PinAssistant.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value);
+                    GameObject obj = Core.PinAssistantScript.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value);
                     PinAssistantUI.Instance?.SetupTrackObject(obj);
                 }
                 if (ModConfig.Instance.PinLookedObjectConfig.Value.IsDown())
-                    Components.PinAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
+                    Core.PinAssistantScript.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
                 if (ModConfig.Instance.ReloadTrackedObjectsConfig.Value.IsDown())
                     //AutoPinning.Instance.TrackLookedObjectToAutoPin(ModConfig.Instance.LookDistanceConfig.Value);
-                    Components.PinAssistant.Instance.DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);
+                    Core.PinAssistantScript.Instance.DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);
             }
         }
 
@@ -92,7 +93,7 @@ namespace WxAxW.PinAssistant
         {
             while (true)
             {
-                Components.PinAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
+                Core.PinAssistantScript.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
                 yield return new WaitForSeconds(ModConfig.Instance.TickRateConfig.Value);
             }
         }
@@ -115,10 +116,19 @@ namespace WxAxW.PinAssistant
         {
             Debug.Log(TextType.MOD_ENABLED);
             m_isEnabled = true;
+            List<Type> registeredTypes = new List<Type>();
+            foreach (var kvp in ModConfig.Instance.TypeDictionary)
+            {
+                if (kvp.Key.Value) registeredTypes.Add(kvp.Value);
+            }
+            PinAssistantScript.Instance.Init(ModConfig.Instance.TrackedObjectsConfig.Value, registeredTypes);
             GUIManager.OnCustomGUIAvailable += LoadUI;
-            Components.PinAssistant.Instance.EnableClass();
-            Components.PinAssistant.Instance.ModifiedTrackedObjects += OnNewTrackedObject;
+            PinAssistantScript.Instance.ModifiedTrackedObjects += OnNewTrackedObject;
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged += OnToggleAutoPinningConfig;
+            foreach (ConfigEntry<bool> entry in ModConfig.Instance.TypeDictionary.Keys)
+            {
+                entry.SettingChanged += OnToggleTypeConfig;
+            }
             ToggleAutoPinning();
         }
 
@@ -126,10 +136,14 @@ namespace WxAxW.PinAssistant
         {
             Debug.Log(TextType.MOD_DISABLED);
             m_isEnabled = false;
+            PinAssistantScript.Instance.Destroy();
             GUIManager.OnCustomGUIAvailable -= LoadUI;
-            Components.PinAssistant.Instance.DisableClass();
-            Components.PinAssistant.Instance.ModifiedTrackedObjects -= OnNewTrackedObject;
+            PinAssistantScript.Instance.ModifiedTrackedObjects -= OnNewTrackedObject;
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged -= OnToggleAutoPinningConfig;
+            foreach (ConfigEntry<bool> entry in ModConfig.Instance.TypeDictionary.Keys)
+            {
+                entry.SettingChanged -= OnToggleTypeConfig;
+            }
             ToggleAutoPinning();
         }
 
@@ -181,8 +195,17 @@ namespace WxAxW.PinAssistant
         private void OnNewTrackedObject()
         {
             // updates config with new tracked objects;
-            string newTrackedObjects = Components.PinAssistant.Instance.SerializeTrackedObjects();
+            string newTrackedObjects = Core.PinAssistantScript.Instance.SerializeTrackedObjects();
             ModConfig.Instance.TrackedObjectsConfig.Value = newTrackedObjects;
+        }
+
+        private void OnToggleTypeConfig(object sender, EventArgs _)
+        {
+            ConfigEntry<bool> currTypeConfig = (ConfigEntry<bool>)sender;
+            Type currType = ModConfig.Instance.TypeDictionary[currTypeConfig];
+            bool value = currTypeConfig.Value;
+            if (value) PinAssistantScript.Instance.AddType(currType);
+            else PinAssistantScript.Instance.RemoveType(currType);
         }
     }
 }

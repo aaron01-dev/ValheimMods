@@ -1,0 +1,21 @@
+# Changelog
+- v1.0.0
+	- Initial Release
+- v1.0.1
+	- Changes		- Changed the hover description for "Look Tick Rate" into a more detailed explanation, the prior message might confuse people.		- Changed default Redundancy Distance from 30 to 20 (I found that it might be too big of a distance to check for redundancy).
+		- Slightly organized README.md and added a suggestion section.
+	- Fixes
+		- Fixed sub string searching in TrieNode when a prefix exists in the entry.
+		- ex. Runestone ID and Copper ID. And your search is "Rock_Copper(Clone)" it only checked R's descendant but didn't check the rest of the letters so it never reached C of the 'Copper ID'.
+- v1.1.0
+	- New
+		- Option to choose what types of objects you'd like to look for to increase performance (albeit negligible).
+	- Changes
+		- Separated changelog to CHANGELOG.md
+		- Backend
+			- Added Dictionary class version for whenever there's changes to how tracked objects are saved in future version.
+			- Made UI elements public for modders to change its style, (although you can probably do that through just Instance property alone)
+			- Updated Jotunn library from 2.12.6 - 2.14.0 (didn't think about updating the template I used)
+			- Cleaned up some codes
+	- Fixes
+		- Fixed build uploads to not contain versions 1.0.0 and 1.0.1 zips. (sorry for the extra file size)

@@ -5,10 +5,9 @@ using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using WxAxW.PinAssistant.Configuration;
+using WxAxW.PinAssistant.Core;
 using WxAxW.PinAssistant.Utils;
-using static Mono.Security.X509.X520;
-using static UnityEngine.GraphicsBuffer;
-using static WxAxW.PinAssistant.Components.PinAssistant;
 using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant.Components
@@ -61,6 +60,31 @@ namespace WxAxW.PinAssistant.Components
         private readonly Dictionary<Minimap.PinType, Sprite> m_dictionaryPinIcons = new Dictionary<Minimap.PinType, Sprite>(); // dictionary of sprites
         private Minimap.PinType m_pinTypeInput;
 
+        public static event Action PinAssistantUILoaded;
+
+        public Image Panel { get => m_panel; set => m_panel = value; }
+        public Transform Header { get => m_header; set => m_header = value; }
+        public TMP_Text HeaderText { get => m_headerText; set => m_headerText = value; }
+        public Image Body { get => m_body; set => m_body = value; }
+        public Image PreviewIcon { get => m_previewIcon; set => m_previewIcon = value; }
+        public Image PreviewIconChecked { get => m_previewIconChecked; set => m_previewIconChecked = value; }
+        public TMP_Text PreviewIconText { get => m_previewIconText; set => m_previewIconText = value; }
+        public TMP_InputField InputPinName { get => m_inputPinName; set => m_inputPinName = value; }
+        public TMP_InputField InputObjectID { get => m_inputObjectID; set => m_inputObjectID = value; }
+        public TMP_InputField InputBlackListWord { get => m_inputBlackListWord; set => m_inputBlackListWord = value; }
+        public TMP_Dropdown DropDownPinIcon { get => m_dropDownPinIcon; set => m_dropDownPinIcon = value; }
+        public Toggle ToggleSavePin { get => m_toggleSavePin; set => m_toggleSavePin = value; }
+        public Toggle ToggleCheckPin { get => m_toggleCheckPin; set => m_toggleCheckPin = value; }
+        public Toggle ToggleExactMatch { get => m_toggleExactMatch; set => m_toggleExactMatch = value; }
+        public TMP_Dropdown DropDownTracked { get => m_dropDownTracked; set => m_dropDownTracked = value; }
+        public TMP_Text MessageBox { get => m_messageBox; set => m_messageBox = value; }
+        public Button ButtonTrackModify { get => m_buttonTrackModify; set => m_buttonTrackModify = value; }
+        public TMP_Text ButtonTrackModifyText { get => m_buttonTrackModifyText; set => m_buttonTrackModifyText = value; }
+        public Button ButtonUntrackCancel { get => m_buttonUntrackCancel; set => m_buttonUntrackCancel = value; }
+        public TMP_Text ButtonUntrackCancelText { get => m_buttonUntrackCancelText; set => m_buttonUntrackCancelText = value; }
+        public Transform CreditRow { get => m_creditRow; set => m_creditRow = value; }
+        public TMP_Text VersionNumber { get => m_versionNumber; set => m_versionNumber = value; }
+
         public static void Init(AssetBundle assetBundle)
         {
             GameObject prefab = assetBundle.LoadAsset<GameObject>("Assets/ObjPinAssistantUI.prefab");
@@ -72,6 +96,7 @@ namespace WxAxW.PinAssistant.Components
             m_instance.m_previewIconChecked.sprite = GUIManager.Instance.GetSprite("mapicon_checked");
             m_instance.m_previewIconText.text = string.Empty; // reset
             m_instance.m_previewIconChecked.gameObject.SetActive(false); // reset
+            PinAssistantUILoaded?.Invoke();
         }
 
 #pragma warning disable IDE0051 // Remove unused private members
@@ -86,7 +111,7 @@ namespace WxAxW.PinAssistant.Components
             m_dropDownTracked.onValueChanged.AddListener(OnTrackedDropDownChanged);
             m_toggleCheckPin.onValueChanged.AddListener(OnToggleCheckPinChanged);
             m_toggleExactMatch.onValueChanged.AddListener(OnToggleExactMatchChanged);
-            PinAssistant.Instance.LoadedTrackedObjects += PopulateDropdownTracked;
+            PinAssistantScript.Instance.LoadedTrackedObjects += PopulateDropdownTracked;
             //m_buttonUntrackCancel.onClick.AddListener()
         }
 
@@ -111,7 +136,7 @@ namespace WxAxW.PinAssistant.Components
             m_dropDownTracked.onValueChanged.RemoveListener(OnTrackedDropDownChanged);
             m_toggleCheckPin.onValueChanged.RemoveListener(OnToggleCheckPinChanged);
             m_toggleExactMatch.onValueChanged.RemoveListener(OnToggleExactMatchChanged);
-            PinAssistant.Instance.LoadedTrackedObjects -= PopulateDropdownTracked;
+            PinAssistantScript.Instance.LoadedTrackedObjects -= PopulateDropdownTracked;
         }
 
         private static PinAssistantUI SpawnUI(GameObject prefab)
@@ -126,7 +151,7 @@ namespace WxAxW.PinAssistant.Components
             return ui;
         }
 
-        public void ApplyAllComponents()
+        private void ApplyAllComponents()
         {
             m_panel.color = Color.white;
             TMPGUIManager.Instance.ApplyWoodpanel(m_panel);
@@ -167,7 +192,7 @@ namespace WxAxW.PinAssistant.Components
             TMPGUIManager.Instance.ApplyDropdownStyle(m_dropDownTracked);
         }
 
-        public void ApplyToggleTextStyle(Toggle toggle, int fontSize)
+        private void ApplyToggleTextStyle(Toggle toggle, int fontSize)
         {
             TMP_Text componentInChildren = toggle.GetComponentInChildren<TMP_Text>(includeInactive: true);
             if ((bool)componentInChildren)
@@ -177,7 +202,7 @@ namespace WxAxW.PinAssistant.Components
             }
         }
 
-        public void PopulateIcons()
+        private void PopulateIcons()
         {
             Array pinTypes = Enum.GetValues(typeof(Minimap.PinType));
             foreach (Minimap.PinType pinType in pinTypes)
@@ -190,7 +215,7 @@ namespace WxAxW.PinAssistant.Components
             }
         }
 
-        public string FormatSpriteName(string sprName)
+        private string FormatSpriteName(string sprName)
         {
             // Remove alphanumeric values ex. "SunkenCrypt4" -> "SunkenCrypt"
             //sprName = Regex.Replace(name, @"\d", string.Empty);
@@ -204,15 +229,14 @@ namespace WxAxW.PinAssistant.Components
             return sprName;
         }
 
-
-        public void PopulateDropdownTracked()
+        private void PopulateDropdownTracked()
         {
             m_dropDownTracked.ClearOptions();
             m_dropDownTrackedList.Clear();
             m_dropDownTracked.options.Add(new TMP_Dropdown.OptionData("New..."));
             m_dropDownTrackedList.Add(default);
 
-            foreach (LooseDictionary<TrackedObject>.TrieNode node in TrackedObjects.altDictionary.Values)
+            foreach (LooseDictionary<TrackedObject>.TrieNode node in PinAssistantScript.TrackedObjects.altDictionary.Values)
             {
                 TrackedObject trackedObject = node.Value;
                 m_dropDownTrackedList.Add(trackedObject);
@@ -258,7 +282,7 @@ namespace WxAxW.PinAssistant.Components
             int pinType = (int)Minimap.PinType.Icon3;
             if (!string.IsNullOrEmpty(objIDName))
             {
-                if (TrackedObjects.TryGetValueLoose(objIDName, out trackedObject, _exactMatch))
+                if (PinAssistantScript.TrackedObjects.TryGetValueLoose(objIDName, out trackedObject, _exactMatch))
                 {
                     formattedName = trackedObject.Name;
                     objIDName = trackedObject.ObjectID;
@@ -273,7 +297,7 @@ namespace WxAxW.PinAssistant.Components
                 }
                 else
                 {
-                    formattedName = PinAssistant.Instance.FormatObjectName(objIDName);
+                    formattedName = PinAssistantScript.Instance.FormatObjectName(objIDName);
                     m_oldObjectID = objIDName; // to allow the user to modify the object id when they created an entry that's not "exact match"
                     IsExactMatchOnly = true;
                 }
@@ -338,7 +362,7 @@ namespace WxAxW.PinAssistant.Components
             }
 
             // double check if the objectID already exists or is conflicting with something
-            if (TrackedObjects.TryGetValueLoose(m_inputObjectID.text, out TrackedObject existingTrackedObject, true))
+            if (PinAssistantScript.TrackedObjects.TryGetValueLoose(m_inputObjectID.text, out TrackedObject existingTrackedObject, true))
             {
                 ShowMessage(Debug.Log(TextType.TRACK_FAIL, m_inputObjectID.text, existingTrackedObject)); // show error message
                 return;
@@ -346,7 +370,7 @@ namespace WxAxW.PinAssistant.Components
 
             trackedObject = new TrackedObject();
             SetTrackedObjectValuesToUIValues(trackedObject); // fill values
-            PinAssistant.Instance.AddTrackedObject(m_inputObjectID.text, trackedObject, out bool conflicting, m_inputBlackListWord.text, m_toggleExactMatch.isOn);
+            PinAssistantScript.Instance.AddTrackedObject(m_inputObjectID.text, trackedObject, out bool conflicting, m_inputBlackListWord.text, m_toggleExactMatch.isOn);
             AddDropDownTracked(trackedObject);  // add dropdown with object name
             ChangeEditMode(trackedObject); // set to edit mode
 
@@ -361,23 +385,23 @@ namespace WxAxW.PinAssistant.Components
             if (trackedObject.ObjectID.Equals(m_inputObjectID.text)) // check if the ID is still the same meaning same key still so only modify the dictionary values like is exact and blacklist words
             {
                 // modify only if exact match or blacklsit changed cause dictionary needs these two, if false just modify tracked object cause class is reference type so editing tracked object here edits the one in the dictionary too.
-                if (trackedObject.IsExactMatchOnly != m_toggleCheckPin.isOn || !trackedObject.BlackListWords.Equals(m_inputBlackListWord.text))    
-                    TrackedObjects.Modify(trackedObject.ObjectID, trackedObject, m_toggleExactMatch.isOn, m_inputBlackListWord.text, true);
+                if (trackedObject.IsExactMatchOnly != m_toggleCheckPin.isOn || !trackedObject.BlackListWords.Equals(m_inputBlackListWord.text))
+                    PinAssistantScript.TrackedObjects.Modify(trackedObject.ObjectID, trackedObject, m_toggleExactMatch.isOn, m_inputBlackListWord.text, true);
             }
             else // tracked object's ID has changed therefore delete the old TrackedObjects key and its value then create a new key with modified key(ID) with same value(class)
             {
                 // Remove the old entry from the dictionary
-                PinAssistant.Instance.RemoveTrackedObject(trackedObject.ObjectID, true);
+                PinAssistantScript.Instance.RemoveTrackedObject(trackedObject.ObjectID, true);
 
                 // check if it's conflicting with a different ID
-                if (TrackedObjects.TryGetValueLoose(m_inputObjectID.text, out TrackedObject conflictTrackedObject, m_toggleExactMatch.isOn)) // if new ID already exists in the dictionary, cancel method;
+                if (PinAssistantScript.TrackedObjects.TryGetValueLoose(m_inputObjectID.text, out TrackedObject conflictTrackedObject, m_toggleExactMatch.isOn)) // if new ID already exists in the dictionary, cancel method;
                 {
                     ShowMessage(Debug.Log(TextType.MODIFY_WARNING_CONFLICT, trackedObject, conflictTrackedObject));
                     conflicting = true;
                 }
 
                 // Add the new entry to the dictionary
-                PinAssistant.Instance.AddTrackedObject(m_inputObjectID.text, trackedObject, out _, m_inputBlackListWord.text, m_toggleExactMatch.isOn);
+                PinAssistantScript.Instance.AddTrackedObject(m_inputObjectID.text, trackedObject, out _, m_inputBlackListWord.text, m_toggleExactMatch.isOn);
             }
             // Since entry in dropdown exists, just change the name in the UI dropdown.
             m_dropDownTracked.options[m_dropDownTracked.value].text = m_inputPinName.text;
@@ -406,7 +430,7 @@ namespace WxAxW.PinAssistant.Components
                 return;
             }
             // untrack entry
-            if (!PinAssistant.Instance.RemoveTrackedObject(m_edittingObject.ObjectID, true)) // remove entry with object id
+            if (!PinAssistantScript.Instance.RemoveTrackedObject(m_edittingObject.ObjectID, true)) // remove entry with object id
             {
                 ShowMessage(Debug.Log(TextType.UNTRACK_FAIL, m_edittingObject));
                 return;
@@ -422,7 +446,7 @@ namespace WxAxW.PinAssistant.Components
             m_previewIconText.text = newValue;
         }
 
-        private void OnPinIconDropDownChanged(int value)
+        public void OnPinIconDropDownChanged(int value)
         {
             if (value >= (int)Minimap.PinType.None) value++;    // since I base this on dropdown values and I excluded pintype.none, I have to increment value by 1 or -1 (if not from dropdown) to avoid getting the value of the none pin
 
@@ -431,7 +455,7 @@ namespace WxAxW.PinAssistant.Components
             m_pinTypeInput = pinType;
         }
 
-        private void OnTrackedDropDownChanged(int value)
+        public void OnTrackedDropDownChanged(int value)
         {
             string objID = string.Empty;
             // create new
@@ -439,12 +463,12 @@ namespace WxAxW.PinAssistant.Components
             SetupUIValues(objID, true);
         }
 
-        private void OnToggleCheckPinChanged(bool value)
+        public void OnToggleCheckPinChanged(bool value)
         {
             m_previewIconChecked.gameObject.SetActive(value);
         }
 
-        private void OnToggleExactMatchChanged(bool value)
+        public void OnToggleExactMatchChanged(bool value)
         {
             // exact match
             if (value && !string.IsNullOrEmpty(m_oldObjectID)) m_inputObjectID.text = m_oldObjectID;
@@ -455,10 +479,5 @@ namespace WxAxW.PinAssistant.Components
         {
             m_messageBox.text = message;
         }
-
-        /*
-         * "Raspberries
-         * [<color=yellow><b>E</b></color>] Pick up"
-         */
     }
 }

@@ -91,7 +91,7 @@ Also, thank you to the mod developers who helped me setup to start on this proje
 You can contact me on Discord, 'WxAaRoNxW', make a post on [Nexus](https://www.nexusmods.com/valheim/mods/2531) or add a 'New Issue' on [Github](https://github.com/aaron-yang0327-development/ValheimMods/issues).
 
 ## Changelog
-v1.0.0 - Initial release
+Click [here](https://github.com/aaron-yang0327-development/ValheimMods/blob/main/PinAssistant/CHANGELOG.md)
 
 ## Known issues
 - you tell me!

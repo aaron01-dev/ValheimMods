@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace WxAxW.PinAssistant
+namespace WxAxW.PinAssistant.Configuration
 {
     public enum TextType
     {
@@ -10,6 +10,7 @@ namespace WxAxW.PinAssistant
         // Mod Config
         [Text("General")] CONFIG_CATEGORY_GENERAL,
 
+        [Text("Trackable Types")] CONFIG_CATEGORY_TYPES,
         [Text("Hotkeys")] CONFIG_CATEGORY_HOTKEYS,
         [Text("Technical")] CONFIG_CATEGORY_TECHNICAL,
         [Text("Enabled Mod")] CONFIG_NAME_TOGGLE_MOD,
@@ -17,6 +18,15 @@ namespace WxAxW.PinAssistant
         [Text("Look Tick Rate")] CONFIG_NAME_VAL_TICKRATE,
         [Text("Redundancy Distance")] CONFIG_NAME_VAL_DISTANCEREDUNDANCY,
         [Text("Look Distance")] CONFIG_NAME_VAL_DISTANCELOOK,
+
+        [Text("Destructible")] CONFIG_NAME_TYPE_DESTRUCTIBLE,
+        [Text("Pickable")] CONFIG_NAME_TYPE_PICKABLE,
+        [Text("MineRock")] CONFIG_NAME_TYPE_MINEROCK,
+        [Text("Location")] CONFIG_NAME_TYPE_LOCATION,
+        [Text("SpawnArea")] CONFIG_NAME_TYPE_SPAWNAREA,
+        [Text("Vegvisir")] CONFIG_NAME_TYPE_VEGVISIR,
+        [Text("ResourceRoot")] CONFIG_NAME_TYPE_RESOURCEROOT,
+        [Text("TreeBase")] CONFIG_NAME_TYPE_TREEBASE,
 
         [Text("Track Looked Object")] CONFIG_NAME_KEY_TRACKOBJECT,
         [Text("Pin Object")] CONFIG_NAME_KEY_PINOBJECT,
@@ -32,6 +42,16 @@ namespace WxAxW.PinAssistant
         [Text("The tick rate for when to check the object you're looking at to attempt to pin it\nThe value is 'n seconds per tick'")] CONFIG_MESSAGE_VAL_TICKRATE,
         [Text("The minimum distance to prevent pinning multiple objects close together")] CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY,
         [Text("The maximum distance you can detect an object")] CONFIG_MESSAGE_VAL_DISTANCELOOK,
+
+        [Text("A lot of things, objects that have other types may have this as well (ie. Berry Bush has both 'Pickable' and 'Destructible')")] CONFIG_MESSAGE_TYPE_DESTRUCTIBLE,
+        [Text("Pickable Objects: Basically things you can press a key to pick (flint, stone, branch, berry bush, mushroom, etc)")] CONFIG_MESSAGE_TYPE_PICKABLE,
+        [Text("Minerals: Tin, Copper(Intact), Obsidian (Note: Giant ores' types are 'Destructible' at first because it is purely solid object with no breakable piece. When damanged, it turns into a different rock that looks exactly the same but has breakable parts and the object now has the 'MineRock' type and not 'Destructible')")] CONFIG_MESSAGE_TYPE_MINEROCK,
+        [Text("POIs: crypts, sunken crypts, structures that transport you to a different area")] CONFIG_MESSAGE_TYPE_LOCATION,
+        [Text("Spawners: Bone pile, Greydwarf nest, etc.")] CONFIG_MESSAGE_TYPE_SPAWNAREA,
+        [Text("The runestone that shows you boss locations")] CONFIG_MESSAGE_TYPE_VEGVISIR,
+        [Text("Yggdrasil root (the giant ancient root one) at Mistlands")] CONFIG_MESSAGE_TYPE_RESOURCEROOT,
+        [Text("Trees that leaves stumps")] CONFIG_MESSAGE_TYPE_TREEBASE,
+
         [Text("Key to open the GUI\nTo register the object you're looking at to the list of objects to automaticaly pin")] CONFIG_MESSAGE_KEY_TRACKOBJECT,
         [Text("Key to manually pin the object you're looking at\nUsed for when you disable '{0}'\n(Object must be tracked using '{1}' to pin)")] CONFIG_MESSAGE_KEY_PINOBJECT,
         [Text("Key to force reload the tracked objects, if you manually modified the config entry for {0}")] CONFIG_MESSAGE_KEY_RELOADTRACKED,
@@ -64,6 +84,8 @@ namespace WxAxW.PinAssistant
 
         [Text("Loaded tracked objects")] TRACKED_OBJECTS_LOADED,
         [Text("Saved tracked objects")] TRACKED_OBJECTS_SAVED,
+        [Text("Invalid Data or Empty!")] TRACKED_OBJECTS_EMPTY,
+        [Text("Invalid Data!")] TRACKED_OBJECTS_INVALID,
         [Text("The object trying to be pinned is not included in the objects to track")] OBJECT_NOT_TRACKED,
         [Text("Dropdown tracked objects populated")] OBJECTS_DROPDOWN_LOADED,
 

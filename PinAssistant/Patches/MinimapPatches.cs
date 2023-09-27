@@ -3,7 +3,7 @@ using System;
 
 namespace WxAxW.PinAssistant.Patches
 {
-    // patch to add pin to PinAssistant pins dictionary as well
+    // patch to add pin to PinAssistantScript pins dictionary as well
     [HarmonyPatch(typeof(Minimap), "AddPin")]
     internal static class AddAddPinListener_Patch
     {
