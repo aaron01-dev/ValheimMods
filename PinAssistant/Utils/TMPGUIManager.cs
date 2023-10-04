@@ -324,7 +324,7 @@ namespace WxAxW.PinAssistant.Utils
                 }
             }
         }
-        public static void ApplyAllComponents(Transform root)
+        public static void ApplyStyle(Transform root)
         {
             ApplyWoodpanel(root.GetChild(0).GetComponent<Image>());
 

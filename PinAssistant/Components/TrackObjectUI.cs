@@ -12,10 +12,10 @@ using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant.Components
 {
-    internal class PinAssistantUI : MonoBehaviour
+    internal class TrackObjectUI : MonoBehaviour
     {
-        private static PinAssistantUI m_instance;
-        public static PinAssistantUI Instance => m_instance;
+        private static TrackObjectUI m_instance;
+        public static TrackObjectUI Instance => m_instance;
 
         private readonly string[] m_modifiableText = new string[] {
             TextAttribute.Get(TextType.HEADER_TRACK),
@@ -26,7 +26,7 @@ namespace WxAxW.PinAssistant.Components
             TextAttribute.Get(TextType.BUTTON_UNTRACK)
         };
 
-#pragma warning disable 0649
+#pragma warning disable CS0649
         [SerializeField] private Image m_panel;
         [SerializeField] private Transform m_header;
         [SerializeField] private TMP_Text m_headerText;
@@ -50,7 +50,7 @@ namespace WxAxW.PinAssistant.Components
         [SerializeField] private TMP_Text m_buttonUntrackCancelText;
         [SerializeField] private Transform m_creditRow;
         [SerializeField] private TMP_Text m_versionNumber;
-#pragma warning restore 0649
+#pragma warning restore CS0649
 
         private bool isActive = false;
         private bool editMode = false;
@@ -60,7 +60,7 @@ namespace WxAxW.PinAssistant.Components
         private readonly Dictionary<Minimap.PinType, Sprite> m_dictionaryPinIcons = new Dictionary<Minimap.PinType, Sprite>(); // dictionary of sprites
         private Minimap.PinType m_pinTypeInput;
 
-        public static event Action PinAssistantUILoaded;
+        public static event Action TrackObjectUILoaded;
 
         public Image Panel { get => m_panel; set => m_panel = value; }
         public Transform Header { get => m_header; set => m_header = value; }
@@ -87,16 +87,9 @@ namespace WxAxW.PinAssistant.Components
 
         public static void Init(AssetBundle assetBundle)
         {
-            GameObject prefab = assetBundle.LoadAsset<GameObject>("Assets/ObjPinAssistantUI.prefab");
-            m_instance = SpawnUI(prefab);
-            m_instance.PopulateIcons();
-            m_instance.PopulateDropdownTracked();
-            m_instance.ApplyAllComponents();
-            m_instance.m_versionNumber.text = $"v{Plugin.PluginVersion}";
-            m_instance.m_previewIconChecked.sprite = GUIManager.Instance.GetSprite("mapicon_checked");
-            m_instance.m_previewIconText.text = string.Empty; // reset
-            m_instance.m_previewIconChecked.gameObject.SetActive(false); // reset
-            PinAssistantUILoaded?.Invoke();
+            GameObject prefab = assetBundle.LoadAsset<GameObject>("Assets/ObjTrackObjectUI.prefab");
+            m_instance = Instantiate(prefab, GUIManager.CustomGUIFront.transform, false).GetComponent<TrackObjectUI>();
+            m_instance.gameObject.SetActive(false);
         }
 
 #pragma warning disable IDE0051 // Remove unused private members
@@ -104,6 +97,14 @@ namespace WxAxW.PinAssistant.Components
         private void Awake()
 #pragma warning restore IDE0051 // Remove unused private members
         {
+            PopulateIcons();
+            PopulateDropdownTracked();
+            ApplyStyle();
+            m_versionNumber.text = $"v{Plugin.PluginVersion}";
+            m_previewIconChecked.sprite = GUIManager.Instance.GetSprite("mapicon_checked");
+            m_previewIconText.text = string.Empty; // reset
+            m_previewIconChecked.gameObject.SetActive(false); // reset
+
             m_inputPinName.onValueChanged.AddListener(OnPinNameChange);
             m_buttonTrackModify.onClick.AddListener(OnButtonTrackedModifyPressed);
             m_buttonUntrackCancel.onClick.AddListener(OnButtonUntrackedCancelPressed);
@@ -112,19 +113,17 @@ namespace WxAxW.PinAssistant.Components
             m_toggleCheckPin.onValueChanged.AddListener(OnToggleCheckPinChanged);
             m_toggleExactMatch.onValueChanged.AddListener(OnToggleExactMatchChanged);
             PinAssistantScript.Instance.LoadedTrackedObjects += PopulateDropdownTracked;
+            TrackObjectUILoaded?.Invoke();
             //m_buttonUntrackCancel.onClick.AddListener()
         }
 
         private void Update()
         {
             // keybind to close ui
-            if (isActive)
-            {
-                if (Input.GetKeyDown(KeyCode.Escape))
-                    SetUIActive(false);
-                if (Input.GetKeyDown(KeyCode.Return))
-                    OnButtonTrackedModifyPressed();
-            }
+            if (Input.GetKeyDown(KeyCode.Escape))
+                SetUIActive(false);
+            if (Input.GetKeyDown(KeyCode.Return))
+                OnButtonTrackedModifyPressed();
         }
 
         private void OnDestroy()
@@ -137,21 +136,19 @@ namespace WxAxW.PinAssistant.Components
             m_toggleCheckPin.onValueChanged.RemoveListener(OnToggleCheckPinChanged);
             m_toggleExactMatch.onValueChanged.RemoveListener(OnToggleExactMatchChanged);
             PinAssistantScript.Instance.LoadedTrackedObjects -= PopulateDropdownTracked;
+            m_instance = null;
         }
 
-        private static PinAssistantUI SpawnUI(GameObject prefab)
+        private void OnEnable()
         {
-            GameObject inactive = new GameObject("inactive");
-            inactive.SetActive(false);
-            PinAssistantUI ui = Instantiate(prefab, GUIManager.CustomGUIFront.transform, false).GetComponent<PinAssistantUI>();
-            //ui.gameObject.SetActive(false);
-            ui.transform.SetParent(GUIManager.CustomGUIFront.transform, false);
-            ui.gameObject.SetActive(false);
-            Destroy(inactive);
-            return ui;
         }
 
-        private void ApplyAllComponents()
+        private void OnDisable()
+        {
+            SetUIActive(false);
+        }
+
+        private void ApplyStyle()
         {
             m_panel.color = Color.white;
             TMPGUIManager.Instance.ApplyWoodpanel(m_panel);
@@ -251,6 +248,7 @@ namespace WxAxW.PinAssistant.Components
             isActive = value;
             GUIManager.BlockInput(value);
             gameObject.SetActive(value);
+            //enabled = value;
 
             if (value) return; // reset on open
             m_dropDownTracked.SetValueWithoutNotify(0);

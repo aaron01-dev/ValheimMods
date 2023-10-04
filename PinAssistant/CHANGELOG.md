@@ -1,21 +1,38 @@
 # Changelog
-- v1.0.0
+- **v1.0.0**
 	- Initial Release
-- v1.0.1
+- **v1.0.1**
 	- Changes		- Changed the hover description for "Look Tick Rate" into a more detailed explanation, the prior message might confuse people.		- Changed default Redundancy Distance from 30 to 20 (I found that it might be too big of a distance to check for redundancy).
 		- Slightly organized README.md and added a suggestion section.
 	- Fixes
 		- Fixed sub string searching in TrieNode when a prefix exists in the entry.
-		- ex. Runestone ID and Copper ID. And your search is "Rock_Copper(Clone)" it only checked R's descendant but didn't check the rest of the letters so it never reached C of the 'Copper ID'.
-- v1.1.0
+			- ex. Runestone ID and Copper ID. And your search is "Rock_Copper(Clone)" it only checked R's descendant but didn't check the rest of the letters so it never reached C of the 'Copper ID'.
+- **v1.1.0 Trackable Types**
 	- New
 		- Option to choose what types of objects you'd like to look for to increase performance (albeit negligible).
+			- Hover each type in the config manager to figure out which do you want to be detectable.
 	- Changes
-		- Separated changelog to CHANGELOG.md
+		- Separated changelog to CHANGELOG.md.
 		- Backend
 			- Added Dictionary class version for whenever there's changes to how tracked objects are saved in future version.
-			- Made UI elements public for modders to change its style, (although you can probably do that through just Instance property alone)
-			- Updated Jotunn library from 2.12.6 - 2.14.0 (didn't think about updating the template I used)
-			- Cleaned up some codes
+			- Made UI elements public for modders to change its style (although you can probably do that through just Instance property alone).
+			- Updated Jotunn library from 2.12.6 - 2.14.0 (didn't think about updating the template I used).
+			- Cleaned up some codes.
 	- Fixes
-		- Fixed build uploads to not contain versions 1.0.0 and 1.0.1 zips. (sorry for the extra file size)
+		- Fixed build uploads to not contain versions 1.0.0 and 1.0.1 zips. (sorry for the extra file size).
+- **v1.2.0 Search Update**
+	- New
+		- Added the ability to search Pins on the map for situations when your map is too crowded with Pins.
+			- Press Tab while the map is open to show/hide the window.
+			- Enclose the search keyword with `"` to search pins with the exact name. ex. `"Mushroom"`.
+			- You can also change its visibility on world startup/mod enabled through the config.
+			- If you have Pinnacle and want both of them to show/hide together, just disable `Show Search Window on startup` and toggle off and on `Enabled Mod`.
+	- Backend
+		- Plugin.cs 		
+			- refactored to use MonoBehavior OnEnable/Disable (forgot this exists and can be used similarly to my situation).
+			- added unsubscription to some missed events on OnDestroy (not really important since plugins don't get destroyed).
+		- PinAssistantScripts.cs
+			- refactored to not initialize on Instance reference, but instead only create a new instance on Init() (to follow init convention on other classes).
+		- MinimapPatches.cs
+			- refactored to contain patches in one class only instead of many classes (didn't know you can do it this way.
+		- Changed README.md to include new search feature.

@@ -10,15 +10,18 @@ Pin Assistant is the game-changing mod you've been waiting for. It's the ultimat
 Ensuring you stay focused on what matters most to you. Whether it's rare herbs for your magical brews or valuable resources for crafting, your Pin Assistant will do the tracking for you.
 
 ## User Friendly Design
-Tailored to both casual and technical players who wants to modify their pins to exactly do what you want. Not sure what to do? just look at an object press Y and it will automatically fill the values for you, then click Track.
+Tailored for both casual and technical players who wants to modify their pins to exactly do what you want. Not sure what to do? just look at an object press Y and it will automatically fill the values for you, then click Track.
 
 ## Customizable Pinning
-Tailor your Pin Assistant to your specific needs. 
+Use your Pin Assistant for your specific needs. 
 Customize the entry to how you want the pin to appear, a boss icon? a fire? is the pin crossed off? To easily determine which is which so you won't have a hard time figuring out what pin are you exactly looking at.
 
 ## Customizable Behavior
 Customise your entries to choose what it wants. Only search a specific object, pin multiple objects on just one entry, delete on pins associated with entry on log out, and many more!
 Many configuration combinations for you to think about!
+
+## Searchable Pins
+Overcrowded map? Want to find specific pin/s? Just head over to your map and look to the top left and search away, use double quotes to search for a pin name with your exact search. Search window is too obstructive? Just press 'Tab' to hide it!
 
 ## Features
 

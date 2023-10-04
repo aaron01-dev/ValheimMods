@@ -14,7 +14,7 @@ namespace WxAxW.PinAssistant.Core
     public class PinAssistantScript
     {
         private static PinAssistantScript m_instance;
-        public static PinAssistantScript Instance => m_instance ?? (m_instance = new PinAssistantScript());
+        public static PinAssistantScript Instance => m_instance;
         public bool isPinsInitialized = false;
 
         private Dictionary<Vector3, Minimap.PinData> m_pins = new Dictionary<Vector3, Minimap.PinData>();
@@ -45,11 +45,14 @@ namespace WxAxW.PinAssistant.Core
 
         public event Action LoadedTrackedObjects;
 
-        public void Init(string serializedTrackedObjects, List<Type> registeredTypes)
+        public static void Init(string serializedTrackedObjects, List<Type> registeredTypes)
         {
-            m_trackedTypes.AddRange(registeredTypes);
-            DeserializeTrackedObjects(serializedTrackedObjects);
-            EnableClass();
+            if (m_instance != null) return;
+
+            m_instance = new PinAssistantScript();
+            m_instance.m_trackedTypes.AddRange(registeredTypes);
+            m_instance.DeserializeTrackedObjects(serializedTrackedObjects);
+            m_instance.EnableClass();
         }
 
         public void PinLookedObject(float lookDistance, float redundancyDistance)
@@ -203,18 +206,18 @@ namespace WxAxW.PinAssistant.Core
         {
             isPinsInitialized = true;
             PopulatePins();
-            AddAddPinListener_Patch.OnPinAdd += OnPinAdd;
-            AddClearPinsListener_Patch.OnPinClear += OnPinsClear;
-            AddRemovePinListener_Patch.OnPinRemove += OnPinRemove;
+            MinimapPatch.OnPinAdd += OnPinAdd;
+            MinimapPatch.OnPinClear += OnPinsClear;
+            MinimapPatch.OnPinRemove += OnPinRemove;
         }
 
         public void DisableClass()
         {
             isPinsInitialized = false;
             ClearPins();
-            AddAddPinListener_Patch.OnPinAdd -= OnPinAdd;
-            AddClearPinsListener_Patch.OnPinClear -= OnPinsClear;
-            AddRemovePinListener_Patch.OnPinRemove -= OnPinRemove;
+            MinimapPatch.OnPinAdd -= OnPinAdd;
+            MinimapPatch.OnPinClear -= OnPinsClear;
+            MinimapPatch.OnPinRemove -= OnPinRemove;
         }
 
         public bool AddTrackedObject(string objectID, TrackedObject newTrackedObject, out bool conflicting, string blackListedWords = "", bool isExactMatchOnly = false)

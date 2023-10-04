@@ -1,50 +1,49 @@
 ﻿using HarmonyLib;
 using System;
+using WxAxW.PinAssistant.Components;
 
 namespace WxAxW.PinAssistant.Patches
 {
-    // patch to add pin to PinAssistantScript pins dictionary as well
-    [HarmonyPatch(typeof(Minimap), "AddPin")]
-    internal static class AddAddPinListener_Patch
+    [HarmonyPatch(typeof(Minimap))]
+    internal class MinimapPatch
     {
         public delegate void OnPinAddHandler(Minimap.PinData pinData);
-
         public static event OnPinAddHandler OnPinAdd;
 
         [HarmonyPostfix]
+        [HarmonyPatch(nameof(Minimap.AddPin))]
         private static void Postfix(ref Minimap.PinData __result) // get the return value of AddPin to add to plugin's pins dictionary
         {
             OnPinAdd?.Invoke(__result);
         }
-    }
 
-    // patches the specific function RemovePin(PinData pin) inside the Minimap Class
-    [HarmonyPatch(typeof(Minimap), "RemovePin", new Type[] { typeof(Minimap.PinData) })]
-    internal static class AddRemovePinListener_Patch
-    {
+        // patches the specific function RemovePin(PinData pin) inside the Minimap Class
         public delegate void OnRemovePinHandler(Minimap.PinData pinData);
-
         public static event OnRemovePinHandler OnPinRemove;
 
         [HarmonyPrefix]
+        [HarmonyPatch(nameof(Minimap.RemovePin), new Type[] { typeof(Minimap.PinData) })]
         private static void Prefix(ref Minimap.PinData pin)
         {
             OnPinRemove?.Invoke(pin);
         }
-    }
 
-    // patch to clear the plugin's m_pins as well
-    [HarmonyPatch(typeof(Minimap), "ClearPins")]
-    internal static class AddClearPinsListener_Patch
-    {
+        // patch to clear the plugin's m_pins as well
         public delegate void OnPinClearHandler();
-
         public static event OnPinClearHandler OnPinClear;
 
         [HarmonyPrefix]
+        [HarmonyPatch(nameof(Minimap.ClearPins))]
         private static void Prefix()
         {
             OnPinClear?.Invoke();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(Minimap.UpdatePins))]
+        private static void PostFix()
+        {
+            FilterPinsUI.Instance?.FilterPins();
         }
     }
 

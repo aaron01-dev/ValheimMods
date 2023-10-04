@@ -13,8 +13,10 @@ namespace WxAxW.PinAssistant.Configuration
         [Text("Trackable Types")] CONFIG_CATEGORY_TYPES,
         [Text("Hotkeys")] CONFIG_CATEGORY_HOTKEYS,
         [Text("Technical")] CONFIG_CATEGORY_TECHNICAL,
+
         [Text("Enabled Mod")] CONFIG_NAME_TOGGLE_MOD,
         [Text("Auto Pinning")] CONFIG_NAME_TOGGLE_AUTOPINNING,
+        [Text("Show Search Window on startup")] CONFIG_NAME_TOGGLE_STARTFILTERENABLED,
         [Text("Look Tick Rate")] CONFIG_NAME_VAL_TICKRATE,
         [Text("Redundancy Distance")] CONFIG_NAME_VAL_DISTANCEREDUNDANCY,
         [Text("Look Distance")] CONFIG_NAME_VAL_DISTANCELOOK,
@@ -30,6 +32,7 @@ namespace WxAxW.PinAssistant.Configuration
 
         [Text("Track Looked Object")] CONFIG_NAME_KEY_TRACKOBJECT,
         [Text("Pin Object")] CONFIG_NAME_KEY_PINOBJECT,
+        [Text("Toggle Search Window")] CONFIG_NAME_KEY_TOGGLEFILTERWINDOW,
         [Text("Reload Tracked Objects")] CONFIG_NAME_KEY_RELOADTRACKED,
 
         [Text("Debug Mode")] CONFIG_NAME_DEBUGMODE,
@@ -39,6 +42,7 @@ namespace WxAxW.PinAssistant.Configuration
         [Text("Enable or disable plugin\nTo auto pin you must enable '{0}' and look at the object")] CONFIG_MESSAGE_TOGGLE_MOD,
 
         [Text("Enable or disable auto pinning when looking at an object (only auto pins objects from '{0}'")] CONFIG_MESSAGE_TOGGLE_AUTOPINNING,
+        [Text("Shows/Hides the Search Window on startup.\n(added this for the purpose of Pinnacle so they show/hide in tandem.\nto do so, hide Pinnacle's panel, toggle off this entry and re-enable this mod, you only need to do this once.)")] CONFIG_MESSAGE_TOGGLE_STARTFILTERENABLED,
         [Text("The tick rate for when to check the object you're looking at to attempt to pin it\nThe value is 'n seconds per tick'")] CONFIG_MESSAGE_VAL_TICKRATE,
         [Text("The minimum distance to prevent pinning multiple objects close together")] CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY,
         [Text("The maximum distance you can detect an object")] CONFIG_MESSAGE_VAL_DISTANCELOOK,
@@ -54,7 +58,9 @@ namespace WxAxW.PinAssistant.Configuration
 
         [Text("Key to open the GUI\nTo register the object you're looking at to the list of objects to automaticaly pin")] CONFIG_MESSAGE_KEY_TRACKOBJECT,
         [Text("Key to manually pin the object you're looking at\nUsed for when you disable '{0}'\n(Object must be tracked using '{1}' to pin)")] CONFIG_MESSAGE_KEY_PINOBJECT,
+        [Text("Key to show or hide the search window when the map is open")] CONFIG_MESSAGE_KEY_TOGGLEFILTERWINDOW,
         [Text("Key to force reload the tracked objects, if you manually modified the config entry for {0}")] CONFIG_MESSAGE_KEY_RELOADTRACKED,
+
         [Text("Enables debug mode, useful for understanding what's happening whenever you use this mod")] CONFIG_MESSAGE_DEBUGMODE,
         [Text("List of objects tracked currently being tracked to pin when looked or pressed the '{0}' key\nONLY EDIT THIS IF YOU KNOW WHAT YOU'RE DOING, IF NOT JUST USE THE GUI INSTEAD")] CONFIG_MESSAGE_OBJECTSTRACKED,
 
