@@ -17,11 +17,8 @@ Use your Pin Assistant for your specific needs.
 Customize the entry to how you want the pin to appear, a boss icon? a fire? is the pin crossed off? To easily determine which is which so you won't have a hard time figuring out what pin are you exactly looking at.
 
 ## Customizable Behavior
-Customise your entries to choose what it wants. Only search a specific object, pin multiple objects on just one entry, delete on pins associated with entry on log out, and many more!
+Customize your entries to choose what it wants. Only search a specific object, pin multiple objects on just one entry, delete on pins associated with entry on log out, and many more!
 Many configuration combinations for you to think about!
-
-## Searchable Pins
-Overcrowded map? Want to find specific pin/s? Just head over to your map and look to the top left and search away, use double quotes to search for a pin name with your exact search. Search window is too obstructive? Just press 'Tab' to hide it!
 
 ## Features
 
@@ -50,6 +47,9 @@ However this means Sunken Crypts would also be included in the detection, that's
 If you think your pin might clutter cause the objects are grouped together, you can change the redundancy setting to avoid pinning similar objects at a certain distance based on the pinned object.
 
 [Video](https://imgur.com/lerLdHw)
+
+### Searchable Pins
+Overcrowded map? Want to find specific pin/s? Just head over to your map and look to the top left and search away, use double quotes to search for a pin name with your exact search. Search window is too obstructive? Just press 'Tab' to hide it!
 
 ### Shareable Entries!
 If you have Configuration Manager Installed you can open up the menu, copy the very last field in this mod's section and send that entire text to your friend and press the reload key. Both you and your friend has the same entries you have!. Although, it won't copy the pins you've already made.

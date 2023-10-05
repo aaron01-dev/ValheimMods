@@ -1,7 +1,7 @@
 {
   "name": "PinAssistant",
   "description": "An assistant to pin the objects you'd like to see on the map either quickly or automatically!",
-  "version_number": "1.2.0",
+  "version_number": "1.2.1",
   "website_url": "https://github.com/aaron-yang0327-development/ValheimMods/blob/main/PinAssistant",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2105",

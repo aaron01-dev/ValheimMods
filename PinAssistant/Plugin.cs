@@ -23,7 +23,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.2.0";
+        public const string PluginVersion = "1.2.1";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html

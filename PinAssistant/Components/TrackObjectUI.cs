@@ -52,7 +52,6 @@ namespace WxAxW.PinAssistant.Components
         [SerializeField] private TMP_Text m_versionNumber;
 #pragma warning restore CS0649
 
-        private bool isActive = false;
         private bool editMode = false;
         private string m_oldObjectID = string.Empty; // if creating a new entry, this is for autofill area, used by "exactMatch" toggle to lock the user from editing inputObjectID field
         private TrackedObject m_edittingObject; // when editing an entry, used to have a data to compare values to the new values
@@ -245,10 +244,9 @@ namespace WxAxW.PinAssistant.Components
 
         public void SetUIActive(bool value)
         {
-            isActive = value;
             GUIManager.BlockInput(value);
             gameObject.SetActive(value);
-            //enabled = value;
+            enabled = value;
 
             if (value) return; // reset on open
             m_dropDownTracked.SetValueWithoutNotify(0);
@@ -258,10 +256,10 @@ namespace WxAxW.PinAssistant.Components
 
         public void SetupTrackObject(GameObject obj)
         {
-            SetUIActive(!isActive);
+            SetUIActive(!gameObject.activeSelf);
 
             // check if opening or closing
-            if (!isActive) return;
+            if (!gameObject.activeSelf) return;
 
             // setup values
             string name = obj?.name ?? string.Empty;
@@ -359,8 +357,8 @@ namespace WxAxW.PinAssistant.Components
                 return;
             }
 
-            // double check if the objectID already exists or is conflicting with something
-            if (PinAssistantScript.TrackedObjects.TryGetValueLoose(m_inputObjectID.text, out TrackedObject existingTrackedObject, true))
+            // double check if the objectID already exists
+            if (PinAssistantScript.TrackedObjects.TryGetValueLoose(m_inputObjectID.text, out TrackedObject existingTrackedObject, exactMatch: true))
             {
                 ShowMessage(Debug.Log(TextType.TRACK_FAIL, m_inputObjectID.text, existingTrackedObject)); // show error message
                 return;

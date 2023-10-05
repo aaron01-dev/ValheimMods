@@ -29,6 +29,12 @@ namespace WxAxW.PinAssistant.Core
         public bool IsChecked { get => m_isChecked; set => m_isChecked = value; }
         public bool IsExactMatchOnly { get => m_isExactMatchOnly; set => m_isExactMatchOnly = value; }
 
+        public override bool Equals(object obj)
+        {
+            return obj is TrackedObject @object &&
+                   m_objectID == @object.m_objectID;
+        }
+
         public void SetValues(string objectID, string name, string blackListWords, Minimap.PinType icon, bool save = true, bool isChecked = false, bool isExact = false)
         {
             m_objectID = objectID;
