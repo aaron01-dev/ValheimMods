@@ -152,21 +152,21 @@ namespace WxAxW.PinAssistant.Components
             m_panel.color = Color.white;
             TMPGUIManager.Instance.ApplyWoodpanel(m_panel);
 
-            TMPGUIManager.Instance.ApplyTextStyle(m_header.GetChild(0).GetComponent<TMP_Text>(), TMPGUIManager.Instance.NorseBold, GUIManager.Instance.ValheimOrange, 36);
+            TMPGUIManager.Instance.ApplyTextStyle(m_header.GetChild(0).GetComponent<TMP_Text>(), TMPGUIManager.Instance.Norse, GUIManager.Instance.ValheimOrange, 36, true);
 
             // apply text to everything as a pre setup for objects not referenced
             foreach (TMP_Text text in m_body.GetComponentsInChildren<TMP_Text>())
             {
-                TMPGUIManager.Instance.ApplyTextStyle(text, TMPGUIManager.Instance.AveriaSerifBold, GUIManager.Instance.ValheimOrange, 20, true);
+                TMPGUIManager.Instance.ApplyTextStyle(text, GUIManager.Instance.ValheimOrange, 20, true);
             }
 
             foreach (TMP_Text text in m_creditRow.GetComponentsInChildren<TMP_Text>())
             {
-                TMPGUIManager.Instance.ApplyTextStyle(text, TMPGUIManager.Instance.AveriaSerifBold, GUIManager.Instance.ValheimYellow, 12, true);
+                TMPGUIManager.Instance.ApplyTextStyle(text, GUIManager.Instance.ValheimYellow, 12, true);
             }
 
             // change preview icon name style
-            TMPGUIManager.Instance.ApplyTextStyle(m_previewIconText, TMPGUIManager.Instance.NorseBold, Color.white, 16);
+            TMPGUIManager.Instance.ApplyTextStyle(m_previewIconText, TMPGUIManager.Instance.Norse, Color.white, 16);
 
             foreach (TMP_InputField inputField in new TMP_InputField[] { m_inputPinName, m_inputObjectID, m_inputBlackListWord })
             {
@@ -186,6 +186,8 @@ namespace WxAxW.PinAssistant.Components
 
             TMPGUIManager.Instance.ApplyDropdownStyle(m_dropDownPinIcon);
             TMPGUIManager.Instance.ApplyDropdownStyle(m_dropDownTracked);
+            TMPGUIManager.Instance.ApplyTextStyle(m_messageBox, GUIManager.Instance.ValheimOrange, 16);
+            m_messageBox.textWrappingMode = TextWrappingModes.Normal;
         }
 
         private void ApplyToggleTextStyle(Toggle toggle, int fontSize)
@@ -200,6 +202,7 @@ namespace WxAxW.PinAssistant.Components
 
         private void PopulateIcons()
         {
+            if (Minimap.instance == null) return;
             Array pinTypes = Enum.GetValues(typeof(Minimap.PinType));
             foreach (Minimap.PinType pinType in pinTypes)
             {
@@ -247,11 +250,6 @@ namespace WxAxW.PinAssistant.Components
             GUIManager.BlockInput(value);
             gameObject.SetActive(value);
             enabled = value;
-
-            if (value) return; // reset on open
-            m_dropDownTracked.SetValueWithoutNotify(0);
-            m_messageBox.text = string.Empty;
-            m_edittingObject = null;
         }
 
         public void SetupTrackObject(GameObject obj)
@@ -263,6 +261,9 @@ namespace WxAxW.PinAssistant.Components
 
             // setup values
             string name = obj?.name ?? string.Empty;
+            m_dropDownTracked.SetValueWithoutNotify(0);
+            m_messageBox.text = string.Empty;
+            m_edittingObject = null;
             SetupUIValues(name);
         }
 
@@ -388,6 +389,12 @@ namespace WxAxW.PinAssistant.Components
             {
                 // Remove the old entry from the dictionary
                 PinAssistantScript.Instance.RemoveTrackedObject(trackedObject.ObjectID, true);
+
+                if (PinAssistantScript.TrackedObjects.TryGetValueLoose(m_inputObjectID.text, out TrackedObject conflictTrackedObjectExact, exactMatch: true)) // if new ID already exists in the dictionary, cancel method;
+                {
+                    ShowMessage(Debug.Log(TextType.MODIFY_FAIL_CONFLICT, trackedObject, conflictTrackedObjectExact));
+                    return;
+                }
 
                 // check if it's conflicting with a different ID
                 if (PinAssistantScript.TrackedObjects.TryGetValueLoose(m_inputObjectID.text, out TrackedObject conflictTrackedObject, m_toggleExactMatch.isOn)) // if new ID already exists in the dictionary, cancel method;

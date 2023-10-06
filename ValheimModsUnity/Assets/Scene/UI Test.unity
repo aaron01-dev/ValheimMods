@@ -2673,11 +2673,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: ObjPinAssistantUI
       objectReference: {fileID: 0}
-    - target: {fileID: 8089175073237255312, guid: 79a3f71cca22eae44b67f684dc294155,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 8123310493791251235, guid: 79a3f71cca22eae44b67f684dc294155,
         type: 3}
       propertyPath: m_AnchorMax.y

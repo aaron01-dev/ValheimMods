@@ -23,7 +23,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.2.1";
+        public const string PluginVersion = "1.2.2";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -103,7 +103,7 @@ namespace WxAxW.PinAssistant
         private void ModToggle()
         {
             // is the config enabled and you're in game?
-            bool valid = ModConfig.Instance.IsEnabledConfig.Value && m_isInGame;
+            bool valid = ModConfig.Instance.IsEnabledConfig.Value && (m_isInGame || ModConfig.Instance.IsDebugModeConfig.Value);
             enabled = valid;
         }
 
@@ -133,7 +133,7 @@ namespace WxAxW.PinAssistant
         private void OnDisable()
         {
             Debug.Log(TextType.MOD_DISABLED);
-            if (PinAssistantScript.Instance != null) PinAssistantScript.Instance.Destroy();
+            PinAssistantScript.Instance?.Destroy();
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = false;
             if (FilterPinsUI.Instance != null) FilterPinsUI.Instance.enabled = false;
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged -= OnToggleAutoPinningConfig;
@@ -177,7 +177,7 @@ namespace WxAxW.PinAssistant
 
         private void LoadTrackObjectUI()
         {
-            if (!m_isInGame) return;
+            if (!m_isInGame && !ModConfig.Instance.IsDebugModeConfig.Value) return;
             TrackObjectUI.Init(m_assetBundle);
         }
 

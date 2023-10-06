@@ -115,6 +115,7 @@ namespace WxAxW.PinAssistant.Configuration
 
         [Text("Successfully modified '{0}'!")] MODIFY_SUCCESS,
         [Text("Object modified, but '{0}' conflicts with {1}!")] MODIFY_WARNING_CONFLICT,
+        [Text("Unable to modify '{0}'. New ID '{1}' exists!")] MODIFY_FAIL_CONFLICT,
 
         [Text("Successfully untracked '{0}'!")] UNTRACK_SUCCESS,
         [Text("'{0}' is not being tracked? This is not supposed to happen!")] UNTRACK_FAIL,
@@ -132,7 +133,6 @@ namespace WxAxW.PinAssistant.Configuration
         // not in use
         [Text("Unable to track '{0}', '{0}' is conflicting with '{1}'")] TRACK_FAIL_CONFLICT,
 
-        [Text("Unable to modify '{0}'. New ID '{1}' is conflicting with '{0}'!")] MODIFY_FAIL_CONFLICT,
     }
 
     public class TextAttribute : Attribute

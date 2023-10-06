@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace WxAxW.PinAssistant.Core
 {
@@ -33,6 +34,11 @@ namespace WxAxW.PinAssistant.Core
         {
             return obj is TrackedObject @object &&
                    m_objectID == @object.m_objectID;
+        }
+
+        public override int GetHashCode()
+        {
+            return 1328540911 + EqualityComparer<string>.Default.GetHashCode(m_objectID);
         }
 
         public void SetValues(string objectID, string name, string blackListWords, Minimap.PinType icon, bool save = true, bool isChecked = false, bool isExact = false)

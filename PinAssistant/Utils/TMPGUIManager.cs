@@ -21,9 +21,7 @@ namespace WxAxW.PinAssistant.Utils
 
         private bool GUIInStart;
         public TMP_FontAsset AveriaSerif { get; set; }
-        public TMP_FontAsset AveriaSerifBold { get; set; }
         public TMP_FontAsset Norse { get; set; }
-        public TMP_FontAsset NorseBold { get; set; }
 
         private ColorBlock ValheimButtonColorBlock { get; set; }
         private Color ValheimOrange { get; set; }
@@ -37,10 +35,9 @@ namespace WxAxW.PinAssistant.Utils
 
             TMP_FontAsset[] source2 = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
             AveriaSerif = source2.FirstOrDefault((TMP_FontAsset x) => x.name == "Valheim-AveriaSerifLibre");
-            AveriaSerifBold = source2.FirstOrDefault((TMP_FontAsset x) => x.name == "AveriaSerifLibre-Bold SDF");
             Norse = source2.FirstOrDefault((TMP_FontAsset x) => x.name == "Valheim-Norse");
-            NorseBold = source2.FirstOrDefault((TMP_FontAsset x) => x.name == "Valheim-Norsebold");
-            if (AveriaSerifBold == null || AveriaSerif == null || Norse == null || NorseBold == null)
+
+            if (AveriaSerif == null || Norse == null)
             {
                 throw new Exception("Fonts not found");
             }
@@ -71,7 +68,7 @@ namespace WxAxW.PinAssistant.Utils
         //
         //   font:
         //     Own font or
-        //     AveriaSerifBold
+        //     AveriaSerif
         //     /
         //     AveriaSerif
         //
@@ -89,6 +86,8 @@ namespace WxAxW.PinAssistant.Utils
             text.font = font;
             text.fontSize = fontSize;
             text.color = color;
+            text.fontStyle = FontStyles.Bold;
+            
             if (createOutline)
             {
                 Outline orAddComponent = text.gameObject.GetOrAddComponent<Outline>();
@@ -99,7 +98,7 @@ namespace WxAxW.PinAssistant.Utils
         //
         // Summary:
         //     Apply Valheim style to a TMPro.TMP_Text Component. Uses
-        //     AveriaSerifBold
+        //     AveriaSerif
         //     by default
         //
         // Parameters:
@@ -117,13 +116,13 @@ namespace WxAxW.PinAssistant.Utils
         //     Optional font size, defaults to 16
         public void ApplyTextStyle(TMP_Text text, Color color, int fontSize = 16, bool createOutline = true)
         {
-            ApplyTextStyle(text, AveriaSerifBold, color, fontSize, createOutline);
+            ApplyTextStyle(text, AveriaSerif, color, fontSize, createOutline);
         }
 
         //
         // Summary:
         //     Apply Valheim style to a TMPro.TMP_Text Component. Uses
-        //     AveriaSerifBold
+        //     AveriaSerif
         //     ,
         //     Color.white
         //     and creates an outline by default
@@ -136,7 +135,7 @@ namespace WxAxW.PinAssistant.Utils
         //     Optional font size, defaults to 16
         public void ApplyTextStyle(TMP_Text text, int fontSize = 16)
         {
-            ApplyTextStyle(text, AveriaSerifBold, Color.white, fontSize);
+            ApplyTextStyle(text, AveriaSerif, Color.white, fontSize);
         }
 
         //
@@ -214,14 +213,15 @@ namespace WxAxW.PinAssistant.Utils
 
             if (field.placeholder is TMP_Text text)
             {
-                text.font = AveriaSerifBold;
+                text.font = AveriaSerif;
+                text.fontStyle = FontStyles.Bold | FontStyles.Italic;
                 text.color = Color.grey;
                 text.fontSize = fontSize;
             }
 
             if ((bool)field.textComponent)
             {
-                ApplyTextStyle(field.textComponent, AveriaSerif, Color.white, fontSize);
+                ApplyTextStyle(field.textComponent, fontSize);
             }
         }
 

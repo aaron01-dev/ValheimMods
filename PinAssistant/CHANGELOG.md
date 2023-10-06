@@ -70,7 +70,7 @@ v1.2.1
 <b></summary>
 
 - Changes
-	- Organized CHANGELOG.md
+	- Organized CHANGELOG.md.
 	- <details>
 		<summary><b>
 		Backend
@@ -80,5 +80,25 @@ v1.2.1
 		</details>
 - Fixes
 	- Fixed unable to track, modify or untrack objects randomly occuring. Chances increases when you have too many tracked objects.
+
+</details>
+
+<details>
+<summary><b>
+v1.2.2 Valheim v0.217.22 Compatibility Update
+<b></summary>
+
+- Changes
+	- Slightly changed tracking UI.
+	- <details>
+		<summary><b>
+		Backend
+		<b></summary>
+
+		- Updated dependency to latest Jotunn 2.14.3 and BepInEx 5.4.2200.
+		</details>
+- Fixes
+	- Fixed UI bug due to latest Valheim update. (disappeared buttons and an error on main menu load)
+	- Fixed a logical error existing since initial release. When modifying an object's ID (modifying a tracked object's ID to an existing ID it will work having 2 entries with identical IDs bugging out of the entry (the latest).
 
 </details>

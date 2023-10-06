@@ -30,7 +30,7 @@ namespace WxAxW.PinAssistant.Components
         {
             GameObject prefabFilterUI = assetBundle.LoadAsset<GameObject>("Assets/ObjFilterPinsUI.prefab");
             GameObject prefabLayouUI = assetBundle.LoadAsset<GameObject>("Assets/TopLeftGroup.prefab");
-            Transform layoutTrans = Instantiate(prefabLayouUI, Minimap.m_instance.m_largeRoot.transform, false).transform;
+            Transform layoutTrans = Instantiate(prefabLayouUI, Minimap.instance.m_largeRoot.transform, false).transform;
             m_instance = Instantiate(prefabFilterUI, layoutTrans, false).GetComponent<FilterPinsUI>();
             m_instance.m_showOnStartup = showOnStartup;
         }
@@ -94,7 +94,7 @@ namespace WxAxW.PinAssistant.Components
             bool isExact = Regex.IsMatch(pinToFind, pattern) || string.IsNullOrEmpty(pinToFind);
             if (isExact) pinToFind = pinToFind.Trim('"');
 
-            m_listFilteredPins = Minimap.m_instance.m_pins
+            m_listFilteredPins = Minimap.instance.m_pins
                 .Where(pinData => !CompareSearch(pinData.m_name, pinToFind, isExact));
         }
 
