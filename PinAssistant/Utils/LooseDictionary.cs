@@ -10,7 +10,7 @@ namespace WxAxW.PinAssistant.Utils
     {
         public class TraverseDetails
         {
-            public string key;
+            public string searchKey;
             public TValue value;
             public TrieNode nodeResult;
             public string actualKey;
@@ -20,74 +20,116 @@ namespace WxAxW.PinAssistant.Utils
             public bool exactMatchOnly;
 
             public TValue conflictingNodeValue;
-            public bool endOfDelete = false;
+            public bool endOfDeleteTraversal = false;
 
-            public TraverseDetails(string key, TValue value = default, string actualKey = "", string blackListedWord = "", bool deleteNode = false, bool exactMatch = false)
+            public TraverseDetails(string searchKey, TValue value = default, string actualKey = "", string blackListedWord = "", bool deleteNode = false, bool exactMatchOnly = false)
             {
-                this.key = key;
+                this.searchKey = searchKey;
                 this.value = value;
                 this.actualKey = actualKey;
                 this.blackListedWord = blackListedWord;
                 this.deleteNode = deleteNode;
-                this.exactMatchOnly = exactMatch;
+                this.exactMatchOnly = exactMatchOnly;
             }
         }
 
         [JsonProperty("Version")]
-        private readonly string m_version = "1.0";
+        private readonly string m_version = "2.0";
+
+        private Dictionary<string, TrieNode> m_altDictionary = new Dictionary<string, TrieNode>(); // dictionary to easily find/count/delete words instead of traversing trie dictionary
+
+        private TrieNode root = new TrieNode();
 
         [JsonProperty("Alternate Dictionary")]
-        public readonly Dictionary<string, TrieNode> altDictionary = new Dictionary<string, TrieNode>(); // dictionary to easily find/count/delete words instead of traversing trie dictionary
-
-        [JsonProperty("Trie Node Dictionary")]
-        private readonly TrieNode root = new TrieNode();
+        public Dictionary<string, TrieNode> AltDictionary
+        {
+            get => m_altDictionary;
+            set
+            {
+                m_altDictionary = value;
+                InitializeTrieFromDict();
+            }
+        }
 
         public LooseDictionary()
         { }
 
-        public bool Add(string key, TValue value, out bool conflicting, string blackListWords = "", bool exactMatchOnly = false)
+        public void InitializeTrieFromDict()
+        {
+            root = new TrieNode();
+            foreach (var item in m_altDictionary)
+            {
+                root.AddNode(item.Key, item.Value, true);
+            }
+        }
+
+        public bool Add(string key, TValue value, out bool conflicting, string blackListWord = "", bool exactMatchOnly = false)
         {
             key = key.ToLower();
-            blackListWords = blackListWords.ToLower();
+            blackListWord = blackListWord.ToLower();
             conflicting = false;
-            if (altDictionary.ContainsKey(key)) return false; // skip
-            TraverseDetails traverseDetails = new TraverseDetails(key, value: value, blackListedWord: blackListWords, exactMatch: exactMatchOnly);
-            root.Add(traverseDetails);
-            altDictionary.Add(key, traverseDetails.nodeResult);
-            conflicting = traverseDetails.conflicting;
+            if (m_altDictionary.ContainsKey(key)) return false; // skip if key exists
+
+            // start adding
+            TrieNode newNode = new TrieNode(value, exactMatchOnly, blackListWord);
+            TraverseDetails traverseDetails = new TraverseDetails(key, value: value, blackListedWord: blackListWord, exactMatchOnly: exactMatchOnly);
+            // check if new key might conflict
+            if (!traverseDetails.exactMatchOnly) conflicting = Traverse(traverseDetails);
+
+            root.AddNode(key, newNode);
+            m_altDictionary.Add(key, newNode);
             return true;
         }
 
-        public bool Modify(string key, TValue newValue, bool newNodeExact, string newBlackListWords, bool exactMatch = false)
+        public bool Modify(string key, TValue newValue, bool newNodeExact, string newBlackListWord)
         {
             key = key.ToLower();
-            newBlackListWords = newBlackListWords.ToLower();
-            if (exactMatch)
-            {
-                if (!altDictionary.TryGetValue(key, out TrieNode nodeResult)) return false;
-                nodeResult.NodeExactMatchOnly = newNodeExact;
-                nodeResult.BlackListWords = newBlackListWords;
-                if (nodeResult.Value.Equals(newValue)) return true; // do not modify if they're the same
-                nodeResult.Value = newValue;
-            }
-            else if (!root.Modify(key, newValue, newNodeExact, newBlackListWords)) return false;
+            newBlackListWord = newBlackListWord.ToLower();
+
+            if (!m_altDictionary.TryGetValue(key, out TrieNode nodeResult)) return false;
+
+            nodeResult.SetValues(newValue, newNodeExact, newBlackListWord);
             return true;
         }
 
-        public bool Remove(string key, bool exactMatch = false)
+        public bool ChangeKey(string key, string newKey, out bool conflicting, out TValue conflictingValue)
         {
             key = key.ToLower();
-            if (exactMatch)
-            {
-                if (!altDictionary.Remove(key)) return false;
-                root.TryDeleteLoose(key, out _, true, exactMatch);
-            }
-            else
-            {
-                if (!root.TryDeleteLoose(key, out string actualKey, true, exactMatch)) return false;
-                altDictionary.Remove(actualKey);
-            }
+            newKey = newKey.ToLower();
+            conflicting = false;
+            conflictingValue = default;
+            if (key.Equals(newKey) ||
+                m_altDictionary.ContainsKey(newKey) ||
+                !m_altDictionary.TryGetValue(key, out TrieNode nodeToSwap)) return false;
+            
+            TrieNode newNode = nodeToSwap.Clone();  // retrieve node copy its values
+            m_altDictionary.Remove(key);            // delete old node from dictionary
+            TryDeleteLoose(key, out _);             // delete old node from trienode (or reset values depends if it has children)
+
+            // check for conflicts
+            TraverseDetails td = new TraverseDetails(key, exactMatchOnly: newNode.NodeExactMatchOnly);
+            Traverse(td);
+            conflicting = td.conflicting;
+            conflictingValue = td.value;
+
+            root.AddNode(newKey, newNode);          // add to new node
+
             return true;
+        }
+
+        public bool Remove(string key)
+        {
+            key = key.ToLower();
+            if (!m_altDictionary.Remove(key)) return false;
+            TryDeleteLoose(key, out _);
+            return true;
+        }
+
+        public void Clear()
+        {
+            if (m_altDictionary.Count == 0) return;
+            m_altDictionary.Clear();
+            root.Clear();
         }
 
         public bool TryGetValueLoose(string key, out TValue value, bool exactMatch = false)
@@ -95,20 +137,41 @@ namespace WxAxW.PinAssistant.Utils
             key = key.ToLower();
             value = default;
 
-            if (altDictionary.TryGetValue(key, out TrieNode nodeResult))
+            if (m_altDictionary.TryGetValue(key, out TrieNode nodeResult))
             {
                 value = nodeResult.Value;
                 return true;
             }
             if (exactMatch) return false;
-            return root.TryGetValueLoose(key, out value);
+
+            TraverseDetails traverseDetails = new TraverseDetails(key);
+            bool found = Traverse(traverseDetails);
+            value = traverseDetails.value;
+            return found;
+        }
+
+        // overload for traverse delete
+        public bool TryDeleteLoose(string key, out TrieNode removedNode)
+        {
+            TraverseDetails traverseDetails = new TraverseDetails(key, deleteNode: true, exactMatchOnly: true);
+            bool found = Traverse(traverseDetails);
+            removedNode = traverseDetails.nodeResult;
+            return found;
+        }
+
+        public bool TryGetNodeLoose(string key, out TrieNode nodeResult)
+        {
+            TraverseDetails traverseDetails = new TraverseDetails(key);
+            bool found = Traverse(traverseDetails);
+            nodeResult = traverseDetails.nodeResult;
+            return found;
         }
 
         public bool TryGetValueLooseLite(string key, out TValue result)
         {
             key = key.ToLower();
 
-            if (altDictionary.TryGetValue(key, out TrieNode nodeResult))
+            if (m_altDictionary.TryGetValue(key, out TrieNode nodeResult))
             {
                 result = nodeResult.Value;
                 return true;
@@ -116,63 +179,78 @@ namespace WxAxW.PinAssistant.Utils
             return root.TryGetValueLooseRecursiveLite(key, out result);
         }
 
+        public bool Traverse(TraverseDetails traverseDetails)
+        {
+            return root.TraverseRecursive(0, new StringBuilder(), traverseDetails);
+        }
+
         public class TrieNode
         {
-            [JsonProperty("Children")]
             private readonly Dictionary<char, TrieNode> m_children = new Dictionary<char, TrieNode>();
 
-            private TValue m_value;                       // root is always null
-            private bool m_nodeExactMatchOnly;    // use to determine if this node can only be accessed through exact searching
-            private string m_blackListWord;         // blacklisted words, if this node was found, use this variable to compare with key, if key contains blacklist, ignore this node
+            private TValue m_value = default;             // root is always null
+            private bool m_nodeExactMatchOnly;  // use to determine if this node can only be accessed through exact searching
+            private string m_blackListWord = "";     // blacklisted words, if this node was found, use this variable to compare with key, if key contains blacklist, ignore this node
 
             public TValue Value { get => m_value; set => m_value = value; }
             public bool NodeExactMatchOnly { get => m_nodeExactMatchOnly; set => m_nodeExactMatchOnly = value; }
-            public string BlackListWords { get => m_blackListWord; set => m_blackListWord = value; }
+            public string BlackListWord { get => m_blackListWord; set => m_blackListWord = value; }
 
             //private string key;     // used to determine the entire key string
             public TrieNode()
             { }
 
-            public bool Add(TraverseDetails traverseDetails)
+            public TrieNode(TValue value, bool nodeExactMatchOnly, string blackListWord)
             {
-                // before adding check dictionary if there's a loose search conflict
-                if (!traverseDetails.exactMatchOnly) Traverse(traverseDetails); // autofill conflict with this method
-                TrieNode currNode = this;
-                for (int c = 0; c < traverseDetails.key.Length; c++)
-                {
-                    if (!currNode.m_children.TryGetValue(traverseDetails.key[c], out TrieNode child))
-                    {
-                        child = new TrieNode();
-                        currNode.m_children.Add(traverseDetails.key[c], child);
-                    }
-                    currNode = child;
-                }
-                if (currNode.m_value != null) return false;
-                traverseDetails.nodeResult = currNode;
-                currNode.m_value = traverseDetails.value;
-                currNode.m_nodeExactMatchOnly = traverseDetails.exactMatchOnly;
-                currNode.m_blackListWord = traverseDetails.blackListedWord;
-
-                return true;
+                SetValues(value, nodeExactMatchOnly, blackListWord);
             }
 
-            public bool Modify(string key, TValue newValue, bool newNodeExact, string newBlackList)
+            public TrieNode Clone()
             {
-                if (!TryGetNodeLoose(key, out TrieNode nodeResult)) return false;
-                nodeResult.m_nodeExactMatchOnly = newNodeExact;
-                nodeResult.m_value = newValue;
-                nodeResult.m_blackListWord = newBlackList;
-                return true;
+                return new TrieNode(m_value, m_nodeExactMatchOnly, m_blackListWord);
+            }
+
+            public bool AddNode(string key, TrieNode nodeToAdd, bool forceAdd = false)
+            {
+                char keyChar = key[0];
+                // traverse to children
+                if (key.Length > 1)
+                {
+                    string newKeyString = key.Substring(1);
+
+                    if (!m_children.TryGetValue(keyChar, out TrieNode childToAddTo))
+                    {
+                        // keyChar not found
+                        childToAddTo = new TrieNode();
+                        m_children.Add(keyChar, childToAddTo);
+                    }
+                    return childToAddTo.AddNode(newKeyString, nodeToAdd, forceAdd);
+                }
+                else // found destination
+                {
+                    bool childFound = m_children.TryGetValue(keyChar, out TrieNode childNodeToReplace);
+                    if (childFound)
+                    {
+                        if (!forceAdd) return true;
+                        childNodeToReplace.SetValues(nodeToAdd);
+                    }
+                    else
+                    {
+                        m_children.Add(keyChar, nodeToAdd);
+                    }
+                    return true;
+                }
             }
 
             // delete this one node only, the others will be deleted from the recursive method
-            public void Remove(char childNodeKey)
+            public void Remove(char childNodeKey, TraverseDetails td)
             {
                 TrieNode childNodeToDelete = m_children[childNodeKey];
+                childNodeToDelete.ResetValues();
                 // if this node has children do not cut the node off the main dictionary, only delete the instance
                 if (childNodeToDelete.m_children.Count != 0)
                 {
-                    childNodeToDelete.Value = default;
+                    td.endOfDeleteTraversal = true;
                     return;
                 }
                 // delete node from main dictionary keep deleting until the parent's children is more than 1,
@@ -181,6 +259,7 @@ namespace WxAxW.PinAssistant.Utils
                  *    u o - remove child o from f parent
                  *       o - remove child o from o parent
                  *        b - remove child b from o parent
+                 * ex. 2
                  *     f - don't remove f cause node has result
                  *      o - remove child o from f parent
                  *       o - remove child o from o parent
@@ -189,56 +268,26 @@ namespace WxAxW.PinAssistant.Utils
                 m_children.Remove(childNodeKey); // remove child from parent
             }
 
-            // overload for traverse delete
-            public bool TryDeleteLoose(string key, out string actualKey, bool deleteKeyNode, bool exactMatch)
+            public void Clear()
             {
-                TraverseDetails traverseDetails = new TraverseDetails(key, deleteNode: deleteKeyNode, exactMatch: exactMatch);
-                bool found = Traverse(traverseDetails);
-                actualKey = traverseDetails.actualKey;
-                return found;
-            }
+                m_children.Clear();
+                m_value = default;
+                m_nodeExactMatchOnly = false;
+                m_blackListWord = "";
 
-            public bool TryGetNodeLoose(string key, out TrieNode nodeResult)
-            {
-                TraverseDetails traverseDetails = new TraverseDetails(key);
-                bool found = Traverse(traverseDetails);
-                nodeResult = traverseDetails.nodeResult;
-                return found;
-            }
+        }
 
-            public bool TryGetValueLoose(string key, out TValue result)
-            {
-                TraverseDetails traverseDetails = new TraverseDetails(key);
-                bool found = Traverse(traverseDetails);
-                result = traverseDetails.value;
-                return found;
-            }
-
-            public bool TryGetValueLoose(string key, out TrieNode nodeResult, out string actualKey)
-            {
-                TraverseDetails traverseDetails = new TraverseDetails(key);
-                bool found = Traverse(traverseDetails);
-                nodeResult = traverseDetails.nodeResult;
-                actualKey = traverseDetails.actualKey;
-                return found;
-            }
-
-            public bool Traverse(TraverseDetails traverseDetails)
-            {
-                return TraverseRecursive(0, new StringBuilder(), traverseDetails);
-            }
-
-            // finds the key either loosely or exact match, ex: entryKey = oobar, searchKey = barf*oobar*foo
-            private bool TraverseRecursive(int currentIndex, StringBuilder keyBuilder, TraverseDetails td)
+        // finds the key either loosely or exact match, ex: entryKey = oobar, searchKey = barf*oobar*foo
+        public bool TraverseRecursive(int currentIndex, StringBuilder keyBuilder, TraverseDetails td)
             {
                 // keep checking until end of key, if true means there's more chars to check
-                if (currentIndex >= td.key.Length) return false;
+                if (currentIndex >= td.searchKey.Length) return false;
 
                 // to check if the child entered gave no result, therefore get out of the child and remove a prefix to keep looping
-                // ex. entry = runestone | copper, search = rock4_copper, entered r child, but returned false all the way, but with this bool, it will keep continuing
+                // ex. entry = runestone, and copper | search = rock4_copper, entered r child, but returned false when checking for o, but with this bool, it will exit out of r
                 bool enteredChild = true;
 
-                char currentChar = td.key[currentIndex];
+                char currentChar = td.searchKey[currentIndex];
                 keyBuilder.Append(currentChar); // add char to keybuilder (to build the actual key that's found)
                 // if currentNode's children does not have the specified char key, exit this method to backtrack and check the next char
                 // ex. entry in current node: rock , r doesn't exist, check o next time.
@@ -252,35 +301,30 @@ namespace WxAxW.PinAssistant.Utils
                 }
 
                 // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
-
-                if (IsNodeValid(nodeToCheck, td.key, currentIndex, td.exactMatchOnly))
+                if (IsNodeValid(nodeToCheck, td.searchKey, currentIndex, td.exactMatchOnly))
                 {
                     // node is valid, return results
                     td.value = nodeToCheck.m_value;
                     td.nodeResult = nodeToCheck;
                     td.actualKey = keyBuilder.ToString();
-                    td.conflicting = CheckChildrenValid(td.key, td.exactMatchOnly);
-                    if (td.deleteNode) Remove(currentChar);
+                    td.conflicting = CheckChildrenValid(td.searchKey, td.exactMatchOnly);
+                    if (td.deleteNode) Remove(currentChar, td);
                     return true;
                 }
-                bool foundValid = false;
-                for (int i = 0; i < 2; i++)
-                {
-                    // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
-                    foundValid = nodeToCheck.TraverseRecursive(currentIndex + 1, keyBuilder, td);
+                // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
+                bool foundValid = nodeToCheck.TraverseRecursive(currentIndex + 1, keyBuilder, td);
 
-                    // if this, traverse inside a child, get out and traverse in itself but with a different char index.
-                    if (foundValid) break; // if found a valid match, break out of loop to do delete check
-                    if (!enteredChild) break; // else if this, did not traverse inside a child (traversed itself) return false entirely
-                    // if (td.exactMatchOnly) return false; // not necessary because it's impossible to reach this point when exactmatch is true
-                    // else this, entered a child, therefore exit child and traverse itself but increment currentindex to check the next letter after that
+                if (enteredChild && !foundValid) // if the traverse child did not result a valid node, traverse parent node but check the next character
+                {
                     nodeToCheck = this;
-                    keyBuilder.Clear(); // clear keybuilder because current path
+                    foundValid = nodeToCheck.TraverseRecursive(currentIndex + 1, keyBuilder, td);
+                    keyBuilder.Clear(); // clear keybuilder because current path has changed
                 }
+
                 if (!foundValid) return false;
                 // found result
-                // if in delete mode, run remove child method, if reached a node with result, end of deletion
-                if (!td.endOfDelete && td.deleteNode && m_children[currentChar].Value == null) Remove(currentChar);
+                // if in delete mode, run remove child method, if reached a node with children, end of deletion
+                if (td.deleteNode && !td.endOfDeleteTraversal) Remove(currentChar, td);
                 return true;
             }
 
@@ -288,7 +332,7 @@ namespace WxAxW.PinAssistant.Utils
             {
                 if (nodeToCheck.m_value == null || // check if node is filled
                     ((nodeToCheck.m_nodeExactMatchOnly || exactMatchOnly) && index != key.Length - 1) || // found a close match, but can only be accessed through exact match
-                    (!string.IsNullOrEmpty(nodeToCheck.m_blackListWord) && key.IndexOf(nodeToCheck.BlackListWords) != -1) // if the found node has a blacklisted word that is not found in the main key
+                    (!string.IsNullOrEmpty(nodeToCheck.m_blackListWord) && key.IndexOf(nodeToCheck.BlackListWord) != -1) // if the found node has a blacklisted word that is not found in the main key
                    )
                 {
                     return false;
@@ -316,7 +360,7 @@ namespace WxAxW.PinAssistant.Utils
                     TrieNode currChildNode = descendants[i];
                     if (currChildNode.m_value == null ||  // check if node is filled
                         currChildNode.m_nodeExactMatchOnly) continue; // found a close match, but can only be accessed through exact match
-                    bool keyBlacklisted = !string.IsNullOrEmpty(currChildNode.m_blackListWord) && key.IndexOf(currChildNode.BlackListWords) != -1;
+                    bool keyBlacklisted = !string.IsNullOrEmpty(currChildNode.m_blackListWord) && key.IndexOf(currChildNode.BlackListWord) != -1;
                     if (keyBlacklisted) continue;
 
                     return true;
@@ -327,7 +371,7 @@ namespace WxAxW.PinAssistant.Utils
             // used solely for searching dictionary with loose key search
             public bool TryGetValueLooseRecursiveLite(string key, out TValue result, int currentIndex = 0)
             {
-                result = default(TValue);
+                result = default;
                 // keep checking until end of key, if true means there's more chars to check
                 if (currentIndex >= key.Length) return false;
 
@@ -351,89 +395,41 @@ namespace WxAxW.PinAssistant.Utils
                     return true;
                 }
 
-                bool foundValid = false;
-                for (int i = 0; i < 2; i++)
-                {
-                    // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
-                    foundValid = nodeToCheck.TryGetValueLooseRecursiveLite(key, out result, currentIndex + 1);
+                // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
+                bool foundValid = nodeToCheck.TryGetValueLooseRecursiveLite(key, out result, currentIndex + 1);
 
-                    // if this, traverse inside a child, get out and traverse in itself but with a different char index.
-                    if (foundValid) break; // if found a valid match, break out of loop to do delete check
-                    if (!enteredChild) break; // else if this, did not traverse inside a child (traversed itself) return false entirely
-                    // if (td.exactMatchOnly) return false; // not necessary because it's impossible to reach this point when exactmatch is true
-                    // else this, entered a child, therefore exit child and traverse itself but increment currentindex to check the next letter after that
+                if (enteredChild && !foundValid) // if the traverse child did not result a valid node, traverse parent node but check the next character
+                {
                     nodeToCheck = this;
+                    foundValid = nodeToCheck.TryGetValueLooseRecursiveLite(key, out result, currentIndex + 1);
                 }
 
-                if (!foundValid) return false;
-                return true;
+                return foundValid;
             }
 
-            /* old search method
-            // finds the key either loosely or exact match, ex: entryKey = oobar, searchKey = barf*oobar*foo
-            public bool TryGetValueLoose(string key, out TValue result, out TrieNode nodeResult, out string actualKey)
+            public void SetValues(TrieNode nodeToRetrieve)
             {
-                key = key.ToLower();
-                TrieNode currNode = this;
-                result = default(TValue);
-                nodeResult = default(TrieNode);
-                actualKey = default(string);
-                StringBuilder keyBuilder = new StringBuilder(key);
-                // 1. example dictionary entry key: "oobar"
-                for (int i = 0; i < key.Length; i++)
-                {
-                    bool noEarlyBreak = true;
-                    for (int j = i; j < key.Length; j++)
-                    {
-                        // 2. if exact search input: fooba, check word if found, check f, fail, if fail, set invalid stop the loop, check condition, reset validity and go to next char to search for a word starting with o, etc. etc. if loop ends properly, means valid, means there's a found match.
-                        if (!currNode.m_children.TryGetValue(key[j], out TrieNode child))
-                        { noEarlyBreak = false; break; }  // no match in this current prefix
-
-                        // found node
-                        currNode = child;
-
-                        // analyze node for conditions that might not work
-                        if (currNode.m_value == null || currNode.m_nodeExactMatchOnly // found a close match that's findable through loose search even though there's more char in the key
-                            || key.IndexOf(currNode.BlackListWords) != -1) continue; // continue if the found node has a blacklisted word that is found in the main key
-                        if (keyBuilder.Length > 1) keyBuilder.Remove(1, keyBuilder.Length - j - 1);
-                        break;
-                    }
-                    /* old condition setup (UGLI)
-                    if (exactMatch && !noEarlyBreak) return false; // 2. return false (end method) if exactMatch is true and it's not valid
-                    else if (!noEarlyBreak && currNode.result == null) currNode = this; // 2. reset to root if found key is null then check the next chars (ie. o o b a)
-                    else if (!noEarlyBreak && currNode.result != null && currNode.nodeExactMatchOnly) return false;
-                    else if (noEarlyBreak && i > 0 && currNode.nodeExactMatchOnly) return false;
-                    else if (noEarlyBreak) break; // 3. stop the loop if there's a valid loop match
-
-                    // what to do if invalid search (prematurely ended current prefix key search)
-                    if (!noEarlyBreak)
-                    {
-                        // removed cause alternate dictionary implemented to search for exact matches easily
-                        //if (exactMatch) return false;       // end entirely because exact match only has 1 chance and that 1 chance ended early = no existing key
-
-                        if (currNode == null                // since it's empty reset the current node to check the next char in the root node
-                         || currNode.m_nodeExactMatchOnly)    // happens when loop ended up in a node with a result that can only be searched through exact matching ex. entry is foo set to exactMatchOnly. searched 'foob' loose(exactMatch = false), key 'b' doesn't exist so end point is at o, but foo can only be searched when it's exact,
-                            currNode = this;                // therefore go to next loop and find oob ob b because search is set to loose
-                    }
-                    else // search is valid (completed the entire key search loop without encountering an empty node)
-                    {
-                        if (i > 0 && currNode.m_nodeExactMatchOnly)  // happens when you're not in the first iteration and you found a node that can only be found through exact matching
-                            return false;
-                        break;
-                    }
-                    keyBuilder.Remove(0, 1);
-                }
-
-                if (currNode.m_value == null) return false; // check if null, meaning invalid
-
-                // 4 since the test search is fooba the key found should be null since there's no entry key named 'ooba', the search entry must have oobar, could be foobar f oobar foo, etc.
-                result = currNode.m_value;
-                nodeResult = currNode;
-                actualKey = keyBuilder.ToString();
-
-                return true;
+                SetValues(nodeToRetrieve.Value, nodeToRetrieve.NodeExactMatchOnly, nodeToRetrieve.BlackListWord);
             }
-            */
+
+            public void SetValues(TraverseDetails td)
+            {
+                SetValues(td.value, td.exactMatchOnly, td.blackListedWord);
+            }
+
+            public void SetValues(TValue value, bool exactMatchOnly, string blackListedWord)
+            {
+                m_value = value;
+                m_nodeExactMatchOnly = exactMatchOnly;
+                m_blackListWord = blackListedWord;
+            }
+
+            private void ResetValues()
+            {
+                m_value = default;
+                m_nodeExactMatchOnly = false;
+                m_blackListWord = string.Empty;
+            }
         }
     }
 }

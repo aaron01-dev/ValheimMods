@@ -122,8 +122,8 @@ namespace WxAxW.PinAssistant.Configuration
 
         // Debug stuff
         [Text("Plugin Enabled")] PLUGIN_ENABLED,
-
         [Text("Plugin Destroyed")] PLUGIN_DISABLED,
+
         [Text("Mod Enabled")] MOD_ENABLED,
         [Text("Mod Disabled")] MOD_DISABLED,
         [Text("Scene changed to: {0}")] SCENE_CHANGE,

@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using BepInEx.Configuration;
+using Jotunn.Managers;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using WxAxW.PinAssistant.Configuration;
+using WxAxW.PinAssistant.Core;
 using WxAxW.PinAssistant.Utils;
 
 namespace WxAxW.PinAssistant.Components
@@ -15,8 +16,6 @@ namespace WxAxW.PinAssistant.Components
         public static FilterPinsUI Instance => m_instance;
         private bool m_showOnStartup;
 
-        public bool ShowOnStartup { get => m_showOnStartup; set => m_showOnStartup = value; }
-
 #pragma warning disable CS0649
         [SerializeField] private GameObject m_body;
         [SerializeField] private TMP_InputField m_inputPinNameFilter;
@@ -24,7 +23,11 @@ namespace WxAxW.PinAssistant.Components
         [SerializeField] private Button m_buttonReset;
 #pragma warning restore CS0649
 
-        private static IEnumerable<Minimap.PinData> m_listFilteredPins;
+        public bool ShowOnStartup { get => m_showOnStartup; set => m_showOnStartup = value; }
+        public GameObject Body { get => m_body; set => m_body = value; }
+        public TMP_InputField InputPinNameFilter { get => m_inputPinNameFilter; set => m_inputPinNameFilter = value; }
+        public Button ButtonFind { get => m_buttonFind; set => m_buttonFind = value; }
+        public Button ButtonReset { get => m_buttonReset; set => m_buttonReset = value; }
 
         public static void Init(AssetBundle assetBundle, bool showOnStartup)
         {
@@ -37,8 +40,7 @@ namespace WxAxW.PinAssistant.Components
 
         private void Awake()
         {
-            m_buttonFind.onClick.AddListener(OnButtonFind);
-            m_buttonReset.onClick.AddListener(ResetPins);
+
             ApplyStyle();
             m_body.SetActive(m_showOnStartup);
         }
@@ -51,20 +53,22 @@ namespace WxAxW.PinAssistant.Components
 
         private void OnDestroy()
         {
-            m_buttonFind.onClick.RemoveListener(OnButtonFind);
-            m_buttonReset.onClick.RemoveListener(ResetPins);
             m_instance = null;
         }
 
         private void OnEnable()
         {
+            ModConfig.Instance.IsSearchWindowEnabledConfig.SettingChanged += OnToggleSearchWindowStartup;
+            m_buttonFind.onClick.AddListener(OnButtonFind);
+            m_buttonReset.onClick.AddListener(OnButtonReset);
             m_body.SetActive(m_showOnStartup);
         }
 
         private void OnDisable()
         {
-            m_inputPinNameFilter.text = "";
-            ResetPins();
+            ModConfig.Instance.IsSearchWindowEnabledConfig.SettingChanged -= OnToggleSearchWindowStartup;
+            m_buttonFind.onClick.RemoveListener(OnButtonFind);
+            m_buttonReset.onClick.RemoveListener(OnButtonReset);
             m_body.SetActive(false);
         }
 
@@ -72,60 +76,31 @@ namespace WxAxW.PinAssistant.Components
         {
             Image m_panel = m_body.GetComponent<Image>();
             m_panel.color = Color.white;
-            TMPGUIManager.Instance.ApplyWoodpanel(m_panel);
+            GUIManager.Instance.ApplyWoodpanelStyle(m_panel.transform);
 
-            TMPGUIManager.Instance.ApplyInputFieldStyle(m_inputPinNameFilter, 16);
+            GUIManager.Instance.ApplyTMPInputFieldStyle(m_inputPinNameFilter, 16);
 
             foreach (Button button in new Button[] { m_buttonFind, m_buttonReset })
             {
-                TMPGUIManager.Instance.ApplyButtonStyle(button, 20);
+                GUIManager.Instance.ApplyTMPButtonStyle(button, 20);
             }
         }
 
         private void OnButtonFind()
         {
-            ResetPins();
-
             string pinToFind = m_inputPinNameFilter.text.ToLower();
-            // Define a regular expression pattern to match strings with double quotes at the front and back
-            string pattern = "^\".*\"$";
-
-            // Use Regex.IsMatch to check if the input matches the pattern
-            bool isExact = Regex.IsMatch(pinToFind, pattern) || string.IsNullOrEmpty(pinToFind);
-            if (isExact) pinToFind = pinToFind.Trim('"');
-
-            m_listFilteredPins = Minimap.instance.m_pins
-                .Where(pinData => !CompareSearch(pinData.m_name, pinToFind, isExact));
+            MinimapAssistant.Instance.SearchPins(pinToFind);
         }
 
-        private void ResetPins()
+        private void OnButtonReset()
         {
-            if (m_listFilteredPins == null) return;
-            FilterPins(renderPins: true);
-            m_listFilteredPins = null;
+            m_inputPinNameFilter.text = "";
+            MinimapAssistant.Instance.ResetFilteredPins();
         }
 
-        public void FilterPins()
+        private void OnToggleSearchWindowStartup(object sender, EventArgs eventArgs)
         {
-            if (m_listFilteredPins == null) return;
-            FilterPins(renderPins: false);
-        }
-
-        public void FilterPins(bool renderPins)
-        {
-            foreach (var pin in m_listFilteredPins)
-            {
-                pin.m_NamePinData?.PinNameGameObject?.SetActive(renderPins);
-                pin.m_uiElement?.gameObject.SetActive(renderPins);
-            }
-        }
-
-        private bool CompareSearch(string foundPin, string query, bool isExact)
-        {
-            foundPin = foundPin.ToLower();
-            if (isExact) return foundPin.Equals(query);
-
-            return foundPin.IndexOf(query) != -1;
+            ShowOnStartup = ((ConfigEntry<bool>)sender).Value;
         }
     }
 }

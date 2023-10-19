@@ -14,7 +14,7 @@ Tailored for both casual and technical players who wants to modify their pins to
 
 ## Customizable Pinning
 Use your Pin Assistant for your specific needs. 
-Customize the entry to how you want the pin to appear, a boss icon? a fire? is the pin crossed off? To easily determine which is which so you won't have a hard time figuring out what pin are you exactly looking at.
+Customize the entry to how you want the pin to appear, a boss icon? a fire? is the pin crossed off? or maybe even its colors! To easily determine which is which so you won't have a hard time figuring out what pin are you exactly looking at.
 
 ## Customizable Behavior
 Customize your entries to choose what it wants. Only search a specific object, pin multiple objects on just one entry, delete on pins associated with entry on log out, and many more!
@@ -30,7 +30,7 @@ A Valheim style UI for you to easily manage your tracked objects
 ### Auto Pinning
 Too lazy to create pins by yourself? No problem! Just create an entry for an object and this mod will do everything for you.
 
-### Manual Mode/Fast Pin
+### Manual Mode/Quick Pin
 Don't like the auto pin feature? That's ok! You can disable it and use the 'Pin Object' keybind. Although, be sure to track the object first before you can use the pin key!
 
 ### ID Filter
@@ -50,6 +50,9 @@ If you think your pin might clutter cause the objects are grouped together, you 
 
 ### Searchable Pins
 Overcrowded map? Want to find specific pin/s? Just head over to your map and look to the top left and search away, use double quotes to search for a pin name with your exact search. Search window is too obstructive? Just press 'Tab' to hide it!
+
+### Colored Pins
+Hard to read the many pins you see? With this mod's tracking system you can change the pins you have into different colors! Due to limitations the pins colors are based on their Pin Names
 
 ### Shareable Entries!
 If you have Configuration Manager Installed you can open up the menu, copy the very last field in this mod's section and send that entire text to your friend and press the reload key. Both you and your friend has the same entries you have!. Although, it won't copy the pins you've already made.
@@ -73,6 +76,12 @@ Let's say you want to track Copper deposits,
 - go to the Blacklist field and type 'stone', with this, objects that has the name MineRock will be pinned but if it has Stone in their name, it will be excluded.
 
 - if you want the naming conventions for all those objects to not be the same name, then you have to have a different entry for each of them, but if you're too lazy, just wait for the object you want to appear, press the GUI Key while looking at it and press track or enter!
+
+If you want to look for a pin in your map
+- just head over to the map.
+- check the top left
+- type the pin's name (you can enclose it with double quotes, "pin name", to search for pins with the exact entry.
+- and then search!
 
 ## Installation (manual)
 Same as any other mods I assume, extract contents to Bepinex's Plugins folder

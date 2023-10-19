@@ -16,5 +16,14 @@ namespace WxAxW.PinAssistant.Utils
             if (ModConfig.Instance.IsDebugModeConfig.Value) Jotunn.Logger.LogInfo(message);
             return message;
         }
+
+        public static void Warning(object message)
+        {
+            Jotunn.Logger.LogWarning(message);
+        }
+        public static void Error(object message)
+        {
+            Jotunn.Logger.LogError(message);
+        }
     }
 }

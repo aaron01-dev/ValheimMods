@@ -1,7 +1,7 @@
 {
   "name": "PinAssistant",
-  "description": "An assistant to pin the objects you'd like to see on the map either quickly or automatically!",
-  "version_number": "1.2.2",
+  "description": "NOW WITH COLORED PINS! An assistant for pinning objects easily or automatically, searching pins, and changing colors of your pins!",
+  "version_number": "1.3.0",
   "website_url": "https://github.com/aaron-yang0327-development/ValheimMods/blob/main/PinAssistant",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2200",

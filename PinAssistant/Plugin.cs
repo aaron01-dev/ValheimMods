@@ -12,7 +12,9 @@ using UnityEngine.SceneManagement;
 using WxAxW.PinAssistant.Components;
 using WxAxW.PinAssistant.Configuration;
 using WxAxW.PinAssistant.Core;
+using WxAxW.PinAssistant.Patches;
 using WxAxW.PinAssistant.Utils;
+using Component = WxAxW.PinAssistant.Core.Component;
 using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant
@@ -23,7 +25,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.2.2";
+        public const string PluginVersion = "1.3.0";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -40,26 +42,38 @@ namespace WxAxW.PinAssistant
         public static Plugin Instance => m_instance;
 
         private AssetBundle m_assetBundle;
+        public Action OnFinishedInit;
+        private List<Component> pluginComponents;
 
         private void Awake()
         {
             if (m_instance == null) m_instance = this;
-            harmony.PatchAll();
+
             // To learn more about Jotunn's features, go to
             // https://valheim-modding.github.io/Jotunn/tutorials/overview.html
-            ModConfig.Instance.Init(Config);
+            ModConfig.Init(Config);
 
             m_assetBundle = AssetUtils.LoadAssetBundleFromResources("pin_assistant");
             ModConfig.Instance.IsEnabledConfig.SettingChanged += OnTogglePluginConfig;    // add permanent listener to mod toggle
             SceneManager.sceneLoaded += OnSceneChange;  // subscribe regardless if in main menu or in game or whatever
-            SceneManager.sceneLoaded += TMPGUIManager.Instance.Init;
+            SceneManager.sceneLoaded += GUIManager.Instance.InitialTMPLoad;
 
             // initialize ui after event loads
             GUIManager.OnCustomGUIAvailable += LoadTrackObjectUI;
             MinimapManager.OnVanillaMapAvailable += LoadMinimapFilterUI;
 
-            CheckScene();   // check current scene
-            ModToggle();
+            pluginComponents = new List<Component>()
+            {
+                TrackingAssistant.Instance,
+                MinimapAssistant.Instance
+            };
+
+            foreach (Component comp in pluginComponents)
+            {
+                comp.Start();
+            }
+
+            PatchAll();
             Debug.Log(TextType.PLUGIN_ENABLED);
         }
 
@@ -67,27 +81,31 @@ namespace WxAxW.PinAssistant
         {
             if (ModConfig.Instance.TrackLookedObjectConfig.Value.IsDown())
             {
-                GameObject obj = PinAssistantScript.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value);
+                GameObject obj = TrackingAssistant.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value);
                 TrackObjectUI.Instance?.SetupTrackObject(obj);
             }
 
             if (ModConfig.Instance.PinLookedObjectConfig.Value.IsDown())
-                PinAssistantScript.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
+                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
 
             if (ModConfig.Instance.ReloadTrackedObjectsConfig.Value.IsDown())
                 //AutoPinning.Instance.TrackLookedObjectToAutoPin(ModConfig.Instance.LookDistanceConfig.Value);
-                PinAssistantScript.Instance.DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);
+                TrackingAssistant.Instance.DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);
         }
 
         private void OnDestroy()
         {
             harmony.UnpatchSelf();
             // unsubscribe loose listeners
-            ModConfig.Instance.IsEnabledConfig.SettingChanged -= OnTogglePluginConfig;    // add permanent listener to mod toggle
+            ModConfig.Instance.IsEnabledConfig.SettingChanged -= OnTogglePluginConfig;
             SceneManager.sceneLoaded -= OnSceneChange;  // subscribe regardless if in main menu or in game or whatever
-            SceneManager.sceneLoaded -= TMPGUIManager.Instance.Init;
             GUIManager.OnCustomGUIAvailable -= LoadTrackObjectUI;
             MinimapManager.OnVanillaMapAvailable -= LoadMinimapFilterUI;
+            
+            foreach(Component comp in pluginComponents)
+            {
+                comp.Destroy();
+            }
             Debug.Log(TextType.PLUGIN_DISABLED);
         }
 
@@ -95,8 +113,17 @@ namespace WxAxW.PinAssistant
         {
             while (true)
             {
-                PinAssistantScript.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
+                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
                 yield return new WaitForSeconds(ModConfig.Instance.TickRateConfig.Value);
+            }
+        }
+        private void PatchAll()
+        {
+            harmony.PatchAll(typeof(MinimapPatches));
+            if (ModExists("Pinnacle"))
+            {
+                Debug.Log("Pinnacle exists patching mod for compatibility");
+                harmony.PatchAll(typeof(PinnaclePatches));
             }
         }
 
@@ -110,22 +137,15 @@ namespace WxAxW.PinAssistant
         private void OnEnable()
         {
             Debug.Log(TextType.MOD_ENABLED);
-            List<Type> registeredTypes = new List<Type>();
-            // add types
-            foreach (var kvp in ModConfig.Instance.TypeDictionary)
-            {
-                // check if type is allowed to be found
-                if (kvp.Key.Value) registeredTypes.Add(kvp.Value);
-            }
-            PinAssistantScript.Init(ModConfig.Instance.TrackedObjectsConfig.Value, registeredTypes); // initialize pinassistant with saved tracked objects and registered types
-            PinAssistantScript.Instance.ModifiedTrackedObjects += OnNewTrackedObject;
+
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = true;
             if (FilterPinsUI.Instance != null) FilterPinsUI.Instance.enabled = true;
+
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged += OnToggleAutoPinningConfig;
-            ModConfig.Instance.IsSearchWindowEnabledConfig.SettingChanged += OnToggleSearchWindowStartup;
-            foreach (ConfigEntry<bool> entry in ModConfig.Instance.TypeDictionary.Keys)
+
+            foreach (Component comp in pluginComponents)
             {
-                entry.SettingChanged += OnToggleTypeConfig;
+                comp.enabled = true;
             }
             ToggleAutoPinning();
         }
@@ -133,15 +153,14 @@ namespace WxAxW.PinAssistant
         private void OnDisable()
         {
             Debug.Log(TextType.MOD_DISABLED);
-            PinAssistantScript.Instance?.Destroy();
+            foreach (Component comp in pluginComponents)
+            {
+                comp.enabled = false;
+            }
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = false;
             if (FilterPinsUI.Instance != null) FilterPinsUI.Instance.enabled = false;
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged -= OnToggleAutoPinningConfig;
-            ModConfig.Instance.IsSearchWindowEnabledConfig.SettingChanged -= OnToggleSearchWindowStartup;
-            foreach (ConfigEntry<bool> entry in ModConfig.Instance.TypeDictionary.Keys)
-            {
-                entry.SettingChanged -= OnToggleTypeConfig;
-            }
+
             ToggleAutoPinning();
         }
 
@@ -196,26 +215,17 @@ namespace WxAxW.PinAssistant
             ToggleAutoPinning();
         }
 
-        private void OnToggleSearchWindowStartup(object sender, EventArgs e)
+        private bool ModExists(string assemblyName)
         {
-            if (FilterPinsUI.Instance == null) return;
-            FilterPinsUI.Instance.ShowOnStartup = ((ConfigEntry<bool>)sender).Value;
-        }
-
-        private void OnNewTrackedObject()
-        {
-            // updates config with new tracked objects;
-            string newTrackedObjects = PinAssistantScript.Instance.SerializeTrackedObjects();
-            ModConfig.Instance.TrackedObjectsConfig.Value = newTrackedObjects;
-        }
-
-        private void OnToggleTypeConfig(object sender, EventArgs _)
-        {
-            ConfigEntry<bool> currTypeConfig = (ConfigEntry<bool>)sender;
-            Type currType = ModConfig.Instance.TypeDictionary[currTypeConfig];
-            bool value = currTypeConfig.Value;
-            if (value) PinAssistantScript.Instance.AddType(currType);
-            else PinAssistantScript.Instance.RemoveType(currType);
+            try
+            {
+                System.Reflection.Assembly.Load(assemblyName);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ v1.0.1
 
 <details>
 <summary><b>
-v1.1.0 Trackable Types
+v1.1.0 Trackable Types Update
 <b></summary>
 
 - New
@@ -101,4 +101,62 @@ v1.2.2 Valheim v0.217.22 Compatibility Update
 	- Fixed UI bug due to latest Valheim update. (disappeared buttons and an error on main menu load)
 	- Fixed a logical error existing since initial release. When modifying an object's ID (modifying a tracked object's ID to an existing ID it will work having 2 entries with identical IDs bugging out of the entry (the latest).
 
+</details>
+
+<details>
+<summary><b>
+v1.3.0 Colored Pins Update!
+<b></summary>
+
+- New
+	- Colored Pins! 
+		- New option over at the Track Object UI right beside the pin icon. 
+		- You can also change its transparency. 
+		- Sadly, due to limitations, the pins are colored based on their pin names.
+	
+
+- Changed
+	- Changed UI Panels to actually fit with the Game's UI's dynamic panel colors that changes depending on the environment.
+
+- Fixes
+	- Fixed bug when modifying current tracked object with an existing ID the currently editting object is deleted instead of just sending an error.
+- <details>
+	<summary><b>
+	Backend
+	<b></summary>
+	
+	- A lot of backend changes as I've learned to do stuff differently and so it can be update friendly.
+	- Added compatibility for Pinnacle's edit feature with colored pins when editting the name.
+	- Plugin
+		- Created initialization order convention to better manage enabling or disabling and disposing plugin and maybe to have some use for it in the future.
+		- In the past I tried to decouple my classes as much as possible but all it led to was somewhat messy coding in Plugin.cs. I figured that I shouldn't just let Plugin.cs be dependent on ModConfig instance so I moved a lot of things away from it to their respective relating classes. 
+			- Transferred saving system call to Tracking Assistant instead of having to listen to an event by TrackingAssistant from Plugin.
+			- Transferred TrackingAssistant initialization parameters from Plugin to just be managed by TrackingAssistant itself.
+			- Transferred config change events to their respective classes like, is filter window open on startup, and type tracking enabled change.
+	- TrackingAssistant (PinAssistantScript)
+		- Changed to TrackingAssistant
+		- Changed Serialization and Deserialization handling.
+		- Changed the way modify implies, instead of changing the values of the class, completely replace it with a new class to work well with the new colored pin codes.
+	- TrackObjectUI
+		- Moved modify logic to TrackingAssistant and just read return value to determine what messages to show.
+		- Changed the way modify implies (see tracking assistant)
+	- TrackedObject
+		- Added helper methods to retrieve pin type by int
+	- FilterPinsUI
+		- Exposed UI Members
+		- Moved Filter logic to MinimapAssistant
+	- LooseDictionary
+		- Refactored Traverse method to not be in TrieNode but in the LD class.
+		- Added Change key method to help with the new colored pin feature
+	- GUIMangerExtension (TMPGUIManager)
+		- used extension (just learned of this) instead of creating an entirely new class with almost the same codes
+		- fixed a situation where the extension will keep on initializing everytime you load the main menu.
+	- Mod Config
+		- Followed initialization convention.
+	- MinimapPatches
+		- Changed events from delegates to Action
+	- Unity
+		- Used Assembly Definitions so that I don't have to replace a new version of the assembly everytime the ui variables changes
+	- May have missed some other refactorings and missed on potential refactoring as I've done way too much to remember all of them and I didn't document the changes until the last few days >.>
+	</details>
 </details>

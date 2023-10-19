@@ -10,7 +10,7 @@ namespace WxAxW.PinAssistant.Configuration
     {
         private ConfigFile Config;
         private static ModConfig m_instance;
-        public static ModConfig Instance => m_instance ?? (m_instance = new ModConfig());
+        public static ModConfig Instance => m_instance;
 
         #region config vars
 
@@ -65,7 +65,15 @@ namespace WxAxW.PinAssistant.Configuration
 
         #endregion config vars
 
-        internal void Init(ConfigFile configFile)
+        internal static void Init(ConfigFile configFile)
+        {
+            if (m_instance != null) return;
+            m_instance = new ModConfig();
+
+            m_instance.SetupValues(configFile);
+        }
+
+        private void SetupValues(ConfigFile configFile)
         {
             Config = configFile;
 
