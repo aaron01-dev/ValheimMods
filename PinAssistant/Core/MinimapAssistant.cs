@@ -15,17 +15,27 @@ namespace WxAxW.PinAssistant.Core
         {
             private readonly List<Minimap.PinData> m_pins = new List<Minimap.PinData>();
             private Color m_pinColor;
-            public Color PinColor { get => m_pinColor; set => m_pinColor = value; }
-
+            private Color m_pinColorShared;
+            public Color PinColor
+            {
+                get => m_pinColor;
+                set
+                {
+                    m_pinColor = value;
+                    m_pinColorShared = new Color(value.r * 0.7f, value.g * 0.7f, value.b * 0.7f, value.a * 0.8f);
+                }
+            }
             public PinExpand(Color pinColor)
             {
-                m_pinColor = pinColor;
+                PinColor = pinColor;
             }
+
 
             public void ApplyColor()
             {
                 if (m_pinColor == Color.white) return;
-                Color pinFadeColor = m_pinColor * 0.8f;
+                Color pinFadeColor = m_pinColorShared;
+                pinFadeColor.a *= Minimap.instance.m_sharedMapDataFade;
                 foreach (var pin in m_pins)
                 {
                     Image currPinIcon = pin.m_iconElement;
@@ -159,14 +169,14 @@ namespace WxAxW.PinAssistant.Core
         {
             if (!m_pins.TryGetValue(key, out PinExpand pinExpand))
             {
-                Debug.Log($"Added Pin Expand for {key}");
+                Debug.Log($"Created colored pin group for {key}");
                 m_pins.Add(key, new PinExpand(pinColor));
                 return true;
             }
-            Debug.Log($"Pin Expand named, {key} exists.");
+            Debug.Log($"Colored pin group named, '{key}' exists, won't create it");
             if (force)
             {
-                Debug.Log("Changing color only.");
+                Debug.Log("Changing the color only instead.");
                 pinExpand.PinColor = pinColor;
                 return true;
             }

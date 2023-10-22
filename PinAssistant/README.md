@@ -85,6 +85,23 @@ If you want to look for a pin in your map
 
 ## Installation (manual)
 Same as any other mods I assume, extract contents to Bepinex's Plugins folder
+More detail:
+- PinAssistant	
+	- Download by clicking Manual		- contents are plugins folder, and some other files.
+	- place it all in BepInEx's plugins folder in a new folder which you can name by yourself like "Pin Assistant"
+	- done
+- Json.Net
+	- Download by clicking Manual
+	- content is a single folder named "plugins" just merge it with your BepInEx's folder.
+	- done
+- Jotunn
+	- Download by clicking Manual
+	- content is a folder named "Jotunn", just place it inside your BepInEx's plugins folder.
+	- done
+- Config Manager
+	- Download by clicking Manual
+	- content is a single dll file called ConfigurationManager, just place it inside your BepInEx's plugin folder or create a new folder in "plugins" folder, named like "ConfigManager" and place it there. (BepInEx > plugins > [newFolder] > ConfigurationManager.dll
+	- done
 
 # Dev Introduction
 My first ever game mod that involves coding, I made this mod as an automatic pinning feature like [Locator](https://valheim.thunderstore.io/package/purpledxd/Locator/), but after at the release, I thought, "hey this plugin doesn't seem like Auto Pin is the only main feature. Because you can also use the Tracked Object as an object configuration to pin objects easily by pressing a keybind without having to change the icon and naming it and such, so I named it from Auto Pin to Pin Assistant just before release.
@@ -101,9 +118,6 @@ Also, thank you to the mod developers who helped me setup to start on this proje
 # Technical
 ## Have a suggestion?
 You can contact me on Discord, 'WxAaRoNxW', make a post on [Nexus](https://www.nexusmods.com/valheim/mods/2531) or add a 'New Issue' on [Github](https://github.com/aaron-yang0327-development/ValheimMods/issues).
-
-## Changelog
-Click [here](https://github.com/aaron-yang0327-development/ValheimMods/blob/main/PinAssistant/CHANGELOG.md)
 
 ## Known issues
 - you tell me!

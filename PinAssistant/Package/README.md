@@ -14,7 +14,7 @@ Tailored for both casual and technical players who wants to modify their pins to
 
 ## Customizable Pinning
 Use your Pin Assistant for your specific needs. 
-Customize the entry to how you want the pin to appear, a boss icon? a fire? is the pin crossed off? To easily determine which is which so you won't have a hard time figuring out what pin are you exactly looking at.
+Customize the entry to how you want the pin to appear, a boss icon? a fire? is the pin crossed off? or maybe even its colors! To easily determine which is which so you won't have a hard time figuring out what pin are you exactly looking at.
 
 ## Customizable Behavior
 Customize your entries to choose what it wants. Only search a specific object, pin multiple objects on just one entry, delete on pins associated with entry on log out, and many more!
@@ -30,7 +30,7 @@ A Valheim style UI for you to easily manage your tracked objects
 ### Auto Pinning
 Too lazy to create pins by yourself? No problem! Just create an entry for an object and this mod will do everything for you.
 
-### Manual Mode/Fast Pin
+### Manual Mode/Quick Pin
 Don't like the auto pin feature? That's ok! You can disable it and use the 'Pin Object' keybind. Although, be sure to track the object first before you can use the pin key!
 
 ### ID Filter
@@ -50,6 +50,9 @@ If you think your pin might clutter cause the objects are grouped together, you 
 
 ### Searchable Pins
 Overcrowded map? Want to find specific pin/s? Just head over to your map and look to the top left and search away, use double quotes to search for a pin name with your exact search. Search window is too obstructive? Just press 'Tab' to hide it!
+
+### Colored Pins
+Hard to read the many pins you see? With this mod's tracking system you can change the pins you have into different colors! Due to limitations the pins colors are based on their Pin Names
 
 ### Shareable Entries!
 If you have Configuration Manager Installed you can open up the menu, copy the very last field in this mod's section and send that entire text to your friend and press the reload key. Both you and your friend has the same entries you have!. Although, it won't copy the pins you've already made.
@@ -74,8 +77,31 @@ Let's say you want to track Copper deposits,
 
 - if you want the naming conventions for all those objects to not be the same name, then you have to have a different entry for each of them, but if you're too lazy, just wait for the object you want to appear, press the GUI Key while looking at it and press track or enter!
 
+If you want to look for a pin in your map
+- just head over to the map.
+- check the top left
+- type the pin's name (you can enclose it with double quotes, "pin name", to search for pins with the exact entry.
+- and then search!
+
 ## Installation (manual)
 Same as any other mods I assume, extract contents to Bepinex's Plugins folder
+More detail:
+- PinAssistant	
+	- Download by clicking Manual		- contents are plugins folder, and some other files.
+	- place it all in BepInEx's plugins folder in a new folder which you can name by yourself like "Pin Assistant"
+	- done
+- Json.Net
+	- Download by clicking Manual
+	- content is a single folder named "plugins" just merge it with your BepInEx's folder.
+	- done
+- Jotunn
+	- Download by clicking Manual
+	- content is a folder named "Jotunn", just place it inside your BepInEx's plugins folder.
+	- done
+- Config Manager
+	- Download by clicking Manual
+	- content is a single dll file called ConfigurationManager, just place it inside your BepInEx's plugin folder or create a new folder in "plugins" folder, named like "ConfigManager" and place it there. (BepInEx > plugins > [newFolder] > ConfigurationManager.dll
+	- done
 
 # Dev Introduction
 My first ever game mod that involves coding, I made this mod as an automatic pinning feature like [Locator](https://valheim.thunderstore.io/package/purpledxd/Locator/), but after at the release, I thought, "hey this plugin doesn't seem like Auto Pin is the only main feature. Because you can also use the Tracked Object as an object configuration to pin objects easily by pressing a keybind without having to change the icon and naming it and such, so I named it from Auto Pin to Pin Assistant just before release.
@@ -92,9 +118,6 @@ Also, thank you to the mod developers who helped me setup to start on this proje
 # Technical
 ## Have a suggestion?
 You can contact me on Discord, 'WxAaRoNxW', make a post on [Nexus](https://www.nexusmods.com/valheim/mods/2531) or add a 'New Issue' on [Github](https://github.com/aaron-yang0327-development/ValheimMods/issues).
-
-## Changelog
-Click [here](https://github.com/aaron-yang0327-development/ValheimMods/blob/main/PinAssistant/CHANGELOG.md)
 
 ## Known issues
 - you tell me!

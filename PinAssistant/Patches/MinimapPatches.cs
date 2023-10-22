@@ -66,7 +66,7 @@ namespace WxAxW.PinAssistant.Patches
         {
             if (!__runOriginal) return;
 
-            Jotunn.Logger.LogWarning("new pin added");
+            Debug.Log("New manual pin added");
             OnPinSetup?.Invoke(__instance.m_namePin);
         }
 
@@ -75,7 +75,7 @@ namespace WxAxW.PinAssistant.Patches
         private static void PrefixHidePinTextInput(Minimap __instance)
         {
             if (__instance.m_namePin == null) return;
-            Jotunn.Logger.LogWarning("edditing pin");
+            Debug.Log("New manual pin editted");
             OnPinNameChanged?.Invoke();
         }
 

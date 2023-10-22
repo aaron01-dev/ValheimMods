@@ -61,12 +61,14 @@ if($Target.Equals("Release")) {
     Write-Host "Packaging for ThunderStore..."
     $Package="Package"
     $PackagePath="$ProjectPath\$Package"
+    $BuildPath="$ProjectPath\Builds"
 
     Write-Host "$PackagePath\$TargetAssembly"
     New-Item -Type Directory -Path "$PackagePath\plugins" -Force
     Copy-Item -Path "$TargetPath\$TargetAssembly" -Destination "$PackagePath\plugins\$TargetAssembly" -Force
     Copy-Item -Path "$ProjectPath\README.md" -Destination "$PackagePath\README.md" -Force
-    Compress-Archive -Path "$PackagePath\*" -DestinationPath "$TargetPath\$name.zip" -Force
+    Copy-Item -Path "$ProjectPath\CHANGELOG.md" -Destination "$PackagePath\CHANGELOG.md" -Force
+    Compress-Archive -Path "$PackagePath\*" -DestinationPath "$BuildPath\$name.zip" -Force
 }
 
 # Pop Location

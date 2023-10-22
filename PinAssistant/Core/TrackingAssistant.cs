@@ -311,7 +311,7 @@ namespace WxAxW.PinAssistant.Core
         {
             Debug.Log("Serializing tracked objects");
             string json = JsonConvert.SerializeObject(
-                m_trackedObjects, Formatting.Indented,
+                m_trackedObjects,
                 new JsonSerializerSettings() {
                     FloatParseHandling = FloatParseHandling.Decimal,        // to prevent crashing when parsing colors which has more than 2 decimal places
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore,   // to prevent exception when serializing color to prevent serializing reference loop like static colors
@@ -333,7 +333,8 @@ namespace WxAxW.PinAssistant.Core
                 {
                     LooseDictionary<TrackedObject> deserializedObject = JsonConvert.DeserializeObject<LooseDictionary<TrackedObject>>(
                         serializedObject,
-                        new JsonSerializerSettings(){
+                        new JsonSerializerSettings()
+                        {
                             ObjectCreationHandling = ObjectCreationHandling.Replace // to trigger setters to avoid making a code to initialize deserialized objects
                         });
 
@@ -349,8 +350,8 @@ namespace WxAxW.PinAssistant.Core
                 }
                 catch (JsonException e)
                 {
-                    Debug.Log(e);
-                    message = TextType.TRACKED_OBJECTS_INVALID;
+                    Debug.Error(e);
+                    message = (TextType.TRACKED_OBJECTS_INVALID);
                 }
             }
             Debug.Log(message);
@@ -359,7 +360,6 @@ namespace WxAxW.PinAssistant.Core
 
         private void OnPinAdd(Minimap.PinData pinData)
         {
-            /*
             Debug.Log(TextType.PIN_ADDING, "OnPinAdd", pinData.m_name, pinData.m_pos);
             if (pinData.m_pos == Vector3.zero)
             {
@@ -371,7 +371,6 @@ namespace WxAxW.PinAssistant.Core
                 Debug.Log(TextType.PIN_ADDING_EXISTS);
                 return;
             }
-            */
             Debug.Log(TextType.PIN_ADDED);
             m_pins.Add(pinData.m_pos, pinData);
         }
