@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant.Core
 {
@@ -16,11 +15,16 @@ namespace WxAxW.PinAssistant.Core
             public float b = 1f;
             public float a = 1f;
 
-            public SerializableColor() { }
-            public SerializableColor(Color color) {
+            public SerializableColor()
+            { }
+
+            public SerializableColor(Color color)
+            {
                 SetWithColor(color);
             }
-            public SerializableColor(float r, float g, float b, float a) {
+
+            public SerializableColor(float r, float g, float b, float a)
+            {
                 this.r = r;
                 this.g = g;
                 this.b = b;
@@ -69,8 +73,10 @@ namespace WxAxW.PinAssistant.Core
         public string Name { get => m_name; set => m_name = value; }
         public string BlackListWords { get => m_blackListWords; set => m_blackListWords = value; }
         public Minimap.PinType Icon { get => m_icon; set => m_icon = value; }
+
         [JsonIgnore]
         public Color PinColor { get => m_pinColor; set => m_pinColor = value; }
+
         public bool Save { get => m_save; set => m_save = value; }
         public bool IsChecked { get => m_isChecked; set => m_isChecked = value; }
         public bool IsExactMatchOnly { get => m_isExactMatchOnly; set => m_isExactMatchOnly = value; }
@@ -109,7 +115,7 @@ namespace WxAxW.PinAssistant.Core
             int actualPinType = (int)this.Icon;
 
             if (actualPinType >= (int)Minimap.PinType.None)
-                return actualPinType -1;
+                return actualPinType - 1;
             else return actualPinType;
         }
 

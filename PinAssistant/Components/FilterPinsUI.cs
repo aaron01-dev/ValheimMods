@@ -40,7 +40,6 @@ namespace WxAxW.PinAssistant.Components
 
         private void Awake()
         {
-
             ApplyStyle();
             m_body.SetActive(m_showOnStartup);
         }

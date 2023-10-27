@@ -2,8 +2,46 @@
 
 <details>
 <summary><b>
+v1.4.0 TRACK <u>ALL</u> THE THINGS
+</b></summary>
+
+- New
+	- Almost everything can now be trackable. 
+		- (Couldn't do 'all' cause it will mess up detections of other objects.)
+		- Do not attempt to track a boulder that has been struck with a pickaxe, it will not identify it correctly. Track an unstruck one instead.
+			- Will notify if it's invalid or not.
+- Removed
+	- Tracking Type options.
+		- Refactored to be extremely less performance impacting compared to the original one (more details in backend).
+		- Now almost everything is pinnable.
+		- Might have some flaws but I checked and objects of interest should work correctly, did not test on uncommon or unnecessary objects (like a wood pole or something).
+- Fixes
+	- Fixed when opening and closing the color wheel while the "Exact ID Match" is toggled on, ObjectID will stay as uninteractable instead of being interactable.
+	- Fixed error spam when a raid event ended.
+	- Fixed a logical error where even if an id is set to exact match only, it can still be found with an almost similar id.
+		- "Pickable_Mushroom(Clone)" can be found with "Pickable_Mushroom_Magecap(Clone)"
+- <details>
+	<summary><b>
+	Backend
+	</b></summary>
+	
+	- TrackingAssistant
+		- Refactored LookAt to not use GetComponentInParent, but instead get root parent and retrieve name.
+			- This will significantly increase performance as it wouldn't continuously call "GetComponentInParent" multiple times for each type, every x second per tick
+			- Will show invalid target if it's a boulder struck with a pickaxe.
+	- MinimapPatches
+		- Refactored patching exclusion of special pins from MinimapAssistant to clean up Transpilers (This way is just so much better, I don't know why I didn't thought of this).
+	- CHANGELOG.md
+		- everything was bold, fixed that now, (was hard to see in visual studio preview, only noticed after the last update where I showed the changelog on thunderstore).
+	- Used CodeMiad to clean up entire project.
+	</details>
+
+</details>
+
+<details>
+<summary><b>
 v1.3.1 Hotfix
-<b></summary>
+</b></summary>
 
 - Changes
 	- CHANGELOG.md
@@ -16,7 +54,7 @@ v1.3.1 Hotfix
 - <details>
 	<summary><b>
 	Backend
-	<b></summary>
+	</b></summary>
 	
 	- TrackingAssistant
 		- Removed indent formatting for saving tracked object data.
@@ -34,7 +72,7 @@ v1.3.1 Hotfix
 <details>
 <summary><b>
 v1.3.0 Colored Pins Update!
-<b></summary>
+</b></summary>
 
 - New
 	- Colored Pins! 
@@ -51,7 +89,7 @@ v1.3.0 Colored Pins Update!
 - <details>
 	<summary><b>
 	Backend
-	<b></summary>
+	</b></summary>
 	
 	- A lot of backend changes as I've learned to do stuff differently and so it can be update friendly.
 	- Added compatibility for Pinnacle's edit feature with colored pins when editting the name.
@@ -92,14 +130,14 @@ v1.3.0 Colored Pins Update!
 <details>
 <summary><b>
 v1.2.2 Valheim v0.217.22 Compatibility Update
-<b></summary>
+</b></summary>
 
 - Changes
 	- Slightly changed tracking UI.
 	- <details>
 		<summary><b>
 		Backend
-		<b></summary>
+		</b></summary>
 
 		- Updated dependency to latest Jotunn 2.14.3 and BepInEx 5.4.2200.
 		</details>
@@ -112,14 +150,14 @@ v1.2.2 Valheim v0.217.22 Compatibility Update
 <details>
 <summary><b>
 v1.2.1
-<b></summary>
+</b></summary>
 
 - Changes
 	- Organized CHANGELOG.md.
 	- <details>
 		<summary><b>
 		Backend
-		<b></summary>
+		</b></summary>
 
 		- Similar to Plugin.cs and FilterPinsUI.cs, refactored TrackObjectUI.cs to use OnDisable when mod is turned off or UI is inactive to not process stuff on every frame.
 		</details>
@@ -131,7 +169,7 @@ v1.2.1
 <details>
 <summary><b>
 v1.2.0 Search Update
-<b></summary>
+</b></summary>
 
 - New
 	- Added the ability to search Pins on the map for situations when your map is too crowded with Pins.
@@ -144,7 +182,7 @@ v1.2.0 Search Update
 	- <details>
 		<summary><b>
 		Backend
-		<b></summary>
+		</b></summary>
 
 		- Plugin.cs 					- refactored to use MonoBehavior OnEnable/Disable (forgot this exists and can be used similarly to my situation).
 			- added unsubscription to some missed events on OnDestroy (not really important since plugins don't get destroyed).
@@ -159,17 +197,17 @@ v1.2.0 Search Update
 <details>
 <summary><b>
 v1.1.0 Trackable Types Update
-<b></summary>
+</b></summary>
 
 - New
 	- Option to choose what types of objects you'd like to look for to increase performance (albeit negligible).
 		- Hover each type in the config manager to figure out which do you want to be detectable.
 - Changes
 	- Separated changelog to CHANGELOG.md.
-	- <details open>
+	- <details>
 		<summary><b>
 		Backend
-		<b></summary>
+		</b></summary>
 
 		- Added Dictionary class version for whenever there's changes to how tracked objects are saved in future version.
 		- Made UI elements public for modders to change its style (although you can probably do that through just Instance property alone).
@@ -183,7 +221,7 @@ v1.1.0 Trackable Types Update
 <details>
 <summary><b>
 v1.0.1
-<b></summary>
+</b></summary>
 
 - Changes	- Changed the hover description for "Look Tick Rate" into a more detailed explanation, the prior message might confuse people.	- Changed default Redundancy Distance from 30 to 20 (I found that it might be too big of a distance to check for redundancy).
 	- Slightly organized README.md and added a suggestion section.

@@ -1,14 +1,13 @@
-﻿using WxAxW.PinAssistant.Utils;
-
-namespace WxAxW.PinAssistant.Core
+﻿namespace WxAxW.PinAssistant.Core
 {
     public abstract class Component
     {
         private bool m_enabled = true;
-        public bool enabled 
-        { 
-            get => m_enabled; 
-            
+
+        public bool enabled
+        {
+            get => m_enabled;
+
             set
             {
                 m_enabled = value;
@@ -17,9 +16,13 @@ namespace WxAxW.PinAssistant.Core
                 else OnDisable();
             }
         }
+
         public abstract void Start();
+
         public abstract void Destroy();
+
         public abstract void OnEnable();
+
         public abstract void OnDisable();
     }
 }

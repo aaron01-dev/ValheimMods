@@ -24,7 +24,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.3.1";
+        public const string PluginVersion = "1.4.0";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -41,7 +41,6 @@ namespace WxAxW.PinAssistant
         public static Plugin Instance => m_instance;
 
         private AssetBundle m_assetBundle;
-        public Action OnFinishedInit;
         private List<Component> pluginComponents;
 
         private void Awake()
@@ -71,7 +70,6 @@ namespace WxAxW.PinAssistant
             {
                 comp.Start();
             }
-
             PatchAll();
             Debug.Log(TextType.PLUGIN_ENABLED);
         }
@@ -80,8 +78,8 @@ namespace WxAxW.PinAssistant
         {
             if (ModConfig.Instance.TrackLookedObjectConfig.Value.IsDown())
             {
-                GameObject obj = TrackingAssistant.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value);
-                TrackObjectUI.Instance?.SetupTrackObject(obj);
+                TrackingAssistant.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value, out string id, out GameObject _);
+                TrackObjectUI.Instance?.SetupTrackObject(id);
             }
 
             if (ModConfig.Instance.PinLookedObjectConfig.Value.IsDown())
@@ -100,8 +98,8 @@ namespace WxAxW.PinAssistant
             SceneManager.sceneLoaded -= OnSceneChange;  // subscribe regardless if in main menu or in game or whatever
             GUIManager.OnCustomGUIAvailable -= LoadTrackObjectUI;
             MinimapManager.OnVanillaMapAvailable -= LoadMinimapFilterUI;
-            
-            foreach(Component comp in pluginComponents)
+
+            foreach (Component comp in pluginComponents)
             {
                 comp.Destroy();
             }
@@ -116,6 +114,7 @@ namespace WxAxW.PinAssistant
                 yield return new WaitForSeconds(ModConfig.Instance.TickRateConfig.Value);
             }
         }
+
         private void PatchAll()
         {
             harmony.PatchAll(typeof(MinimapPatches));
@@ -136,6 +135,7 @@ namespace WxAxW.PinAssistant
         private void OnEnable()
         {
             Debug.Log(TextType.MOD_ENABLED);
+            PrintLayerNames();
 
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = true;
             if (FilterPinsUI.Instance != null) FilterPinsUI.Instance.enabled = true;
@@ -224,6 +224,17 @@ namespace WxAxW.PinAssistant
             catch (Exception)
             {
                 return false;
+            }
+        }
+
+        private void PrintLayerNames()
+        {
+            int layerCount = 32; // Unity supports up to 32 layers (0 to 31).
+
+            for (int layer = 0; layer < layerCount; layer++)
+            {
+                string layerName = LayerMask.LayerToName(layer);
+                Debug.Log("Layer " + layer + ": " + layerName);
             }
         }
     }

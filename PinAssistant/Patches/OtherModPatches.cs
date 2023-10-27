@@ -11,6 +11,7 @@ namespace WxAxW.PinAssistant.Patches
 
         public static event Action OnPinNameChanged;
 
+        // pin is either being created and editted or being selected and editted
         [HarmonyPostfix]
         [HarmonyPatch(nameof(PinEditPanel.SetTargetPin))]
         private static void PostfixSetTargetPin(ref Minimap.PinData pin) // get the return value of AddPin to add to plugin's pins dictionary
@@ -18,6 +19,7 @@ namespace WxAxW.PinAssistant.Patches
             OnSetTargetPin?.Invoke(pin);
         }
 
+        // pin has finished being editted
         [HarmonyPostfix]
         [HarmonyPatch(nameof(PinEditPanel.OnPinNameValueChange))]
         private static void PostfixOnPinNameValueChange()

@@ -1,6 +1,4 @@
 ﻿using BepInEx.Configuration;
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 using Text = WxAxW.PinAssistant.Configuration.TextAttribute;
 
@@ -22,16 +20,6 @@ namespace WxAxW.PinAssistant.Configuration
         private ConfigEntry<float> m_redundancyDistanceConfig;
         private ConfigEntry<float> m_tickRateConfig;
 
-        private Dictionary<ConfigEntry<bool>, Type> m_typeDictionary = new Dictionary<ConfigEntry<bool>, Type>();
-        private ConfigEntry<bool> m_trackTypeDestructibleConfig;    // a lot of things, objects that have other types may have this as well (ie Berry Bush - Pickable and Destructible)
-        private ConfigEntry<bool> m_trackTypePickableConfig;        // things you can press to pick (flint, stone, branch, berry bush, mushroom, etc)
-        private ConfigEntry<bool> m_trackTypeMineRockConfig;        // Minerals
-        private ConfigEntry<bool> m_trackTypeLocationConfig;        // POIs: crypts, sunken crypts, structures that transport you to a different map
-        private ConfigEntry<bool> m_trackTypeSpawnAreaConfig;       // Spawners: bone pile, etc.
-        private ConfigEntry<bool> m_trackTypeVegvisirConfig;        // the runestone that shows you boss locations
-        private ConfigEntry<bool> m_trackTypeResourceRootConfig;    // Yggdrasil root (the giant ancient root one)
-        private ConfigEntry<bool> m_trackTypeTreeBaseConfig;        // Trees
-
         private ConfigEntry<KeyboardShortcut> m_trackLookedObjectConfig;
         private ConfigEntry<KeyboardShortcut> m_pinLookedObjectConfig;
         private ConfigEntry<KeyboardShortcut> m_toggleFilterWindowConfig;
@@ -43,20 +31,10 @@ namespace WxAxW.PinAssistant.Configuration
         public ConfigEntry<bool> IsAutoPinningEnabledConfig { get => m_isAutoPinningEnabledConfig; set => m_isAutoPinningEnabledConfig = value; }
         public ConfigEntry<bool> IsSearchWindowEnabledConfig { get => m_isSearchWindowEnabledConfig; set => m_isSearchWindowEnabledConfig = value; }
         public ConfigEntry<float> LookDistanceConfig { get => m_lookDistanceConfig; set => m_lookDistanceConfig = value; }
-        public ConfigEntry<string> TrackedObjectsConfig { get => m_trackedObjectsConfig; set => m_trackedObjectsConfig = value; }
         public ConfigEntry<float> RedundancyDistanceConfig { get => m_redundancyDistanceConfig; set => m_redundancyDistanceConfig = value; }
         public ConfigEntry<float> TickRateConfig { get => m_tickRateConfig; set => m_tickRateConfig = value; }
-
-        public Dictionary<ConfigEntry<bool>, Type> TypeDictionary { get => m_typeDictionary; set => m_typeDictionary = value; }
+        public ConfigEntry<string> TrackedObjectsConfig { get => m_trackedObjectsConfig; set => m_trackedObjectsConfig = value; }
         public ConfigEntry<bool> IsDebugModeConfig { get => m_isDebugModeConfig; set => m_isDebugModeConfig = value; }
-        public ConfigEntry<bool> TrackTypeDestructibleConfig { get => m_trackTypeDestructibleConfig; set => m_trackTypeDestructibleConfig = value; }
-        public ConfigEntry<bool> TrackTypePickableConfig { get => m_trackTypePickableConfig; set => m_trackTypePickableConfig = value; }
-        public ConfigEntry<bool> TrackTypeMineRockConfig { get => m_trackTypeMineRockConfig; set => m_trackTypeMineRockConfig = value; }
-        public ConfigEntry<bool> TrackTypeLocationConfig { get => m_trackTypeLocationConfig; set => m_trackTypeLocationConfig = value; }
-        public ConfigEntry<bool> TrackTypeSpawnAreaConfig { get => m_trackTypeSpawnAreaConfig; set => m_trackTypeSpawnAreaConfig = value; }
-        public ConfigEntry<bool> TrackTypeVegvisirConfig { get => m_trackTypeVegvisirConfig; set => m_trackTypeVegvisirConfig = value; }
-        public ConfigEntry<bool> TrackTypeResourceRootConfig { get => m_trackTypeResourceRootConfig; set => m_trackTypeResourceRootConfig = value; }
-        public ConfigEntry<bool> TrackTypeTreeBaseConfig { get => m_trackTypeTreeBaseConfig; set => m_trackTypeTreeBaseConfig = value; }
 
         public ConfigEntry<KeyboardShortcut> TrackLookedObjectConfig { get => m_trackLookedObjectConfig; set => m_trackLookedObjectConfig = value; }
         public ConfigEntry<KeyboardShortcut> PinLookedObjectConfig { get => m_pinLookedObjectConfig; set => m_pinLookedObjectConfig = value; }
@@ -139,88 +117,6 @@ namespace WxAxW.PinAssistant.Configuration
                     null,
                     new ConfigurationManagerAttributes { Order = 1 })
                 );
-
-            m_trackTypeDestructibleConfig = Config.Bind<bool>(
-                Text.Get(TextType.CONFIG_CATEGORY_TYPES),
-                Text.Get(TextType.CONFIG_NAME_TYPE_DESTRUCTIBLE),
-                true,
-                new ConfigDescription(
-                    Text.Get(TextType.CONFIG_MESSAGE_TYPE_DESTRUCTIBLE),
-                    null,
-                    new ConfigurationManagerAttributes { Order = 8 })
-                );
-            m_trackTypePickableConfig = Config.Bind<bool>(
-                Text.Get(TextType.CONFIG_CATEGORY_TYPES),
-                Text.Get(TextType.CONFIG_NAME_TYPE_PICKABLE),
-                true,
-                new ConfigDescription(
-                    Text.Get(TextType.CONFIG_MESSAGE_TYPE_PICKABLE),
-                    null,
-                    new ConfigurationManagerAttributes { Order = 7 })
-                );
-            m_trackTypeMineRockConfig = Config.Bind<bool>(
-                Text.Get(TextType.CONFIG_CATEGORY_TYPES),
-                Text.Get(TextType.CONFIG_NAME_TYPE_MINEROCK),
-                true,
-                new ConfigDescription(
-                    Text.Get(TextType.CONFIG_MESSAGE_TYPE_MINEROCK),
-                    null,
-                    new ConfigurationManagerAttributes { Order = 6 })
-                );
-            m_trackTypeLocationConfig = Config.Bind<bool>(
-                Text.Get(TextType.CONFIG_CATEGORY_TYPES),
-                Text.Get(TextType.CONFIG_NAME_TYPE_LOCATION),
-                true,
-                new ConfigDescription(
-                    Text.Get(TextType.CONFIG_MESSAGE_TYPE_LOCATION),
-                    null,
-                    new ConfigurationManagerAttributes { Order = 5 })
-                );
-            m_trackTypeSpawnAreaConfig = Config.Bind<bool>(
-                Text.Get(TextType.CONFIG_CATEGORY_TYPES),
-                Text.Get(TextType.CONFIG_NAME_TYPE_SPAWNAREA),
-                true,
-                new ConfigDescription(
-                    Text.Get(TextType.CONFIG_MESSAGE_TYPE_SPAWNAREA),
-                    null,
-                    new ConfigurationManagerAttributes { Order = 4 })
-                );
-            m_trackTypeVegvisirConfig = Config.Bind<bool>(
-                Text.Get(TextType.CONFIG_CATEGORY_TYPES),
-                Text.Get(TextType.CONFIG_NAME_TYPE_VEGVISIR),
-                false,
-                new ConfigDescription(
-                    Text.Get(TextType.CONFIG_MESSAGE_TYPE_VEGVISIR),
-                    null,
-                    new ConfigurationManagerAttributes { Order = 3 })
-                );
-            m_trackTypeResourceRootConfig = Config.Bind<bool>(
-                Text.Get(TextType.CONFIG_CATEGORY_TYPES),
-                Text.Get(TextType.CONFIG_NAME_TYPE_RESOURCEROOT),
-                false,
-                new ConfigDescription(
-                    Text.Get(TextType.CONFIG_MESSAGE_TYPE_RESOURCEROOT),
-                    null,
-                    new ConfigurationManagerAttributes { Order = 2 })
-                );
-            m_trackTypeTreeBaseConfig = Config.Bind<bool>(
-                Text.Get(TextType.CONFIG_CATEGORY_TYPES),
-                Text.Get(TextType.CONFIG_NAME_TYPE_TREEBASE),
-                false,
-                new ConfigDescription(
-                    Text.Get(TextType.CONFIG_MESSAGE_TYPE_TREEBASE),
-                    null,
-                    new ConfigurationManagerAttributes { Order = 1 })
-                );
-
-            m_typeDictionary.Add(m_trackTypeDestructibleConfig, typeof(Destructible));
-            m_typeDictionary.Add(m_trackTypePickableConfig, typeof(Pickable));
-            m_typeDictionary.Add(m_trackTypeMineRockConfig, typeof(MineRock));
-            m_typeDictionary.Add(m_trackTypeLocationConfig, typeof(Location));
-            m_typeDictionary.Add(m_trackTypeSpawnAreaConfig, typeof(SpawnArea));
-            m_typeDictionary.Add(m_trackTypeVegvisirConfig, typeof(Vegvisir));
-            m_typeDictionary.Add(m_trackTypeResourceRootConfig, typeof(ResourceRoot));
-            m_typeDictionary.Add(m_trackTypeTreeBaseConfig, typeof(TreeBase));
 
             m_trackLookedObjectConfig = Config.Bind(
                 Text.Get(TextType.CONFIG_CATEGORY_HOTKEYS),

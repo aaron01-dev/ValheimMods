@@ -1,7 +1,4 @@
-﻿using BepInEx.Configuration;
-using HarmonyLib;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -29,46 +26,33 @@ namespace WxAxW.PinAssistant.Core
         //private Dictionary<TrackedObject, string> m_trackedObjects = new Dictionary<TrackedObject, string>();
 
         /*
-        typeof(Destructible),   // a lot of things, objects that have other types may have this as well (ie Berry Bush - Pickable and Destructible)
-        typeof(Pickable),       // things you can press to pick (flint, stone, branch, berry bush, mushroom, etc)
-        typeof(MineRock),       // Giant ores' types are 'Destructible' at first because it is purely solid object with no breakable piece. When damanged, it turns into a different rock that looks exactly the same but has breakable parts and the object now has the 'MineRock' type and not 'Destructible'
-        typeof(Location),       // POIs: crypts, sunken crypts, structures that transport you to a different area
-        typeof(SpawnArea),      // Spawners: bone pile, etc.
-        typeof(Vegvisir),       // the runestone that shows you boss locations
-        typeof(ResourceRoot),   // Yggdrasil root (the giant ancient root one) at Mistlands
-        typeof(TreeBase)        // Trees
+        Check ModConfig for different types
         */
         public List<Type> m_trackedTypes = new List<Type>(); // tracking the components(or type in this case) from objects to determine if it's significant
 
         public LooseDictionary<TrackedObject> TrackedObjects { get => m_trackedObjects; set => m_trackedObjects = value; }
 
         public delegate string OnModifiedTrackedObjectsHandler();
+
         public event OnModifiedTrackedObjectsHandler OnModifiedTrackedObjects;
+
         public event Action<TrackedObject> OnTrackedObjectAdd;
+
         public event Action<TrackedObject> OnTrackedObjectRemove;
+
         public event Action<TrackedObject, TrackedObject> OnTrackedObjectUpdate;
 
         public event Action OnTrackedObjectSaved;
+
         public event Action<LooseDictionary<TrackedObject>> OnTrackedObjectsReload;
 
         public override void Start()
         {
-
         }
 
         public override void OnEnable()
         {
-            foreach (var kvp in ModConfig.Instance.TypeDictionary)
-            {
-                // check if type is allowed to be found
-                if (kvp.Key.Value) m_trackedTypes.Add(kvp.Value);
-            }
             DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);
-
-            foreach (ConfigEntry<bool> entry in ModConfig.Instance.TypeDictionary.Keys)
-            {
-                entry.SettingChanged += OnToggleTypeConfig;
-            }
             MinimapPatches.OnPinAdd += OnPinAdd;
             MinimapPatches.OnPinClear += OnPinsClear;
             MinimapPatches.OnPinRemove += OnPinRemove;
@@ -80,10 +64,6 @@ namespace WxAxW.PinAssistant.Core
         {
             m_trackedTypes.Clear();
             m_trackedObjects.Clear();
-            foreach (ConfigEntry<bool> entry in ModConfig.Instance.TypeDictionary.Keys)
-            {
-                entry.SettingChanged -= OnToggleTypeConfig;
-            }
             MinimapPatches.OnPinAdd -= OnPinAdd;
             MinimapPatches.OnPinClear -= OnPinsClear;
             MinimapPatches.OnPinRemove -= OnPinRemove;
@@ -98,60 +78,67 @@ namespace WxAxW.PinAssistant.Core
 
         public void PinLookedObject(float lookDistance, float redundancyDistance)
         {
-            GameObject obj = LookAt(lookDistance);
-            if (obj != null) AddObjAsPin(obj, redundancyDistance);
+            if (!LookAt(lookDistance, out string id, out GameObject obj)) return;
+            
+            AddObjAsPin(id, obj, redundancyDistance);
         }
 
-        public GameObject LookAt(float lookDistance)
+        public bool LookAt(float lookDistance, out string id, out GameObject obj)
         {
-            if (GameCamera.instance == null) return null;
+            id = string.Empty;
+            obj = null;
+            if (GameCamera.instance == null) return false;
 
             // create a ray to check for objects output to hit var
-            Physics.Raycast(GameCamera.instance.transform.position, GameCamera.instance.transform.forward,
-            out var hit, lookDistance, m_layersToCheck);
+            if (!Physics.Raycast(GameCamera.instance.transform.position, GameCamera.instance.transform.forward,
+            out var hit, lookDistance, m_layersToCheck))
+                return false; // not collision
 
-            if (hit.collider == null) return null; // check if looking at no object
-            if (hit.collider.gameObject.layer == 11) return null; // skip if terrain
-            foreach (var type in m_trackedTypes)
+            if (hit.transform.gameObject.layer == 11) return false; // skip if terrain
+            obj = hit.transform.root.gameObject;
+            switch (obj.name)
             {
-                UnityEngine.Component objComponent = hit.collider.GetComponentInParent(type, true);
-                if (objComponent == null) continue;
-                GameObject obj = objComponent.gameObject;
-                Debug.Log(TextType.OBJECT_INFO, obj.name, LayerMask.LayerToName(obj.layer), obj.layer, objComponent.GetType());
-
-                return obj; // Pinnable object found
+                case "LocationProxy(Clone)": // root's name is location proxy, is too amiguous (could be troll cave, crypt, sunken crypt, and even runestone
+                    id = obj.transform.GetChild(0).name; // so get the child component with the actual name
+                    break;
+                case "___MineRock5 m_meshFilter":
+                    id = "Invalid! Track undamaged instead";
+                    break;
+                default: 
+                    id = obj.name; break;
             }
-            return null;
+            Debug.Log(TextType.OBJECT_INFO, id, LayerMask.LayerToName(obj.layer), obj.layer);
+            return true;
         }
 
-        public void AddObjAsPin(GameObject obj, float redundancyDistance)
+        public void AddObjAsPin(string id, GameObject obj, float redundancyDistance)
         {
             if (Minimap.instance is null) return;
-            bool exist = m_trackedObjects.TryGetValueLooseLite(obj.name, out TrackedObject trackedObject);
+            bool exist = m_trackedObjects.TryGetValueLooseLite(id, out TrackedObject trackedObject);
             // checks for if it's valid to pin this object
             if (!exist)
             {
                 Debug.Log(TextType.OBJECT_NOT_TRACKED);
                 return;
             }
-            if (CheckPinPositionExist(obj.transform))
+            Vector3 pos = obj.transform.position;
+            if (CheckPinPositionExist(pos))
             {
                 Debug.Log(TextType.PIN_ADDING_EXISTS);
                 return;
             }
-            if (!CheckValidPinPosition(obj.transform.position, trackedObject.Name, redundancyDistance))
+            if (!CheckValidPinPosition(pos, trackedObject.Name, redundancyDistance))
             {
                 Debug.Log(TextType.PIN_ADDING_EXISTS_NEARBY);
                 return;
             }
-            Minimap.instance.AddPin(obj.transform.position, trackedObject.Icon, trackedObject.Name, trackedObject.Save, trackedObject.IsChecked);
+            Minimap.instance.AddPin(pos, trackedObject.Icon, trackedObject.Name, trackedObject.Save, trackedObject.IsChecked);
         }
 
-        private bool CheckPinPositionExist(Transform obj)
+        private bool CheckPinPositionExist(Vector3 pinPos)
         {
             // check plugin created dictionary for pinData player pin data from valheim to easily check for existing by using vector position as key
-            m_pins.TryGetValue(obj.position, out var pin);
-            return pin != null;
+            return m_pins.ContainsKey(pinPos);
         }
 
         public string FormatObjectName(string name)
@@ -271,11 +258,11 @@ namespace WxAxW.PinAssistant.Core
         public bool ModifyTrackedObject(TrackedObject objToEdit, TrackedObject newValues, out bool conficting, out TrackedObject foundConflict)
         {
             // attempt to change key
-            
+
             m_trackedObjects.ChangeKey(
-                key: objToEdit.ObjectID, 
-                newKey: newValues.ObjectID, 
-                out conficting, 
+                key: objToEdit.ObjectID,
+                newKey: newValues.ObjectID,
+                out conficting,
                 out foundConflict
                 );
 
@@ -312,7 +299,8 @@ namespace WxAxW.PinAssistant.Core
             Debug.Log("Serializing tracked objects");
             string json = JsonConvert.SerializeObject(
                 m_trackedObjects,
-                new JsonSerializerSettings() {
+                new JsonSerializerSettings()
+                {
                     FloatParseHandling = FloatParseHandling.Decimal,        // to prevent crashing when parsing colors which has more than 2 decimal places
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore,   // to prevent exception when serializing color to prevent serializing reference loop like static colors
                 });
@@ -383,31 +371,6 @@ namespace WxAxW.PinAssistant.Core
         private void OnPinsClear()
         {
             m_pins.Clear();
-        }
-
-        [Obsolete]
-        public void TrackLookedObjectToAutoPin(float lookDistance)
-        {
-            GameObject obj = LookAt(lookDistance);
-            if (obj == null) return;
-            string formattedName = FormatObjectName(obj.name);
-            if (m_trackedObjects.TryGetValueLoose(formattedName, out _))
-            {
-                Debug.Log(TextType.TRACK_FAIL, formattedName);
-                return; // if key exist
-            }
-            Debug.Log(TextType.TRACK_SUCCESS, formattedName);
-            TrackedObject newTrackedObject = new TrackedObject(formattedName, formattedName, "", Minimap.PinType.Death, Color.white, true, true, false);
-            AddTrackedObject(newTrackedObject, out _);
-        }
-
-        private void OnToggleTypeConfig(object sender, EventArgs _)
-        {
-            ConfigEntry<bool> currTypeConfig = (ConfigEntry<bool>)sender;
-            Type currType = ModConfig.Instance.TypeDictionary[currTypeConfig];
-            bool value = currTypeConfig.Value;
-            if (value) AddType(currType);
-            else RemoveType(currType);
         }
     }
 }

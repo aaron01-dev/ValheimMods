@@ -16,6 +16,7 @@ namespace WxAxW.PinAssistant.Core
             private readonly List<Minimap.PinData> m_pins = new List<Minimap.PinData>();
             private Color m_pinColor;
             private Color m_pinColorShared;
+
             public Color PinColor
             {
                 get => m_pinColor;
@@ -25,11 +26,11 @@ namespace WxAxW.PinAssistant.Core
                     m_pinColorShared = new Color(value.r * 0.7f, value.g * 0.7f, value.b * 0.7f, value.a * 0.8f);
                 }
             }
+
             public PinExpand(Color pinColor)
             {
                 PinColor = pinColor;
             }
-
 
             public void ApplyColor()
             {
@@ -74,7 +75,6 @@ namespace WxAxW.PinAssistant.Core
         {
             MinimapPatches.OnPinAdd += OnPinAdd;
             MinimapPatches.OnPinRemove += OnPinRemove;
-            MinimapPatches.OnSpecialPinRemove += OnPinRemove;
             MinimapPatches.OnPinSetup += OnPinSetup;
             PinnaclePatches.OnSetTargetPin += OnPinSetup;
             MinimapPatches.OnPinNameChanged += OnPinUpdate;
@@ -85,7 +85,6 @@ namespace WxAxW.PinAssistant.Core
         {
             MinimapPatches.OnPinAdd -= OnPinAdd;
             MinimapPatches.OnPinRemove -= OnPinRemove;
-            MinimapPatches.OnSpecialPinRemove -= OnPinRemove;
             MinimapPatches.OnPinSetup -= OnPinSetup;
             PinnaclePatches.OnSetTargetPin -= OnPinSetup;
             MinimapPatches.OnPinNameChanged -= OnPinUpdate;
@@ -208,6 +207,11 @@ namespace WxAxW.PinAssistant.Core
 
         private void OnPinAdd(Minimap.PinData pin)
         {
+            if (MinimapPatches.isSpecialPin)
+            {
+                Debug.Log("Special Pin found will not include in the list of pins to color");
+                return;
+            }
             string newName = pin.m_name.ToLower();
             InitializeKey(newName, Color.white);
             m_pins[newName].Add(pin);
@@ -215,7 +219,8 @@ namespace WxAxW.PinAssistant.Core
 
         private void OnPinRemove(Minimap.PinData pin)
         {
-            m_pins[pin.m_name.ToLower()]?.Remove(pin);
+            if (!m_pins.TryGetValue(pin.m_name.ToLower(), out PinExpand pinGroup)) return;
+            pinGroup.Remove(pin);
         }
 
         private void OnTrackedObjectAdd(TrackedObject trackedObject)

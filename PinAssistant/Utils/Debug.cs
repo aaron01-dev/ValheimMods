@@ -21,6 +21,7 @@ namespace WxAxW.PinAssistant.Utils
         {
             Jotunn.Logger.LogWarning(message);
         }
+
         public static void Error(object message)
         {
             Jotunn.Logger.LogError(message);

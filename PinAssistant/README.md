@@ -10,7 +10,7 @@ Pin Assistant is the game-changing mod you've been waiting for. It's the ultimat
 Ensuring you stay focused on what matters most to you. Whether it's rare herbs for your magical brews or valuable resources for crafting, your Pin Assistant will do the tracking for you.
 
 ## User Friendly Design
-Tailored for both casual and technical players who wants to modify their pins to exactly do what you want. Not sure what to do? just look at an object press Y and it will automatically fill the values for you, then click Track.
+Tailored for both casual and technical players who wants to modify their pins to exactly do what you want. Not sure what to do? just look at an object press Ctrl + T and it will automatically fill the values for you, then click Track.
 
 ## Customizable Pinning
 Use your Pin Assistant for your specific needs. 
@@ -114,12 +114,11 @@ If not for the many source codes out there like [Locator](https://valheim.thunde
 
 Also, thank you to the mod developers who helped me setup to start on this project or gave me info with things i had trouble with.
 
-
 # Technical
 ## Have a suggestion?
 You can contact me on Discord, 'WxAaRoNxW', make a post on [Nexus](https://www.nexusmods.com/valheim/mods/2531) or add a 'New Issue' on [Github](https://github.com/aaron-yang0327-development/ValheimMods/issues).
 
 ## Known issues
-- you tell me!
+- Can't really say if it's an issue and more of a limitation, do not attempt to track a boulder that has been struck with a pickaxe, it will not identify it correctly, instead track an unstruck one instead.
 
 If you have a problem you can find the github [here](https://github.com/aaron-yang0327-development/ValheimMods) and add an issue

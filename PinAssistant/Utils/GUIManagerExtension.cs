@@ -1,22 +1,20 @@
-﻿using Jotunn.Managers;
+﻿using Jotunn;
+using Jotunn.Managers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using UnityEngine;
-using Jotunn;
 
 namespace WxAxW.PinAssistant.Utils
 {
     internal static class GUIManagerExtension
     {
         // force grab private GUIInStart field
-        private readonly static FieldInfo privateFieldInfoGUIInStart = typeof(GUIManager).GetField("GUIInStart", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly FieldInfo privateFieldInfoGUIInStart = typeof(GUIManager).GetField("GUIInStart", BindingFlags.NonPublic | BindingFlags.Instance);
 
         private static bool GUIInStart;
         public static TMP_FontAsset AveriaSerif { get; set; }

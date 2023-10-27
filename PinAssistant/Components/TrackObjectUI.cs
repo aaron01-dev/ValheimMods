@@ -147,7 +147,6 @@ namespace WxAxW.PinAssistant.Components
 
         private void OnEnable()
         {
-
         }
 
         private void OnDisable()
@@ -253,8 +252,6 @@ namespace WxAxW.PinAssistant.Components
             Debug.Log(TextType.OBJECTS_DROPDOWN_LOADED);
         }
 
-
-
         private void BlockInput(bool value)
         {
             value = !value;
@@ -277,6 +274,8 @@ namespace WxAxW.PinAssistant.Components
             {
                 input.interactable = value;
             }
+
+            OnToggleExactMatchChanged(m_toggleExactMatch.isOn);
         }
 
         public void SetUIActive(bool value)
@@ -287,7 +286,7 @@ namespace WxAxW.PinAssistant.Components
             if (m_edittingColor) ColorPicker.Cancel();
         }
 
-        public void SetupTrackObject(GameObject obj)
+        public void SetupTrackObject(string objName)
         {
             SetUIActive(!gameObject.activeSelf);
 
@@ -295,12 +294,11 @@ namespace WxAxW.PinAssistant.Components
             if (!gameObject.activeSelf) return;
 
             // setup values
-            string name = obj?.name ?? string.Empty;
             m_dropDownTracked.SetValueWithoutNotify(0);
             m_messageBox.text = string.Empty;
             m_edittingObject = null;
-            
-            SetupUIValues(name);
+
+            SetupUIValues(objName);
         }
 
         public void SetupUIValues(string _objectID, bool _exactMatch = false)
@@ -420,9 +418,9 @@ namespace WxAxW.PinAssistant.Components
             TrackedObject newTrackedObjectValues = CreateTrackedObject();
 
             bool success = TrackingAssistant.Instance.ModifyTrackedObject(
-                trackedObjectToModify, 
-                newTrackedObjectValues, 
-                out bool conflicting, 
+                trackedObjectToModify,
+                newTrackedObjectValues,
+                out bool conflicting,
                 out TrackedObject foundConflict);
 
             if (!success)
