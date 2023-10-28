@@ -49,7 +49,7 @@ If you think your pin might clutter cause the objects are grouped together, you 
 [Video](https://imgur.com/lerLdHw)
 
 ### Searchable Pins
-Overcrowded map? Want to find specific pin/s? Just head over to your map and look to the top left and search away, use double quotes to search for a pin name with your exact search. Search window is too obstructive? Just press 'Tab' to hide it!
+Overcrowded map? Want to find specific pin/s? Just head over to your map and look to the top left and search away, use double quotes to search for a pin name with your exact search. You can also set it to whitelist mode or not to hide everything except your search or show everything except your search. RegEx is also a feature if you want a more versatile way to search pins!. Search window is too obstructive? Just press 'Tab' to hide it! Don't want it at all? Just go your config manager and disable "Show search window on startup"!
 
 ### Colored Pins
 Hard to read the many pins you see? With this mod's tracking system you can change the pins you have into different colors! Due to limitations the pins colors are based on their Pin Names
@@ -119,6 +119,6 @@ Also, thank you to the mod developers who helped me setup to start on this proje
 You can contact me on Discord, 'WxAaRoNxW', make a post on [Nexus](https://www.nexusmods.com/valheim/mods/2531) or add a 'New Issue' on [Github](https://github.com/aaron-yang0327-development/ValheimMods/issues).
 
 ## Known issues
-- Can't really say if it's an issue and more of a limitation, do not attempt to track a boulder that has been struck with a pickaxe, it will not identify it correctly, instead track an unstruck one instead.
+- You tell me!
 
 If you have a problem you can find the github [here](https://github.com/aaron-yang0327-development/ValheimMods) and add an issue

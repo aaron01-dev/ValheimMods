@@ -182,8 +182,7 @@ namespace WxAxW.PinAssistant.Components
 
             foreach (Toggle toggle in new Toggle[] { m_toggleSavePin, m_toggleCheckPin, m_toggleExactMatch })
             {
-                GUIManager.Instance.ApplyToogleStyle(toggle);
-                ApplyToggleTextStyle(toggle, 16);
+                GUIManager.Instance.ApplyTMPToggleStyle(toggle, 16);
             }
 
             foreach (Button button in new Button[] { m_buttonTrackModify, m_buttonUntrackCancel })
@@ -195,16 +194,6 @@ namespace WxAxW.PinAssistant.Components
             GUIManager.Instance.ApplyTMPDropdownStyle(m_dropDownTracked);
             GUIManager.Instance.ApplyTMPTextStyle(m_messageBox, GUIManager.Instance.ValheimOrange, 16);
             m_messageBox.textWrappingMode = TextWrappingModes.Normal;
-        }
-
-        private void ApplyToggleTextStyle(Toggle toggle, int fontSize)
-        {
-            TMP_Text componentInChildren = toggle.GetComponentInChildren<TMP_Text>(includeInactive: true);
-            if ((bool)componentInChildren)
-            {
-                GUIManager.Instance.ApplyTMPTextStyle(componentInChildren, GUIManager.Instance.ValheimOrange, fontSize);
-                componentInChildren.alignment = TextAlignmentOptions.Left;
-            }
         }
 
         private void PopulateIcons()

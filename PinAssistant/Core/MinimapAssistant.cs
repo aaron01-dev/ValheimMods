@@ -120,26 +120,51 @@ namespace WxAxW.PinAssistant.Core
             }
         }
 
-        public void SearchPins(string pinToFind)
+        public void SearchPins(string query, bool whitelist = false, bool isRegex = false)
         {
             ResetFilteredPins();
-            // Define a regular expression pattern to match strings with double quotes at the front and back
-            string pattern = "^\".*\"$";
 
-            // Use Regex.IsMatch to check if the input matches the pattern
-            bool isExact = Regex.IsMatch(pinToFind, pattern) || string.IsNullOrEmpty(pinToFind);
-            if (isExact) pinToFind = pinToFind.Trim('"');
+            if (isRegex)
+            {
+                try
+                {
+                    Regex.Match("", query); // check if regex is valid
+                }
+                catch (System.Exception)
+                {
+                    Debug.Warning("Invalid RegEx Pattern!");
+                    return;
+                }
 
-            m_listUnFilteredPins = TrackingAssistant.Instance.Pins.Values
-                .Where(pinData => !CompareSearch(pinData.m_name, pinToFind, isExact));
+                m_listUnFilteredPins = TrackingAssistant.Instance.Pins.Values
+                    .Where(pinData =>
+                    {
+                        bool filterOut = Regex.IsMatch(pinData.m_name.ToLower(), query);
+                        return whitelist ? !filterOut : filterOut;
+                    });
+            } else
+            {
+                // Define a regular expression pattern to match strings with double quotes at the front and back
+                string pattern = "^\".*\"$";
+
+                // Use Regex.IsMatch to check if the input matches the pattern
+                bool isExact = Regex.IsMatch(query, pattern) || string.IsNullOrEmpty(query);
+                if (isExact) query = query.Trim('"');
+
+                m_listUnFilteredPins = TrackingAssistant.Instance.Pins.Values
+                    .Where(pinData =>
+                    {
+                        bool filterOut = CompareSearch(pinData.m_name, query, isExact);
+                        return whitelist ? !filterOut : filterOut;
+                    });
+            }
         }
 
         private bool CompareSearch(string foundPin, string query, bool isExact)
         {
             foundPin = foundPin.ToLower();
             if (isExact) return foundPin.Equals(query);
-
-            return foundPin.IndexOf(query) != -1;
+            else return foundPin.IndexOf(query) != -1;
         }
 
         public void ResetFilteredPins()

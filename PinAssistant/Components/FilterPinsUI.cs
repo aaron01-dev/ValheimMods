@@ -21,6 +21,8 @@ namespace WxAxW.PinAssistant.Components
         [SerializeField] private TMP_InputField m_inputPinNameFilter;
         [SerializeField] private Button m_buttonFind;
         [SerializeField] private Button m_buttonReset;
+        [SerializeField] private Toggle m_toggleIsWhiteList;
+        [SerializeField] private Toggle m_toggleIsRegEx;
 #pragma warning restore CS0649
 
         public bool ShowOnStartup { get => m_showOnStartup; set => m_showOnStartup = value; }
@@ -28,6 +30,8 @@ namespace WxAxW.PinAssistant.Components
         public TMP_InputField InputPinNameFilter { get => m_inputPinNameFilter; set => m_inputPinNameFilter = value; }
         public Button ButtonFind { get => m_buttonFind; set => m_buttonFind = value; }
         public Button ButtonReset { get => m_buttonReset; set => m_buttonReset = value; }
+        public Toggle ToggleIsRegEx { get => m_toggleIsRegEx; set => m_toggleIsRegEx = value; }
+        public Toggle ToggleIsWhiteList { get => m_toggleIsWhiteList; set => m_toggleIsWhiteList = value; }
 
         public static void Init(AssetBundle assetBundle, bool showOnStartup)
         {
@@ -83,12 +87,17 @@ namespace WxAxW.PinAssistant.Components
             {
                 GUIManager.Instance.ApplyTMPButtonStyle(button, 20);
             }
+
+            foreach (Toggle toggle in new Toggle[] { m_toggleIsRegEx, m_toggleIsWhiteList})
+            {
+                GUIManager.Instance.ApplyTMPToggleStyle(toggle, 14);
+            }
         }
 
         private void OnButtonFind()
         {
             string pinToFind = m_inputPinNameFilter.text.ToLower();
-            MinimapAssistant.Instance.SearchPins(pinToFind);
+            MinimapAssistant.Instance.SearchPins(pinToFind, m_toggleIsWhiteList.isOn, m_toggleIsRegEx.isOn);
         }
 
         private void OnButtonReset()

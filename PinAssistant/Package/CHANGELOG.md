@@ -2,7 +2,34 @@
 
 <details>
 <summary><b>
-v1.4.0 TRACK <u>ALL</u> THE THINGS
+v1.5.0 Better Search Update
+</b></summary>
+
+- New
+	- Search Window Updates
+		- RegEx searching of pin names.
+		- Whitelist or Blacklist mode if you want to hide everything or show everything but the query you've inputted.
+- Changes
+	- Thunderstore did not support underline for some reason while bold, so I had to remove it.
+	- Changed CHANGELOG.md `Backend` header to not be in bold.
+	- Removed issue entry in "Known Issue" section about struck boulders being invalid, thought it wasn't necessary.
+- <details>
+	<summary>
+	Backend
+	</summary>
+	
+	- Plugin
+		- Forgot to remove printing of layernames.
+	- GUIManagerExtension
+		- Moved ApplyToggleStyle from TrackObjectUI to GUIManagerExtension as FilterUI now needs it.
+		- refactored some functions to remove unnecessary code and repurposed extension to work with some main methods.
+	</details>
+
+</details>
+
+<details>
+<summary><b>
+v1.4.0 TRACK ALL THE THINGS
 </b></summary>
 
 - New
@@ -21,9 +48,9 @@ v1.4.0 TRACK <u>ALL</u> THE THINGS
 	- Fixed a logical error where even if an id is set to exact match only, it can still be found with an almost similar id.
 		- "Pickable_Mushroom(Clone)" can be found with "Pickable_Mushroom_Magecap(Clone)"
 - <details>
-	<summary><b>
+	<summary>
 	Backend
-	</b></summary>
+	</summary>
 	
 	- TrackingAssistant
 		- Refactored LookAt to not use GetComponentInParent, but instead get root parent and retrieve name.
@@ -33,7 +60,8 @@ v1.4.0 TRACK <u>ALL</u> THE THINGS
 		- Refactored patching exclusion of special pins from MinimapAssistant to clean up Transpilers (This way is just so much better, I don't know why I didn't thought of this).
 	- CHANGELOG.md
 		- everything was bold, fixed that now, (was hard to see in visual studio preview, only noticed after the last update where I showed the changelog on thunderstore).
-	- Used CodeMiad to clean up entire project.
+	- Used CodeMaid to clean up entire project.
+	- Updated harmony package of project.
 	</details>
 
 </details>
@@ -52,9 +80,9 @@ v1.3.1 Hotfix
 	- Fixed issues with pings constantly sending an error that it already exists which led to pins freezing as the game thinks the pings aren't being added properly.
 		- Overlooked a check which I accidentally removed during clean up of my code as I thought it was unnecessary.
 - <details>
-	<summary><b>
+	<summary>
 	Backend
-	</b></summary>
+	</summary>
 	
 	- TrackingAssistant
 		- Removed indent formatting for saving tracked object data.
@@ -87,9 +115,9 @@ v1.3.0 Colored Pins Update!
 - Fixes
 	- Fixed bug when modifying current tracked object with an existing ID the currently editting object is deleted instead of just sending an error.
 - <details>
-	<summary><b>
+	<summary>
 	Backend
-	</b></summary>
+	</summary>
 	
 	- A lot of backend changes as I've learned to do stuff differently and so it can be update friendly.
 	- Added compatibility for Pinnacle's edit feature with colored pins when editting the name.
@@ -135,9 +163,9 @@ v1.2.2 Valheim v0.217.22 Compatibility Update
 - Changes
 	- Slightly changed tracking UI.
 	- <details>
-		<summary><b>
+		<summary>
 		Backend
-		</b></summary>
+		</summary>
 
 		- Updated dependency to latest Jotunn 2.14.3 and BepInEx 5.4.2200.
 		</details>
@@ -155,9 +183,9 @@ v1.2.1
 - Changes
 	- Organized CHANGELOG.md.
 	- <details>
-		<summary><b>
+		<summary>
 		Backend
-		</b></summary>
+		</summary>
 
 		- Similar to Plugin.cs and FilterPinsUI.cs, refactored TrackObjectUI.cs to use OnDisable when mod is turned off or UI is inactive to not process stuff on every frame.
 		</details>
@@ -180,9 +208,9 @@ v1.2.0 Search Update
 
 - Changes
 	- <details>
-		<summary><b>
+		<summary>
 		Backend
-		</b></summary>
+		</summary>
 
 		- Plugin.cs 					- refactored to use MonoBehavior OnEnable/Disable (forgot this exists and can be used similarly to my situation).
 			- added unsubscription to some missed events on OnDestroy (not really important since plugins don't get destroyed).
@@ -205,9 +233,9 @@ v1.1.0 Trackable Types Update
 - Changes
 	- Separated changelog to CHANGELOG.md.
 	- <details>
-		<summary><b>
+		<summary>
 		Backend
-		</b></summary>
+		</summary>
 
 		- Added Dictionary class version for whenever there's changes to how tracked objects are saved in future version.
 		- Made UI elements public for modders to change its style (although you can probably do that through just Instance property alone).

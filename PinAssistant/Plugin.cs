@@ -24,7 +24,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.4.0";
+        public const string PluginVersion = "1.5.0";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -135,7 +135,6 @@ namespace WxAxW.PinAssistant
         private void OnEnable()
         {
             Debug.Log(TextType.MOD_ENABLED);
-            PrintLayerNames();
 
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = true;
             if (FilterPinsUI.Instance != null) FilterPinsUI.Instance.enabled = true;
@@ -229,6 +228,7 @@ namespace WxAxW.PinAssistant
 
         private void PrintLayerNames()
         {
+            if (!ModConfig.Instance.IsDebugModeConfig.Value) return;
             int layerCount = 32; // Unity supports up to 32 layers (0 to 31).
 
             for (int layer = 0; layer < layerCount; layer++)

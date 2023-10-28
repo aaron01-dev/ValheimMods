@@ -11,6 +11,8 @@ namespace WxAxW.PinAssistant.Components {
         [SerializeField] private TMP_InputField m_inputPinNameFilter;
         [SerializeField] private Button m_buttonFind;
         [SerializeField] private Button m_buttonReset;
+        [SerializeField] private Toggle m_toggleIsWhiteList;
+        [SerializeField] private Toggle m_toggleIsRegEx;
     }
 
 }

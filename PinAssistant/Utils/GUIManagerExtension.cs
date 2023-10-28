@@ -134,27 +134,9 @@ namespace WxAxW.PinAssistant.Utils
         //     Optional font size, defaults to 16
         public static void ApplyTMPButtonStyle(this GUIManager @this, Button button, int fontSize = 16)
         {
-            @this.UpdateGUIInStart();
+            @this.ApplyButtonStyle(button, fontSize);
 
-            GameObject gameObject = button.gameObject;
-            Image component = gameObject.GetComponent<Image>();
-            if ((bool)component)
-            {
-                component.sprite = @this.GetSprite("button");
-                component.type = Image.Type.Sliced;
-                component.pixelsPerUnitMultiplier = (GUIInStart ? 2f : 1f);
-                button.image = component;
-            }
-
-            if (!gameObject.TryGetComponent<ButtonSfx>(out var component2))
-            {
-                component2 = gameObject.AddComponent<ButtonSfx>();
-            }
-
-            component2.m_sfxPrefab = PrefabManager.Cache.GetPrefab<GameObject>("sfx_gui_button");
-            component2.m_selectSfxPrefab = PrefabManager.Cache.GetPrefab<GameObject>("sfx_gui_select");
-            gameObject.GetComponent<Button>().colors = @this.ValheimButtonColorBlock;
-            TMP_Text componentInChildren = gameObject.GetComponentInChildren<TMP_Text>(includeInactive: true);
+            TMP_Text componentInChildren = button.GetComponentInChildren<TMP_Text>(includeInactive: true);
             if ((bool)componentInChildren)
             {
                 @this.ApplyTMPTextStyle(componentInChildren, @this.ValheimOrange, fontSize);
@@ -291,6 +273,18 @@ namespace WxAxW.PinAssistant.Utils
                     image2.pixelsPerUnitMultiplier = (GUIInStart ? 2f : 1f);
                     image2.gameObject.GetOrAddComponent<Outline>().effectColor = Color.black;
                 }
+            }
+        }
+
+        public static void ApplyTMPToggleStyle(this GUIManager @this, Toggle toggle, int fontSize = 16)
+        {
+            @this.ApplyToogleStyle(toggle);
+
+            TMP_Text componentInChildren = toggle.GetComponentInChildren<TMP_Text>(includeInactive: true);
+            if ((bool)componentInChildren)
+            {
+                @this.ApplyTMPTextStyle(componentInChildren, @this.ValheimOrange, fontSize);
+                componentInChildren.alignment = TextAlignmentOptions.Left;
             }
         }
     }
