@@ -24,7 +24,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.5.0";
+        public const string PluginVersion = "1.5.1";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -122,6 +122,11 @@ namespace WxAxW.PinAssistant
             {
                 Debug.Log("Pinnacle exists patching mod for compatibility");
                 harmony.PatchAll(typeof(PinnaclePatches));
+            }
+            if (ModExists("Kits_Bitz.Under_The_Radar"))
+            {
+                Debug.Log("Under_The_Radar exists patching mod for compatibility");
+                harmony.PatchAll(typeof(UnderTheRadarPatches));
             }
         }
 

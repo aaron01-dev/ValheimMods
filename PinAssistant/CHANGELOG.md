@@ -2,6 +2,55 @@
 
 <details>
 <summary><b>
+v1.5.1
+</b></summary>
+
+- New
+	- Compatibility for Under The Radar
+		- You can now add pins where temporary pins made by Under The Radar are located.
+- Changes
+	- Tracked objects searching
+		- Changes id searching behaviour where if you loosely (not exact id match) search for an id, you can find something even though it may not make sense.
+			- ex. entry = copper | search key = c_o_p_p_e_r | you'll still find copper.
+			- ex. entry = copper, entry = runestone | search key = c_runestone_opper | you'll still find copper instead of runestone
+			- this is to avoid similar ids to be detected, especially mushrooms magecap, jotun puffs, etc. can be found through Pickable_Mushroom(Clone), cause their difference is having a text between Mushroom and (Clone).
+		- Refactored searching in the backend for a slightly more optimized way. Found out it's doing some meaningless searches.
+		- Disabled being able to search crypts' (sunken and forest) interior structure with Crypts in their name (mudpile, torches, are not included, only walls, chests, loot, even doors are disabled.).
+			- This is to avoid pinning unintended objects whenever having an entry for Crypt to only track the entrance location.
+	- Capitalized previously lowercased Pin names' words when mod pre-fills a looked objects
+- Fixes
+	- Tracked objects searching
+		- Fixed logical error for changing the object id (would've broke the data, but could be fixed through pressing the reload tracked objects key)
+	- v1.4.0 Changelog message typo
+		- "Pickable_Mushroom(Clone)" can be found with "Pickable_Mushroom_Magecap(Clone)"
+		- should've been:
+		- "Pickable_Mushroom_Magecap(Clone)" can be found with "Pickable_Mushroom(Clone)"
+- <details>
+	<summary>
+	Backend
+	</summary>
+	
+	- Plugin
+		- Forgot to remove printing of layernames.
+	- GUIManagerExtension
+		- Moved ApplyToggleStyle from TrackObjectUI to GUIManagerExtension as FilterUI now needs it.
+		- refactored some functions to remove unnecessary code and repurposed extension to work with some main methods.
+	- LooseDictionary
+		- Fixed missing code in method, ChangeKey. alternate dictionary deletes key, but does not add new key.
+		- Refactored searching for keys, which avoids nonsense conditional checkings(kept on checking validity of the same node)
+		- Created a new try get method to avoid unintended found results. (c_o_p_p_e_r finds copper key)
+		- left old try get method alone but might remove it next time.
+	- TrackingAssistant
+		- OnPinAdd will now exclude special pins as well. I thought it was necessary to include them so pins won't overlap, but most special pins have different locations, so it would overlap regardless.
+		- ModifyTrackedObject
+			- If ChangeKey failed, will fail entirely. This would cause a bug where TrackedObject ID is changed but dictionary key is not change.
+		- Slightly refactored FormatObjectNames method.
+	</details>
+
+</details>
+
+<details>
+<summary><b>
 v1.5.0 Better Search Update
 </b></summary>
 
@@ -46,7 +95,7 @@ v1.4.0 TRACK ALL THE THINGS
 	- Fixed when opening and closing the color wheel while the "Exact ID Match" is toggled on, ObjectID will stay as uninteractable instead of being interactable.
 	- Fixed error spam when a raid event ended.
 	- Fixed a logical error where even if an id is set to exact match only, it can still be found with an almost similar id.
-		- "Pickable_Mushroom(Clone)" can be found with "Pickable_Mushroom_Magecap(Clone)"
+		- "Pickable_Mushroom_Magecap(Clone)" can be found with "Pickable_Mushroom(Clone)"
 - <details>
 	<summary>
 	Backend

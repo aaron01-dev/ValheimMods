@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Mono.Security.Cryptography;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,19 +17,20 @@ namespace WxAxW.PinAssistant.Utils
             public string actualKey;
             public bool conflicting;
             public string blackListedWord;
-            public bool deleteNode;
+            public bool deleteMode;
             public bool exactMatchOnly;
+            public StringBuilder keyBuilder = new StringBuilder();
 
-            public TValue conflictingNodeValue;
+            public TValue conflictingNodeValue = default;
             public bool endOfDeleteTraversal = false;
 
-            public TraverseDetails(string searchKey, TValue value = default, string actualKey = "", string blackListedWord = "", bool deleteNode = false, bool exactMatchOnly = false)
+            public TraverseDetails(string searchKey, TValue value = default, string actualKey = "", string blackListedWord = "", bool deleteMode = false, bool exactMatchOnly = false)
             {
                 this.searchKey = searchKey;
                 this.value = value;
                 this.actualKey = actualKey;
                 this.blackListedWord = blackListedWord;
-                this.deleteNode = deleteNode;
+                this.deleteMode = deleteMode;
                 this.exactMatchOnly = exactMatchOnly;
             }
         }
@@ -98,13 +100,12 @@ namespace WxAxW.PinAssistant.Utils
             newKey = newKey.ToLower();
             conflicting = false;
             conflictingValue = default;
-            if (key.Equals(newKey) ||
-                m_altDictionary.ContainsKey(newKey) ||
-                !m_altDictionary.TryGetValue(key, out TrieNode nodeToSwap)) return false;
+            if (key.Equals(newKey)) return true; // return success if same (skip code)
+            if (m_altDictionary.ContainsKey(newKey) || !m_altDictionary.TryGetValue(key, out TrieNode nodeToSwap)) return false; // return fail if error
 
             TrieNode newNode = nodeToSwap.Clone();  // retrieve node copy its values
-            m_altDictionary.Remove(key);            // delete old node from dictionary
-            TryDeleteLoose(key, out _);             // delete old node from trienode (or reset values depends if it has children)
+            m_altDictionary.ChangeKey(key, newKey);            // delete old node from dictionary
+            RemoveNode(key);             // delete old node from trienode (or reset values depends if it has children)
 
             // check for conflicts
             TraverseDetails td = new TraverseDetails(key, exactMatchOnly: newNode.NodeExactMatchOnly);
@@ -121,7 +122,7 @@ namespace WxAxW.PinAssistant.Utils
         {
             key = key.ToLower();
             if (!m_altDictionary.Remove(key)) return false;
-            TryDeleteLoose(key, out _);
+            RemoveNode(key);
             return true;
         }
 
@@ -151,11 +152,10 @@ namespace WxAxW.PinAssistant.Utils
         }
 
         // overload for traverse delete
-        public bool TryDeleteLoose(string key, out TrieNode removedNode)
+        public bool RemoveNode(string key)
         {
-            TraverseDetails traverseDetails = new TraverseDetails(key, deleteNode: true, exactMatchOnly: true);
+            TraverseDetails traverseDetails = new TraverseDetails(key, deleteMode: true, exactMatchOnly: true);
             bool found = Traverse(traverseDetails);
-            removedNode = traverseDetails.nodeResult;
             return found;
         }
 
@@ -169,6 +169,7 @@ namespace WxAxW.PinAssistant.Utils
 
         public bool TryGetValueLooseLite(string key, out TValue result)
         {
+            result = default;
             key = key.ToLower();
 
             if (m_altDictionary.TryGetValue(key, out TrieNode nodeResult))
@@ -176,12 +177,30 @@ namespace WxAxW.PinAssistant.Utils
                 result = nodeResult.Value;
                 return true;
             }
-            return root.TryGetValueLooseRecursiveLite(key, out result);
+
+            string substr;
+            for (int i = 0; i < key.Length; i++)
+            {
+                substr = key.Substring(i);
+                if (!root.TryGetValueRecursiveLite(substr, out result)) continue;
+                return true;
+            }
+
+            return false;
         }
 
         public bool Traverse(TraverseDetails traverseDetails)
         {
-            return root.TraverseRecursive(new StringBuilder(), traverseDetails);
+            if (traverseDetails.exactMatchOnly) return root.TraverseRecursive(traverseDetails);
+            string originalKey = traverseDetails.searchKey;
+            for (int i = 0; i < traverseDetails.searchKey.Length; i++)
+            {
+                traverseDetails.searchKey = originalKey.Substring(i);
+                if (!root.TraverseRecursive(traverseDetails)) continue;
+                return true;
+            }
+
+            return false;
         }
 
         public class TrieNode
@@ -277,61 +296,51 @@ namespace WxAxW.PinAssistant.Utils
             }
 
             // finds the key either loosely or exact match, ex: entryKey = oobar, searchKey = barf*oobar*foo
-            public bool TraverseRecursive(StringBuilder keyBuilder, TraverseDetails td, int currentIndex = 0, int depth = 0)
+            public bool TraverseRecursive(TraverseDetails td, int currentIndex = 0)
             {
                 // keep checking until end of key, if true means there's more chars to check
                 if (currentIndex >= td.searchKey.Length) return false;
 
-                // to check if the child entered gave no result, therefore get out of the child and remove a prefix to keep looping
-                // ex. entry = runestone, and copper | search = rock4_copper, entered r child, but returned false when checking for o, but with this bool, it will exit out of r
-                bool enteredChild = true;
-
                 char currentChar = td.searchKey[currentIndex];
-                keyBuilder.Append(currentChar); // add char to keybuilder (to build the actual key that's found)
+                td.keyBuilder.Append(currentChar); // add char to keybuilder (to build the actual key that's found)
                 // if currentNode's children does not have the specified char key, exit this method to backtrack and check the next char
                 // ex. entry in current node: rock , r doesn't exist, check o next time.
                 // rock, ock, ck, k
                 if (!m_children.TryGetValue(currentChar, out TrieNode nodeToCheck))
                 {
-                    if (td.exactMatchOnly) return false;
-                    nodeToCheck = this;
-                    keyBuilder.Clear(); // clear keybuilder because current path failed
-                    enteredChild = false; // set to false to not run this method again in this current TrieNode class
-                    depth--;
+                    td.keyBuilder.Clear();
+                    return false;
                 }
 
                 // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
-                if (IsNodeValid(nodeToCheck, td.searchKey, depth, td.exactMatchOnly))
+                if (newIsNodeValid(nodeToCheck, td.searchKey, currentIndex, td.exactMatchOnly))
                 {
                     // node is valid, return results
                     td.value = nodeToCheck.m_value;
                     td.nodeResult = nodeToCheck;
-                    td.actualKey = keyBuilder.ToString();
+                    td.actualKey = td.keyBuilder.ToString();
+                    if (td.deleteMode)
+                    {
+                        Remove(currentChar, td);
+                        return true;
+                    }
                     td.conflicting = CheckChildrenValid(td.searchKey, td.exactMatchOnly);
-                    if (td.deleteNode) Remove(currentChar, td);
                     return true;
                 }
                 // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
-                bool foundValid = nodeToCheck.TraverseRecursive(keyBuilder, td, currentIndex + 1, depth + 1);
-
-                if (enteredChild && !foundValid) // if the traverse child did not result a valid node, traverse parent node but check the next character
-                {
-                    nodeToCheck = this;
-                    foundValid = nodeToCheck.TraverseRecursive(keyBuilder, td, currentIndex + 1, depth);
-                    keyBuilder.Clear(); // clear keybuilder because current path has changed
-                }
+                bool foundValid = nodeToCheck.TraverseRecursive(td, currentIndex + 1);
 
                 if (!foundValid) return false;
                 // found result
                 // if in delete mode, run remove child method, if reached a node with children, end of deletion
-                if (td.deleteNode && !td.endOfDeleteTraversal) Remove(currentChar, td);
+                if (td.deleteMode && !td.endOfDeleteTraversal) Remove(currentChar, td);
                 return true;
             }
 
-            private bool IsNodeValid(TrieNode nodeToCheck, string key, int depth, bool exactMatchOnly = false)
+            private bool newIsNodeValid(TrieNode nodeToCheck, string key, int currentIndex, bool exactMatchOnly = false)
             {
                 if (nodeToCheck.m_value == null || // check if node is filled
-                    ((nodeToCheck.m_nodeExactMatchOnly || exactMatchOnly) && depth != key.Length - 1) || // found a close match, but can only be accessed through exact match
+                    ((nodeToCheck.m_nodeExactMatchOnly || exactMatchOnly) && currentIndex != key.Length - 1) || // found a close match, but can only be accessed through exact match
                     (!string.IsNullOrEmpty(nodeToCheck.m_blackListWord) && key.IndexOf(nodeToCheck.BlackListWord) != -1) // if the found node has a blacklisted word that is not found in the main key
                    )
                 {
@@ -368,28 +377,25 @@ namespace WxAxW.PinAssistant.Utils
                 return false;
             }
 
-            // used solely for searching dictionary with loose key search
-            public bool TryGetValueLooseRecursiveLite(string key, out TValue result, int currentIndex = 0, int depth = 0)
+            // searches similar to contains/indexof but for trie, probably more efficient since if calling indexof from a list of keys it will call it for each entry
+            public bool TryGetValueRecursiveLite(string key, out TValue result, int currentIndex = 0)
             {
                 result = default;
                 // keep checking until end of key, if true means there's more chars to check
                 if (currentIndex >= key.Length) return false;
 
-                bool enteredChild = true;
                 char currentChar = key[currentIndex];
                 // if currentNode's children does not have the specified char key, exit this method to backtrack and check the next char
                 // ex. entry in current node: rock , r doesn't exist, check o next time.
                 // rock, ock, ck, k
                 if (!m_children.TryGetValue(currentChar, out TrieNode nodeToCheck))
                 {
-                    nodeToCheck = this;
-                    enteredChild = false;
-                    depth--;
+                    return false;
                 }
 
                 // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
 
-                if (IsNodeValid(nodeToCheck, key, depth))
+                if (newIsNodeValid(nodeToCheck, key, currentIndex))
                 {
                     // node is valid, return results
                     result = nodeToCheck.m_value;
@@ -397,15 +403,7 @@ namespace WxAxW.PinAssistant.Utils
                 }
 
                 // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
-                bool foundValid = nodeToCheck.TryGetValueLooseRecursiveLite(key, out result, currentIndex + 1, depth + 1);
-
-                if (enteredChild && !foundValid) // if the traverse child did not result a valid node, traverse parent node but check the next character
-                {
-                    nodeToCheck = this;
-                    foundValid = nodeToCheck.TryGetValueLooseRecursiveLite(key, out result, currentIndex + 1, depth);
-                }
-
-                return foundValid;
+                return nodeToCheck.TryGetValueRecursiveLite(key, out result, currentIndex + 1);
             }
 
             public void SetValues(TrieNode nodeToRetrieve)
@@ -430,6 +428,111 @@ namespace WxAxW.PinAssistant.Utils
                 m_value = default;
                 m_nodeExactMatchOnly = false;
                 m_blackListWord = string.Empty;
+            }
+
+            // searches loosely ex. key = c_o_p_p_e_r | result = copper
+            // finds the key either loosely or exact match, ex: entryKey = oobar, searchKey = barf*oobar*foo
+            public bool TraverseLooseRecursive(StringBuilder keyBuilder, TraverseDetails td, int currentIndex = 0, int nodeLength = 1)
+            {
+                // keep checking until end of key, if true means there's more chars to check
+                if (currentIndex >= td.searchKey.Length) return false;
+
+                // to check if the child entered gave no result, therefore get out of the child and remove a prefix to keep looping
+                // ex. entry = runestone, and copper | search = rock4_copper, entered r child, but returned false when checking for o, but with this bool, it will exit out of r
+                bool enteredChild = true;
+
+                char currentChar = td.searchKey[currentIndex];
+                keyBuilder.Append(currentChar); // add char to keybuilder (to build the actual key that's found)
+                // if currentNode's children does not have the specified char key, exit this method to backtrack and check the next char
+                // ex. entry in current node: rock , r doesn't exist, check o next time.
+                // rock, ock, ck, k
+                if (!m_children.TryGetValue(currentChar, out TrieNode nodeToCheck))
+                {
+                    if (td.exactMatchOnly) return false;
+                    nodeToCheck = this;
+                    keyBuilder.Clear(); // clear keybuilder because current path failed
+                    enteredChild = false; // set to false to not run this method again in this current TrieNode class
+                    nodeLength--;
+                }
+
+                // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
+                if (IsNodeValidOld(nodeToCheck, td.searchKey, nodeLength, td.exactMatchOnly))
+                {
+                    // node is valid, return results
+                    td.value = nodeToCheck.m_value;
+                    td.nodeResult = nodeToCheck;
+                    td.actualKey = keyBuilder.ToString();
+                    td.conflicting = CheckChildrenValid(td.searchKey, td.exactMatchOnly);
+                    if (td.deleteMode) Remove(currentChar, td);
+                    return true;
+                }
+                // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
+                bool foundValid = nodeToCheck.TraverseLooseRecursive(keyBuilder, td, currentIndex + 1, nodeLength + 1);
+
+                if (enteredChild && !foundValid) // if the traverse child did not result a valid node, traverse parent node but check the next character
+                {
+                    nodeToCheck = this;
+                    foundValid = nodeToCheck.TraverseLooseRecursive(keyBuilder, td, currentIndex + 1, nodeLength);
+                    keyBuilder.Clear(); // clear keybuilder because current path has changed
+                }
+
+                if (!foundValid) return false;
+                // found result
+                // if in delete mode, run remove child method, if reached a node with children, end of deletion
+                if (td.deleteMode && !td.endOfDeleteTraversal) Remove(currentChar, td);
+                return true;
+            }
+
+            // searches loosely ex. key = c_o_p_p_e_r | result = copper
+            // used solely for searching dictionary with loose key search
+            public bool TryGetValueLooseRecursiveLite(string key, out TValue result, int currentIndex = 0, int nodeLength = 1)
+            {
+                result = default;
+                // keep checking until end of key, if true means there's more chars to check
+                if (currentIndex >= key.Length) return false;
+
+                bool enteredChild = true;
+                char currentChar = key[currentIndex];
+                // if currentNode's children does not have the specified char key, exit this method to backtrack and check the next char
+                // ex. entry in current node: rock , r doesn't exist, check o next time.
+                // rock, ock, ck, k
+                if (!m_children.TryGetValue(currentChar, out TrieNode nodeToCheck))
+                {
+                    nodeToCheck = this;
+                    enteredChild = false;
+                    nodeLength--;
+                }
+
+                // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
+
+                if (IsNodeValidOld(nodeToCheck, key, nodeLength))
+                {
+                    // node is valid, return results
+                    result = nodeToCheck.m_value;
+                    return true;
+                }
+
+                // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
+                bool foundValid = nodeToCheck.TryGetValueLooseRecursiveLite(key, out result, currentIndex + 1, nodeLength + 1);
+
+                if (enteredChild && !foundValid) // if the traverse child did not result a valid node, traverse parent node but check the next character
+                {
+                    nodeToCheck = this;
+                    foundValid = nodeToCheck.TryGetValueLooseRecursiveLite(key, out result, currentIndex + 1, nodeLength);
+                }
+
+                return foundValid;
+            }
+            private bool IsNodeValidOld(TrieNode nodeToCheck, string key, int nodeLength, bool exactMatchOnly = false)
+            {
+                if (nodeToCheck.m_value == null || // check if node is filled
+                    ((nodeToCheck.m_nodeExactMatchOnly || exactMatchOnly) && nodeLength != key.Length) || // found a close match, but can only be accessed through exact match
+                    (!string.IsNullOrEmpty(nodeToCheck.m_blackListWord) && key.IndexOf(nodeToCheck.BlackListWord) != -1) // if the found node has a blacklisted word that is not found in the main key
+                   )
+                {
+                    return false;
+                }
+                return true;
             }
         }
     }

@@ -13,13 +13,9 @@ namespace WxAxW.PinAssistant.Patches
     internal class MinimapPatches
     {
         public static event Action<Minimap.PinData> OnPinAdd;
-
         public static event Action<Minimap.PinData> OnPinRemove;
-
         public static event Action OnPinClear;
-
         public static event Action<Minimap.PinData> OnPinSetup;
-
         public static event Action OnPinNameChanged;
 
         public static bool isSpecialPin = false;
@@ -34,7 +30,7 @@ namespace WxAxW.PinAssistant.Patches
         private static void Postfix(ref Minimap.PinData __result) // get the return value of AddPin to add to plugin's pins dictionary
         {
             OnPinAdd?.Invoke(__result);
-            isSpecialPin = false;
+            MinimapPatches.isSpecialPin = false;
         }
 
         // patches the specific function RemovePin(PinData pin) inside the Minimap Class
@@ -92,10 +88,10 @@ namespace WxAxW.PinAssistant.Patches
         [HarmonyPatch(nameof(Minimap.UpdateShoutPins))] // ignore shout pins (I have Arrived!)
         private static IEnumerable<CodeInstruction> TranspilerIgnoreNewPin(IEnumerable<CodeInstruction> instructions)
         {
-            return ExcludeSpecialPinsInMethod(instructions);
+            return ExcludePinsInMethod(instructions);
         }
 
-        private static IEnumerable<CodeInstruction> ExcludeSpecialPinsInMethod(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> ExcludePinsInMethod(IEnumerable<CodeInstruction> instructions, bool isVirtual = false)
         {
             /* with emit delegate
             return FindBeforeAddPin(instructions)
@@ -105,12 +101,12 @@ namespace WxAxW.PinAssistant.Patches
                 )
                 .InstructionEnumeration();
             */
-
             // without emit delegate
-            return FindBeforeAddPin(instructions)
+            return FindBeforeAddPin(instructions, isVirtual)
                 .Repeat(
                     matcher =>
                     {
+                        Debug.Log("Found AddPin");
                         matcher.InsertAndAdvance(
                             new CodeInstruction(OpCodes.Ldc_I4_1), // add 1 (true) to stack
                             new CodeInstruction(OpCodes.Stsfld, AccessTools.Field(typeof(MinimapPatches), nameof(isSpecialPin)))
@@ -121,12 +117,12 @@ namespace WxAxW.PinAssistant.Patches
                 .InstructionEnumeration();
         }
 
-        private static CodeMatcher FindBeforeAddPin(IEnumerable<CodeInstruction> instructions)
+        private static CodeMatcher FindBeforeAddPin(IEnumerable<CodeInstruction> instructions, bool isVirtual)
         {
             return new CodeMatcher(instructions)
                 .MatchForward(
                     false,
-                    new CodeMatch(OpCodes.Call, AccessTools.Method(typeof(Minimap), nameof(Minimap.AddPin)))
+                    new CodeMatch(isVirtual ? OpCodes.Callvirt : OpCodes.Call, AccessTools.Method(typeof(Minimap), nameof(Minimap.AddPin)))
                     );
         }
     }

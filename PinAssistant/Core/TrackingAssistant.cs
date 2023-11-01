@@ -96,19 +96,36 @@ namespace WxAxW.PinAssistant.Core
 
             if (hit.transform.gameObject.layer == 11) return false; // skip if terrain
             obj = hit.transform.root.gameObject;
+            id = ModifyLookedObject(obj);
+            Debug.Log(TextType.OBJECT_INFO, id, LayerMask.LayerToName(obj.layer), obj.layer);
+            return true;
+        }
+
+        private string ModifyLookedObject(GameObject obj)
+        {
             switch (obj.name)
             {
                 case "LocationProxy(Clone)": // root's name is location proxy, is too amiguous (could be troll cave, crypt, sunken crypt, and even runestone
-                    id = obj.transform.GetChild(0).name; // so get the child component with the actual name
-                    break;
+                    return obj.transform.GetChild(0).name; // so get the child component with the actual name
                 case "___MineRock5 m_meshFilter":
-                    id = "Invalid! Track undamaged instead";
-                    break;
-                default: 
-                    id = obj.name; break;
+                    return "Invalid! Track undamaged instead";
+
+                // invalidate dungeon interior structures
+                case "DG_ForestCrypt(Clone)":
+                case "DG_SunkenCrypt(Clone)":
+                case "TreasureChest_forestcrypt(Clone)":
+                case "TreasureChest_sunkencrypt(Clone)":
+                case "Pickable_ForestCryptRemains01(Clone)":
+                case "Pickable_ForestCryptRemains02(Clone)":
+                case "Pickable_ForestCryptRemains03(Clone)":
+                case "Pickable_ForestCryptRandom(Clone)":
+                case "Pickable_SunkenCryptRandom(Clone)":
+                case "dungeon_forestcrypt_door(Clone)":
+                case "sunken_crypt_gate(Clone)":
+                    return "";
+                default:
+                    return obj.name;
             }
-            Debug.Log(TextType.OBJECT_INFO, id, LayerMask.LayerToName(obj.layer), obj.layer);
-            return true;
         }
 
         public void AddObjAsPin(string id, GameObject obj, float redundancyDistance)
@@ -143,40 +160,25 @@ namespace WxAxW.PinAssistant.Core
 
         public string FormatObjectName(string name)
         {
-            // Remove alphanumeric values ex. "SunkenCrypt4" -> "SunkenCrypt"
-            name = Regex.Replace(name, @"\d", string.Empty);
 
             // Replace '_' to ' '
             name = Regex.Replace(name, "_", " ");
 
-            // Pickable_small_rock
+            // Pickable_small_rock4
             //
-            // Remove specific words or alphanumeric values ex. "Sunken_Crypt4(Clone)" -> "SunkenCrypt4"
-            name = RemoveWords(name, "(Clone)", "Pickable", "small", "rock");
+            // Remove alphanumeric values ex. "SunkenCrypt4" -> "SunkenCrypt"
+            // Remove specific words ex. rock
+            name = Regex.Replace(name, @"(?:\d|\(clone\))|\b(?:pickable|small)\b", string.Empty, RegexOptions.IgnoreCase);
+            string noRock = Regex.Replace(name, @"rock", string.Empty, RegexOptions.IgnoreCase);
+            if (!string.IsNullOrWhiteSpace(noRock)) name = noRock;   // fail safe if formatted is empty
+
+            // Capitalize Words
+            name = Regex.Replace(name, @"\b\w", m => m.Value.ToUpper());
 
             // Split conjoined words ex. "SunkenCrypt" -> "Sunken Crypt"
-            name = SplitConjoinedWords(name);
+            name = Regex.Replace(name, @"([a-z])([A-Z])", "$1 $2").Trim();
 
             return name;
-        }
-
-        private string RemoveWords(string input, params string[] wordsToRemove)
-        {
-            foreach (var word in wordsToRemove)
-            {
-                string newInput = Regex.Replace(input, Regex.Escape(word), string.Empty, RegexOptions.IgnoreCase).Trim();
-                if (string.IsNullOrEmpty(newInput)) continue;   // fail safe if formatted is empty
-                input = newInput;
-            }
-
-            return input;
-        }
-
-        private string SplitConjoinedWords(string input)
-        {
-            // Use a regular expression to find conjoined words (e.g., BerryBush) and add a space in between.
-            input = Regex.Replace(input, @"([a-z])([A-Z])", "$1 $2");
-            return input;
         }
 
         private bool CheckValidPinPosition(Vector3 pinToAdd, string pinName, float redundancyDistance)
@@ -259,12 +261,12 @@ namespace WxAxW.PinAssistant.Core
         {
             // attempt to change key
 
-            m_trackedObjects.ChangeKey(
+            if (!m_trackedObjects.ChangeKey(
                 key: objToEdit.ObjectID,
                 newKey: newValues.ObjectID,
                 out conficting,
                 out foundConflict
-                );
+                )) return false;
 
             // modify values
             bool success = m_trackedObjects.Modify(
@@ -349,6 +351,11 @@ namespace WxAxW.PinAssistant.Core
         private void OnPinAdd(Minimap.PinData pinData)
         {
             Debug.Log(TextType.PIN_ADDING, "OnPinAdd", pinData.m_name, pinData.m_pos);
+            if (MinimapPatches.isSpecialPin)
+            {
+                Debug.Log("Special Pin found will not include in the list of pins");
+                return;
+            }
             if (pinData.m_pos == Vector3.zero)
             {
                 Debug.Log(TextType.PING_ADDING);

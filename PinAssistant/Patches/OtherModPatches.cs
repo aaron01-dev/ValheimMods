@@ -1,6 +1,9 @@
 ﻿using HarmonyLib;
 using Pinnacle;
+using Kits_Bitz.Under_The_Radar;
 using System;
+using System.Collections.Generic;
+using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant.Patches
 {
@@ -25,6 +28,17 @@ namespace WxAxW.PinAssistant.Patches
         private static void PostfixOnPinNameValueChange()
         {
             OnPinNameChanged?.Invoke();
+        }
+    }
+
+    [HarmonyPatch(typeof(RadarPinComponent))]
+    internal class UnderTheRadarPatches
+    {
+        [HarmonyTranspiler]
+        [HarmonyPatch(nameof(RadarPinComponent.Update))] // ignore shout pins (I have Arrived!)
+        private static IEnumerable<CodeInstruction> TranspilerIgnoreRadarPin(IEnumerable<CodeInstruction> instructions)
+        {
+            return MinimapPatches.ExcludePinsInMethod(instructions, isVirtual: true);
         }
     }
 }
