@@ -3,6 +3,7 @@ using Jotunn.Managers;
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using WxAxW.PinAssistant.Configuration;
 using WxAxW.PinAssistant.Core;
@@ -15,6 +16,7 @@ namespace WxAxW.PinAssistant.Components
         private static FilterPinsUI m_instance;
         public static FilterPinsUI Instance => m_instance;
         private bool m_showOnStartup;
+        private bool m_isFocused = false;
 
 #pragma warning disable CS0649
         [SerializeField] private GameObject m_body;
@@ -48,30 +50,56 @@ namespace WxAxW.PinAssistant.Components
             m_body.SetActive(m_showOnStartup);
         }
 
+        private void Start()
+        {
+            ModConfig.Instance.IsSearchWindowEnabledConfig.SettingChanged += OnToggleSearchWindowStartup; // add a permanent listener to startup config change
+        }
+
         private void Update()
         {
+            bool blockInput = Chat.instance != null && Chat.instance.HasFocus() || Console.IsVisible() || TextInput.IsVisible() || Menu.IsVisible() || InventoryGui.IsVisible();
+
+            if (blockInput) return;
             if (ModConfig.Instance.ToggleFilterWindowConfig.Value.IsDown())
+            {
                 m_body.SetActive(!m_body.activeSelf);
+                if (m_body.activeSelf) return;
+                m_inputPinNameFilter.DeactivateInputField();
+                SetFocused(false);
+            }
         }
 
         private void OnDestroy()
         {
+            ModConfig.Instance.IsSearchWindowEnabledConfig.SettingChanged -= OnToggleSearchWindowStartup; // remove permanent listener to startup config change
             m_instance = null;
         }
 
         private void OnEnable()
         {
-            ModConfig.Instance.IsSearchWindowEnabledConfig.SettingChanged += OnToggleSearchWindowStartup;
+            m_inputPinNameFilter.onSelect.AddListener(OnInputFocus);
+            m_inputPinNameFilter.onDeselect.AddListener(OnInputLossFocus);
+            m_inputPinNameFilter.onSubmit.AddListener(OnSubmit);
             m_buttonFind.onClick.AddListener(OnButtonFind);
             m_buttonReset.onClick.AddListener(OnButtonReset);
-            m_body.SetActive(m_showOnStartup);
         }
 
         private void OnDisable()
         {
-            ModConfig.Instance.IsSearchWindowEnabledConfig.SettingChanged -= OnToggleSearchWindowStartup;
+            m_inputPinNameFilter.onSelect.RemoveListener(OnInputFocus);
+            m_inputPinNameFilter.onDeselect.RemoveListener(OnInputLossFocus);
+            m_inputPinNameFilter.onSubmit.RemoveListener(OnSubmit);
             m_buttonFind.onClick.RemoveListener(OnButtonFind);
             m_buttonReset.onClick.RemoveListener(OnButtonReset);
+        }
+
+        public void ModEnable()
+        {
+            m_body.SetActive(m_showOnStartup);
+        }
+
+        public void ModDisable()
+        {
             m_body.SetActive(false);
         }
 
@@ -109,6 +137,29 @@ namespace WxAxW.PinAssistant.Components
         private void OnToggleSearchWindowStartup(object sender, EventArgs eventArgs)
         {
             ShowOnStartup = ((ConfigEntry<bool>)sender).Value;
+        }
+
+        private void OnInputFocus(string _)
+        {
+            SetFocused(true);
+        }
+
+        private void OnInputLossFocus(string _)
+        {
+            SetFocused(false);
+        }
+
+        private void OnSubmit(string _)
+        {
+            OnButtonFind();
+            m_inputPinNameFilter.ActivateInputField();
+        }
+
+        private void SetFocused(bool focused)
+        {
+            if (m_isFocused == focused) return;
+            m_isFocused = focused;
+            GUIManager.BlockInput(focused);
         }
     }
 }

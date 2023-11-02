@@ -24,7 +24,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.5.1";
+        public const string PluginVersion = "1.5.2";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -142,8 +142,11 @@ namespace WxAxW.PinAssistant
             Debug.Log(TextType.MOD_ENABLED);
 
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = true;
-            if (FilterPinsUI.Instance != null) FilterPinsUI.Instance.enabled = true;
-
+            if (FilterPinsUI.Instance != null)
+            {
+                FilterPinsUI.Instance.enabled = true;
+                FilterPinsUI.Instance.ModEnable();
+            }
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged += OnToggleAutoPinningConfig;
 
             foreach (Component comp in pluginComponents)
@@ -161,7 +164,11 @@ namespace WxAxW.PinAssistant
                 comp.enabled = false;
             }
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = false;
-            if (FilterPinsUI.Instance != null) FilterPinsUI.Instance.enabled = false;
+            if (FilterPinsUI.Instance != null)
+            {
+                FilterPinsUI.Instance.enabled = false;
+                FilterPinsUI.Instance.ModDisable();
+            }
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged -= OnToggleAutoPinningConfig;
 
             ToggleAutoPinning();

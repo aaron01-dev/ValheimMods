@@ -75,20 +75,16 @@ namespace WxAxW.PinAssistant.Core
         {
             MinimapPatches.OnPinAdd += OnPinAdd;
             MinimapPatches.OnPinRemove += OnPinRemove;
-            MinimapPatches.OnPinSetup += OnPinSetup;
-            PinnaclePatches.OnSetTargetPin += OnPinSetup;
-            MinimapPatches.OnPinNameChanged += OnPinUpdate;
-            PinnaclePatches.OnPinNameChanged += OnPinUpdate;
+            MinimapPatches.OnSetTargetPin += OnPinSetup;
+            MinimapPatches.OnUpdatePin += OnPinUpdate;
         }
 
         public override void Destroy()
         {
             MinimapPatches.OnPinAdd -= OnPinAdd;
             MinimapPatches.OnPinRemove -= OnPinRemove;
-            MinimapPatches.OnPinSetup -= OnPinSetup;
-            PinnaclePatches.OnSetTargetPin -= OnPinSetup;
-            MinimapPatches.OnPinNameChanged -= OnPinUpdate;
-            PinnaclePatches.OnPinNameChanged -= OnPinUpdate;
+            MinimapPatches.OnSetTargetPin -= OnPinSetup;
+            MinimapPatches.OnUpdatePin -= OnPinUpdate;
             m_instance = null;
         }
 
@@ -219,15 +215,15 @@ namespace WxAxW.PinAssistant.Core
 
         private void OnPinSetup(Minimap.PinData pin)
         {
-            if (pin == null) return;
             m_edittingPin = pin;
-            m_oldPinName = m_edittingPin.m_name.ToLower();
+            m_oldPinName = pin == null ? string.Empty : m_edittingPin.m_name.ToLower();
         }
 
         private void OnPinUpdate()
         {
             if (m_edittingPin == null) return;
             RelocatePin(m_edittingPin, m_oldPinName);
+            m_oldPinName = m_edittingPin.m_name.ToLower();
         }
 
         private void OnPinAdd(Minimap.PinData pin)

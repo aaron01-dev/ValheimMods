@@ -15,8 +15,8 @@ namespace WxAxW.PinAssistant.Patches
         public static event Action<Minimap.PinData> OnPinAdd;
         public static event Action<Minimap.PinData> OnPinRemove;
         public static event Action OnPinClear;
-        public static event Action<Minimap.PinData> OnPinSetup;
-        public static event Action OnPinNameChanged;
+        public static event Action<Minimap.PinData> OnSetTargetPin;
+        public static event Action OnUpdatePin;
 
         public static bool isSpecialPin = false;
 
@@ -30,7 +30,7 @@ namespace WxAxW.PinAssistant.Patches
         private static void Postfix(ref Minimap.PinData __result) // get the return value of AddPin to add to plugin's pins dictionary
         {
             OnPinAdd?.Invoke(__result);
-            MinimapPatches.isSpecialPin = false;
+            isSpecialPin = false;
         }
 
         // patches the specific function RemovePin(PinData pin) inside the Minimap Class
@@ -65,7 +65,7 @@ namespace WxAxW.PinAssistant.Patches
             if (!__runOriginal) return;
 
             Debug.Log("New manual pin added");
-            OnPinSetup?.Invoke(__instance.m_namePin);
+            SetTargetPin(__instance.m_namePin);
         }
 
         [HarmonyPrefix]
@@ -74,7 +74,17 @@ namespace WxAxW.PinAssistant.Patches
         {
             if (__instance.m_namePin == null) return;
             Debug.Log("New manual pin editted");
-            OnPinNameChanged?.Invoke();
+            UpdatePin();
+        }
+
+        public static void SetTargetPin(Minimap.PinData pin)
+        {
+            OnSetTargetPin?.Invoke(pin);
+        }
+
+        public static void UpdatePin()
+        {
+            OnUpdatePin?.Invoke();
         }
 
         // ignore special pins
@@ -106,7 +116,6 @@ namespace WxAxW.PinAssistant.Patches
                 .Repeat(
                     matcher =>
                     {
-                        Debug.Log("Found AddPin");
                         matcher.InsertAndAdvance(
                             new CodeInstruction(OpCodes.Ldc_I4_1), // add 1 (true) to stack
                             new CodeInstruction(OpCodes.Stsfld, AccessTools.Field(typeof(MinimapPatches), nameof(isSpecialPin)))

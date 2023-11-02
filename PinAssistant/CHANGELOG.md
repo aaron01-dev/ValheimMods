@@ -2,6 +2,40 @@
 
 <details>
 <summary><b>
+v1.5.2 Mod Compatibility fixes + Search fixes
+</b></summary>
+
+- New
+	- You can press enter when the search window field is selected to immediately submit (find) now.
+	- Updated description / README.md
+		- Compatibility section
+		- Slightly fixed up known issues page.
+- Fixes
+	- Search Window
+		- Typing in the search field, M (or the minimap key) closes the minimap
+		- Toggling start up config when the mod is disabled won't reflect the changes.
+		- The search window will always be opened or closed whenever you open the minimap depending on the "Show Search Window on startup" toggle.
+	- Pinnacle
+		- Pins not being colored permanently until relog when editting pin name and not clicking out (to deselect pin) after an edit or pressing enter, and then followed by editing the name once more.
+	- Under the Radar
+		- Pins not being filtered out permanently until mod re-enable, when pinning an object using PinAssistant that is temporarily pinned by Under The Radar and then unloading it by going away from it.
+- <details>
+	<summary>
+	Backend
+	</summary>
+
+	- TrackingAssistant
+		- Added a check on RemovePin to double check if the removed pin is actually in the dictionary.
+	- MinimapAssistant
+		- Updates old_PinName whenever OnPinUpdate gets called. (for when user changed the pin name once more. Doesn't apply to Vanilla)
+	- OtherModPatches
+		- Slightly refactored PinnaclePatches events to use MinimapPatches event
+	</details>
+
+</details>
+
+<details>
+<summary><b>
 v1.5.1
 </b></summary>
 

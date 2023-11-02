@@ -223,7 +223,11 @@ namespace WxAxW.PinAssistant.Core
 
         private void RemovePin(Minimap.PinData pinData)
         {
-            if (m_pins.Remove(pinData.m_pos)) Debug.Log(TextType.PIN_REMOVED, pinData.m_name, pinData.m_pos);
+            Vector3 key = pinData.m_pos;
+            if (!m_pins.TryGetValue(key, out var pin)) return;
+            if (pin != pinData) return;
+            m_pins.Remove(key);
+            Debug.Log(TextType.PIN_REMOVED, pinData.m_name, pinData.m_pos);
         }
 
         private void ClearPins()

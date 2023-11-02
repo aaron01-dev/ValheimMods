@@ -20,6 +20,12 @@ Customize the entry to how you want the pin to appear, a boss icon? a fire? is t
 Customize your entries to choose what it wants. Only search a specific object, pin multiple objects on just one entry, delete on pins associated with entry on log out, and many more!
 Many configuration combinations for you to think about!
 
+## Lightweight Plugin
+Efficient auto pin and tracking system
+Even though you might think that this is a pretty heavy system with the complex logic it has. It wouldn't, except for Valheim's pin system, that's not on me anymore. Although, the color system's performance is based on how many colored pins you have, but it's really negligible (I did my best to optimize it a lot). If you worry about performance you can increase the tick rate in the settings, but its performance impact is also negligible.
+
+Technical stuff: Most of the system uses dictionaries especially the tracked entry system which uses TrieNode Dictionary, which means it won't harm the performance when the mod has an object that needs to be ran through the list of entries to check, (imagine those auto complete systems in searching on your computer)
+
 ## Features
 
 ### GUI
@@ -57,14 +63,12 @@ Hard to read the many pins you see? With this mod's tracking system you can chan
 ### Shareable Entries!
 If you have Configuration Manager Installed you can open up the menu, copy the very last field in this mod's section and send that entire text to your friend and press the reload key. Both you and your friend has the same entries you have!. Although, it won't copy the pins you've already made.
 
-## Lightweight Plugin
-Efficient auto pin and tracking system
-Even though you might think that this is a pretty heavy system with the complex logic it has. It wouldn't, except for Valheim's pin system, that's not on me anymore. If you worry about performance you can increase the tick rate in the settings. Default is every second, Pin Assistant will detect what you're looking at.
+## Mod Compatibilities
+This is a pretty non-invasive mod so any pin related mods shouldn't break the game, but there might be some conflicts depending on how the mod behaves do report it to make the mod even more non-invasive.
 
-Technical stuff: Most of the system uses dictionaries especially the tracked entry system which uses TrieNode Dictionary, which means it won't harm the performance when the mod has an object that needs to be ran through the list of entries to check, (imagine those auto complete systems in searching on your computer)
-
-## I recommend using Pinnacle by ComfyMods
-You can check it out [here](https://valheim.thunderstore.io/package/ComfyMods/Pinnacle/)
+Mods where I made mine compatible:
+- [Pinnacle](https://valheim.thunderstore.io/package/ComfyMods/Pinnacle/) (I do recommend this a lot to have more range of features to modify pins)
+- [UnderTheRadar](https://valheim.thunderstore.io/package/Kits_Bitz/UnderTheRadar/)
 
 # Tutorial
 ## How to use
@@ -119,6 +123,7 @@ Also, thank you to the mod developers who helped me setup to start on this proje
 You can contact me on Discord, 'WxAaRoNxW', make a post on [Nexus](https://www.nexusmods.com/valheim/mods/2531) or add a 'New Issue' on [Github](https://github.com/aaron-yang0327-development/ValheimMods/issues).
 
 ## Known issues
-- You tell me!
-
-If you have a problem you can find the github [here](https://github.com/aaron-yang0327-development/ValheimMods) and add an issue
+Check these pages:
+- [Nexus](https://www.nexusmods.com/valheim/mods/2531?tab=bugs)
+- [Github](https://github.com/aaron-yang0327-development/ValheimMods/issues)
+If you have a problem you can post an issue on one of these pages.
