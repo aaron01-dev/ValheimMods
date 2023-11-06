@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TMPro;
 
 namespace WxAxW.PinAssistant.Utils
 {
@@ -14,6 +15,15 @@ namespace WxAxW.PinAssistant.Utils
             dict.Remove(oldKey);
             dict.Add(newKey, value);
             return true;
+        }
+    }
+
+    internal static class TMPDropdownExtensions
+    {
+        public static void AddOptionWithList<T>(this TMP_Dropdown dropDown, string optionName, List<T> list, T value)
+        {
+            dropDown.options.Add(new TMP_Dropdown.OptionData(optionName));
+            list.Add(value);
         }
     }
 }

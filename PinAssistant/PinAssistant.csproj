@@ -167,6 +167,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\CollapsibleButtonBehavior.cs" />
     <Compile Include="Components\FilterPinsUI.cs" />
     <Compile Include="Components\TrackObjectUI.cs" />
     <Compile Include="Core\Component.cs" />
@@ -174,7 +175,6 @@
     <Compile Include="Core\TrackedObject.cs" />
     <Compile Include="Patches\OtherModPatches.cs" />
     <Compile Include="Utils\Extensions.cs" />
-    <Compile Include="Utils\GUIExtension.cs" />
     <Compile Include="Utils\GUIManagerExtension.cs" />
     <Compile Include="Utils\LooseDictionary.cs" />
     <Compile Include="Configuration\Messages.cs" />

@@ -2,6 +2,57 @@
 
 <details>
 <summary><b>
+v1.6.0 Bulk Modify Pins + QoL Update
+</b></summary>
+
+- New
+	- ZOOOM
+		- Normal zoom in minimap is not enough? now you can ZOOM MORE! Configurable in config manager. (applies to both small and large map)
+	- Icon searching
+		- You can now narrow down your searches more by setting an icon type instead of just names (you can pick all icons still).
+	- Bulk pin modification (Took way too long to rewrite code to work with this .-.)
+		- Ability to modify existing pins' name and icon when modifying Tracked Object entries.
+		- Ability to modify existing pins' name and icon through the search window.
+		- This will match Pin's Name and Icon and modify it to the currently modified entry.
+- Changes
+	- Pins are now colored based on their names and icons, instead of just names.
+	- Searching is no longer case sensitive (since the pins' characters' cases can't be determined due to the font style).
+	- Updated Showcase previews to match the new version, also made it viewable instead of clicking the link.
+- Fixes
+	- If you have a mod that can change a pin's position you'll be able to overlap a new pin if the positions are absolutely the same to the prior position.
+	- When a filter is active, newly created pins (from double clicking in the map) will be invisible.
+	- Change entry's Object ID will no longer work with detecting objects with matching id (oversight)
+	- Blacklist Word not working properly all the time (happens when the blacklist word is before the id)
+		- ex. `SunkenCrypt4(Clone)` | entry: objectID > Crypt, blacklist > Sunken
+		- Looking at a structure named `SunkenCrypt4(Clone)` will still get detected because Sunken if before Crypt
+
+- <details>
+	<summary>
+	Backend
+	</summary>
+
+	- MinimapAssistant
+		- Added PinName + Icon key storage to distinguish between different combinations.
+		- Refactored to be more streamlined and to work with new version. Used TryGetValue and reusing other methods.
+		- Moved edittting pin variables to MinimapPatches (so both MinimapAssistant and TrackingAssistant can make use of it)
+		- Optimized filtering through pins greatly compared to before. I had no idea IEnumerable acted the way it is (deferred execution). Made it .ToList() and then updates the filter whenever a pin is modified or added.
+		- Added compatibility for pin type searching instead of just names.
+		- Renamed methods to better match the new code.
+	- TrackObjectUI
+		- Moved PopulateIcons, FormatSpriteName and m_dictionaryPinType(m_dictionaryPinIcons)variable to MinimapAssistant and added string name to dictionary as well. FilterPinsUI now uses this dictionary as well for overhauled UI.
+	- MinimapPatches
+		- Added isManualPin token to determine if the newly added pin is made by a player (to avoid it from being filtered out immediately while editting it)
+	- Plugin
+		- Slightly cleaned up code.
+	- LooseDictionary
+		- In ChangeKey() instead of using dictionary changekey extension, remove the original node and add the new cloned node instead (dictionary still contains the old node instead of being new if Changekey was used)
+		- Added original key parameter to TraverseDetails and TryGetValueLooseLite to fix the new search method with node's blacklistword
+	</details>
+
+</details>
+
+<details>
+<summary><b>
 v1.5.2 Mod Compatibility fixes + Search fixes
 </b></summary>
 
@@ -30,6 +81,8 @@ v1.5.2 Mod Compatibility fixes + Search fixes
 		- Updates old_PinName whenever OnPinUpdate gets called. (for when user changed the pin name once more. Doesn't apply to Vanilla)
 	- OtherModPatches
 		- Slightly refactored PinnaclePatches events to use MinimapPatches event
+	- GUIExtension
+		- Moved to GUIManagerExtensions
 	</details>
 
 </details>

@@ -15,10 +15,14 @@ namespace WxAxW.PinAssistant.Patches
         public static event Action<Minimap.PinData> OnPinAdd;
         public static event Action<Minimap.PinData> OnPinRemove;
         public static event Action OnPinClear;
-        public static event Action<Minimap.PinData> OnSetTargetPin;
-        public static event Action OnUpdatePin;
+        public static event Action<Minimap.PinData> OnPinSetTarget;
+        public static event Action OnPinUpdate;
 
         public static bool isSpecialPin = false;
+        public static bool isManualPin = false;
+
+        public static Minimap.PinData m_edittingPinInitial = new Minimap.PinData();
+        public static Minimap.PinData m_edittingPin;
 
         private static FieldInfo AccessMinimapField(string field)
         {
@@ -31,6 +35,7 @@ namespace WxAxW.PinAssistant.Patches
         {
             OnPinAdd?.Invoke(__result);
             isSpecialPin = false;
+            isManualPin = false;
         }
 
         // patches the specific function RemovePin(PinData pin) inside the Minimap Class
@@ -58,6 +63,20 @@ namespace WxAxW.PinAssistant.Patches
             MinimapAssistant.Instance.ColorPins();
         }
 
+        // set as new pin
+        [HarmonyTranspiler]
+        [HarmonyPatch(nameof(Minimap.UpdateMap))]
+        [HarmonyPatch(nameof(Minimap.OnMapDblClick))]
+        private static IEnumerable<CodeInstruction> TranspilerIsManualPin(IEnumerable<CodeInstruction> instructions)
+        {
+            return FindBeforeCall(instructions, isVirtual: false, AccessTools.Method(typeof(Minimap), nameof(Minimap.ShowPinNameInput)))
+                .InsertAndAdvance(
+                    new CodeInstruction(OpCodes.Ldc_I4_1), // add 1 (true) to stack
+                    new CodeInstruction(OpCodes.Stsfld, AccessTools.Field(typeof(MinimapPatches), nameof(isManualPin)))
+                )
+                .InstructionEnumeration();
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(nameof(Minimap.ShowPinNameInput))]
         private static void PostFixShowPinNameInput(Minimap __instance, ref bool __runOriginal)
@@ -74,17 +93,29 @@ namespace WxAxW.PinAssistant.Patches
         {
             if (__instance.m_namePin == null) return;
             Debug.Log("New manual pin editted");
-            UpdatePin();
+            OnPinUpdate?.Invoke();
+            SetTargetPin(null);
         }
 
         public static void SetTargetPin(Minimap.PinData pin)
         {
-            OnSetTargetPin?.Invoke(pin);
+            OnPinSetTarget?.Invoke(pin);
+            m_edittingPin = pin;
+            CopyValues(m_edittingPin);
         }
 
         public static void UpdatePin()
         {
-            OnUpdatePin?.Invoke();
+            OnPinUpdate?.Invoke();
+            CopyValues(m_edittingPin);
+        }
+
+        private static void CopyValues(Minimap.PinData pin)
+        {
+            if (pin == null) return;
+            m_edittingPinInitial.m_name = pin.m_name;
+            m_edittingPinInitial.m_type = pin.m_type;
+            m_edittingPinInitial.m_pos = pin.m_pos;
         }
 
         // ignore special pins
@@ -112,7 +143,7 @@ namespace WxAxW.PinAssistant.Patches
                 .InstructionEnumeration();
             */
             // without emit delegate
-            return FindBeforeAddPin(instructions, isVirtual)
+            return FindBeforeCall(instructions, isVirtual, AccessTools.Method(typeof(Minimap), nameof(Minimap.AddPin)))
                 .Repeat(
                     matcher =>
                     {
@@ -126,12 +157,12 @@ namespace WxAxW.PinAssistant.Patches
                 .InstructionEnumeration();
         }
 
-        private static CodeMatcher FindBeforeAddPin(IEnumerable<CodeInstruction> instructions, bool isVirtual)
+        private static CodeMatcher FindBeforeCall(IEnumerable<CodeInstruction> instructions, bool isVirtual, MethodInfo method)
         {
             return new CodeMatcher(instructions)
                 .MatchForward(
                     false,
-                    new CodeMatch(isVirtual ? OpCodes.Callvirt : OpCodes.Call, AccessTools.Method(typeof(Minimap), nameof(Minimap.AddPin)))
+                    new CodeMatch(isVirtual ? OpCodes.Callvirt : OpCodes.Call, method)
                     );
         }
     }

@@ -21,7 +21,8 @@ namespace WxAxW.PinAssistant.Patches
         // pin has finished being editted
         [HarmonyPostfix]
         [HarmonyPatch(nameof(PinEditPanel.OnPinNameValueChange))]
-        private static void PostfixOnPinNameValueChange()
+        [HarmonyPatch(nameof(PinEditPanel.OnPinTypeValueChange))]
+        private static void PostfixOnPinUpdate()
         {
             MinimapPatches.UpdatePin();
         }

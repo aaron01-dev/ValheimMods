@@ -1,5 +1,7 @@
 # Preview
-[Mod Preview](https://imgur.com/LPbUZMH)
+![Preview mp4](https://i.imgur.com/ntUecfL.mp4)
+
+![Preview gif](https://i.imgur.com/ntUecfL.gif)
 
 # Mod Introduction
 
@@ -31,7 +33,9 @@ Technical stuff: Most of the system uses dictionaries especially the tracked ent
 ### GUI
 A Valheim style UI for you to easily manage your tracked objects
 
-![showcase](https://i.imgur.com/sNeq8Yy.gif)
+![GUI mp4](https://i.imgur.com/tNbOz5V.mp4)
+
+![GUI](https://i.imgur.com/tNbOz5V.gif)
 
 ### Auto Pinning
 Too lazy to create pins by yourself? No problem! Just create an entry for an object and this mod will do everything for you.
@@ -42,23 +46,42 @@ Don't like the auto pin feature? That's ok! You can disable it and use the 'Pin 
 ### ID Filter
 You can also set the entry to only find objects that are named exactly to what you've set, this means you'll be able to choose which specific type of object variation you want to be pinned, Crypt1? Crypt2? or if you want all the variations, just set the ID to Crypt. 
 
-[Video](https://imgur.com/XFutXtK)
-
 ### Blacklisting
 However this means Sunken Crypts would also be included in the detection, that's where the Blacklist feature is needed. Add 'sunken' to the entry with crypt ID, and this would only allow non-Sunken Crypts to be pinned on that entry.
 
-[Video](https://imgur.com/efcHyAx)
+![Blacklisting Sunken Crypts from Tracked Crypt Entry mp4](https://i.imgur.com/ODqeFo3.mp4)
+
+![Blacklisting Sunken Crypts from Tracked Crypt Entry](https://i.imgur.com/ODqeFo3.gif)
 
 ### Redundancy Feature
 If you think your pin might clutter cause the objects are grouped together, you can change the redundancy setting to avoid pinning similar objects at a certain distance based on the pinned object.
 
-[Video](https://imgur.com/lerLdHw)
+![Redundancy Distance Showcase mp4](https://imgur.com/lerLdHw.mp4)
 
-### Searchable Pins
-Overcrowded map? Want to find specific pin/s? Just head over to your map and look to the top left and search away, use double quotes to search for a pin name with your exact search. You can also set it to whitelist mode or not to hide everything except your search or show everything except your search. RegEx is also a feature if you want a more versatile way to search pins!. Search window is too obstructive? Just press 'Tab' to hide it! Don't want it at all? Just go your config manager and disable "Show search window on startup"!
+![Redundancy Distance Showcase](https://imgur.com/lerLdHw.gif)
 
 ### Colored Pins
 Hard to read the many pins you see? With this mod's tracking system you can change the pins you have into different colors! Due to limitations the pins colors are based on their Pin Names
+
+![Tracking/Coloring Dandelions mp4](https://i.imgur.com/WZ3ovBV.mp4)
+
+![Tracking/Coloring Dandelions](https://i.imgur.com/WZ3ovBV.gif)
+
+### Searchable Pins
+Overcrowded map? Want to find specific pin/s? Just head over to your map and look to the top left and search away, use double quotes to search for a pin name with your exact search. You can also set it to whitelist mode or not to hide everything except your search or show everything except your search. RegEx is also a feature if you want a more versatile way to search pins!. Search window is too obstructive? Just press 'Tab' to hide it! Don't want it at all? Just go to your config manager and disable "Show search window on startup"!
+
+![Search Window mp4](https://i.imgur.com/ovZkUuN.mp4)
+
+![Search Window](https://i.imgur.com/ovZkUuN.gif)
+
+### Bulk Pins Modification
+Did you discover that there's actually more than one berry bush, and that all of your berry pins are too ambiguous? Fret not as you can do it over at the Search Window or at an existing Tracked Object entry. You also want to change the icon? You can do that too!
+
+![Tracked Object Modify Existing Pins mp4](https://i.imgur.com/SXO5Ro9.mp4)
+![Search Window Modify Pins mp4](https://i.imgur.com/UAab6UG.mp4)
+
+![Tracked Object Modify Existing Pins](https://i.imgur.com/SXO5Ro9.gif)
+![Search Window Modify Pins](https://i.imgur.com/UAab6UG.gif)
 
 ### Shareable Entries!
 If you have Configuration Manager Installed you can open up the menu, copy the very last field in this mod's section and send that entire text to your friend and press the reload key. Both you and your friend has the same entries you have!. Although, it won't copy the pins you've already made.

@@ -2,6 +2,7 @@
 using Jotunn.Managers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
@@ -36,20 +37,29 @@ namespace WxAxW.PinAssistant.Components
         [SerializeField] private Image m_previewIcon;
         [SerializeField] private Image m_previewIconChecked;
         [SerializeField] private TMP_Text m_previewIconText;
+
         [SerializeField] private TMP_InputField m_inputPinName;
+        [SerializeField] private Toggle m_toggleRenamePins;
+
         [SerializeField] private TMP_InputField m_inputObjectID;
         [SerializeField] private TMP_InputField m_inputBlackListWord;
+
         [SerializeField] private TMP_Dropdown m_dropDownPinIcon;
         [SerializeField] private Button m_pinColorBox;
+
+        [SerializeField] private TMP_Dropdown m_dropDownTracked;
+
         [SerializeField] private Toggle m_toggleSavePin;
         [SerializeField] private Toggle m_toggleCheckPin;
         [SerializeField] private Toggle m_toggleExactMatch;
-        [SerializeField] private TMP_Dropdown m_dropDownTracked;
+
         [SerializeField] private TMP_Text m_messageBox;
+
         [SerializeField] private Button m_buttonTrackModify;
         [SerializeField] private TMP_Text m_buttonTrackModifyText;
         [SerializeField] private Button m_buttonUntrackCancel;
         [SerializeField] private TMP_Text m_buttonUntrackCancelText;
+
         [SerializeField] private Transform m_creditRow;
         [SerializeField] private TMP_Text m_versionNumber;
 #pragma warning restore CS0649
@@ -61,7 +71,6 @@ namespace WxAxW.PinAssistant.Components
         private bool m_edittingColor = false;
 
         private readonly List<TrackedObject> m_dropDownTrackedList = new List<TrackedObject>(); // drop down object equivalent to dropdown's values
-        private readonly Dictionary<Minimap.PinType, Sprite> m_dictionaryPinIcons = new Dictionary<Minimap.PinType, Sprite>(); // dictionary of sprites
         private Minimap.PinType m_pinTypeInput;
 
         public static event Action TrackObjectUILoaded;
@@ -70,23 +79,33 @@ namespace WxAxW.PinAssistant.Components
         public Transform Header { get => m_header; set => m_header = value; }
         public TMP_Text HeaderText { get => m_headerText; set => m_headerText = value; }
         public Image Body { get => m_body; set => m_body = value; }
+
         public Image PreviewIcon { get => m_previewIcon; set => m_previewIcon = value; }
         public Image PreviewIconChecked { get => m_previewIconChecked; set => m_previewIconChecked = value; }
         public TMP_Text PreviewIconText { get => m_previewIconText; set => m_previewIconText = value; }
+
         public TMP_InputField InputPinName { get => m_inputPinName; set => m_inputPinName = value; }
+        public Toggle ToggleRenamePins { get => m_toggleRenamePins; set => m_toggleRenamePins = value; }
+
         public TMP_InputField InputObjectID { get => m_inputObjectID; set => m_inputObjectID = value; }
         public TMP_InputField InputBlackListWord { get => m_inputBlackListWord; set => m_inputBlackListWord = value; }
+
         public TMP_Dropdown DropDownPinIcon { get => m_dropDownPinIcon; set => m_dropDownPinIcon = value; }
         public Button PinColor { get => m_pinColorBox; set => m_pinColorBox = value; }
+
+        public TMP_Dropdown DropDownTracked { get => m_dropDownTracked; set => m_dropDownTracked = value; }
+
         public Toggle ToggleSavePin { get => m_toggleSavePin; set => m_toggleSavePin = value; }
         public Toggle ToggleCheckPin { get => m_toggleCheckPin; set => m_toggleCheckPin = value; }
         public Toggle ToggleExactMatch { get => m_toggleExactMatch; set => m_toggleExactMatch = value; }
-        public TMP_Dropdown DropDownTracked { get => m_dropDownTracked; set => m_dropDownTracked = value; }
+
         public TMP_Text MessageBox { get => m_messageBox; set => m_messageBox = value; }
+
         public Button ButtonTrackModify { get => m_buttonTrackModify; set => m_buttonTrackModify = value; }
         public TMP_Text ButtonTrackModifyText { get => m_buttonTrackModifyText; set => m_buttonTrackModifyText = value; }
         public Button ButtonUntrackCancel { get => m_buttonUntrackCancel; set => m_buttonUntrackCancel = value; }
         public TMP_Text ButtonUntrackCancelText { get => m_buttonUntrackCancelText; set => m_buttonUntrackCancelText = value; }
+
         public Transform CreditRow { get => m_creditRow; set => m_creditRow = value; }
         public TMP_Text VersionNumber { get => m_versionNumber; set => m_versionNumber = value; }
 
@@ -102,13 +121,15 @@ namespace WxAxW.PinAssistant.Components
         private void Awake()
 #pragma warning restore IDE0051 // Remove unused private members
         {
-            PopulateIcons();
+            if (MinimapAssistant.Instance.DictionaryPinTypePopulated) PopulateDropdownPinType();
+            else MinimapAssistant.Instance.OnDictionaryPinTypePopulated += PopulateDropdownPinType;
             PopulateDropdownTracked(TrackingAssistant.Instance.TrackedObjects);
             ApplyStyle();
             m_versionNumber.text = $"v{Plugin.PluginVersion}";
             m_previewIconChecked.sprite = GUIManager.Instance.GetSprite("mapicon_checked");
             m_previewIconText.text = string.Empty; // reset
             m_previewIconChecked.gameObject.SetActive(false); // reset
+            m_toggleRenamePins.gameObject.SetActive(false);
 
             m_inputPinName.onValueChanged.AddListener(OnPinNameChange);
             m_buttonTrackModify.onClick.AddListener(OnButtonTrackedModifyPressed);
@@ -119,6 +140,7 @@ namespace WxAxW.PinAssistant.Components
             m_toggleCheckPin.onValueChanged.AddListener(OnToggleCheckPinChanged);
             m_toggleExactMatch.onValueChanged.AddListener(OnToggleExactMatchChanged);
             TrackingAssistant.Instance.OnTrackedObjectsReload += PopulateDropdownTracked;
+
             TrackObjectUILoaded?.Invoke();
             //m_buttonUntrackCancel.onClick.AddListener()
         }
@@ -138,6 +160,7 @@ namespace WxAxW.PinAssistant.Components
             m_buttonTrackModify.onClick.RemoveListener(OnButtonTrackedModifyPressed);
             m_buttonUntrackCancel.onClick.RemoveListener(OnButtonUntrackedCancelPressed);
             m_dropDownPinIcon.onValueChanged.RemoveListener(OnPinIconDropDownChanged);
+            m_pinColorBox.onClick.RemoveListener(ShowColorPicker);
             m_dropDownTracked.onValueChanged.RemoveListener(OnTrackedDropDownChanged);
             m_toggleCheckPin.onValueChanged.RemoveListener(OnToggleCheckPinChanged);
             m_toggleExactMatch.onValueChanged.RemoveListener(OnToggleExactMatchChanged);
@@ -158,6 +181,7 @@ namespace WxAxW.PinAssistant.Components
         {
             m_panel.color = Color.white;
             GUIManager.Instance.ApplyWoodpanelStyle(m_panel.transform);
+            // m_panel.GetComponent<Image>().material = null;
 
             GUIManager.Instance.ApplyTMPTextStyle(m_header.GetChild(0).GetComponent<TMP_Text>(), GUIManagerExtension.TMPNorse, GUIManager.Instance.ValheimOrange, 36, true);
 
@@ -184,6 +208,7 @@ namespace WxAxW.PinAssistant.Components
             {
                 GUIManager.Instance.ApplyTMPToggleStyle(toggle, 16);
             }
+            GUIManager.Instance.ApplyTMPToggleStyle(m_toggleRenamePins, 14);
 
             foreach (Button button in new Button[] { m_buttonTrackModify, m_buttonUntrackCancel })
             {
@@ -196,32 +221,16 @@ namespace WxAxW.PinAssistant.Components
             m_messageBox.textWrappingMode = TextWrappingModes.Normal;
         }
 
-        private void PopulateIcons()
+        private void PopulateDropdownPinType()
         {
             if (Minimap.instance == null) return;
-            Array pinTypes = Enum.GetValues(typeof(Minimap.PinType));
-            foreach (Minimap.PinType pinType in pinTypes)
+            foreach (var kvp in MinimapAssistant.Instance.DictionaryPinType.ToList())
             {
-                if (pinType == Minimap.PinType.None) continue;
-                Sprite pinIcon = Minimap.instance.GetSprite(pinType);
-                m_dictionaryPinIcons.Add(pinType, pinIcon);
-                string iconName = FormatSpriteName(pinIcon.name);
+                if (kvp.Key == Minimap.PinType.None) continue;
+                string iconName = kvp.Value.Item2;
                 m_dropDownPinIcon.options.Add(new TMP_Dropdown.OptionData(iconName));
             }
-        }
-
-        private string FormatSpriteName(string sprName)
-        {
-            // Remove alphanumeric values ex. "SunkenCrypt4" -> "SunkenCrypt"
-            //sprName = Regex.Replace(name, @"\d", string.Empty);
-
-            // Remove mapicon prefix
-            sprName = Regex.Replace(sprName, "mapicon_", string.Empty);
-            if (sprName.IndexOf("_32") != -1) sprName = Regex.Replace(sprName, "_32", string.Empty); // format for player_32
-            if (sprName.IndexOf("_colored") != -1) sprName = Regex.Replace(sprName, "_colored", string.Empty); // format for boss_colored
-            sprName = Regex.Replace(sprName, @"(^\w)|(\s\w)", m => m.Value.ToUpper());
-
-            return sprName;
+            MinimapAssistant.Instance.OnDictionaryPinTypePopulated -= PopulateDropdownPinType;
         }
 
         private void PopulateDropdownTracked(LooseDictionary<TrackedObject> trackedObjects)
@@ -286,13 +295,15 @@ namespace WxAxW.PinAssistant.Components
             m_dropDownTracked.SetValueWithoutNotify(0);
             m_messageBox.text = string.Empty;
             m_edittingObject = null;
-
             SetupUIValues(objName);
         }
 
         public void SetupUIValues(string _objectID, bool _exactMatch = false)
         {
-            m_oldObjectID = string.Empty; // reset
+            // reset values when changing to a different entry
+            m_oldObjectID = string.Empty;
+            m_toggleRenamePins.isOn = false;
+
             // check if object id loosely matches a key in dictionary
             string formattedName = string.Empty;
             string objIDName = _objectID;
@@ -347,6 +358,7 @@ namespace WxAxW.PinAssistant.Components
                 m_edittingObject = trackedObject;
                 m_dropDownTracked.SetValueWithoutNotify(m_dropDownTrackedList.IndexOf(trackedObject)); // switch to specified drop down
             }
+            m_toggleRenamePins.gameObject.SetActive(m_editMode);
             int index = !m_editMode ? 0 : 1;
             m_headerText.text = m_modifiableText[index];
 
@@ -409,6 +421,7 @@ namespace WxAxW.PinAssistant.Components
             bool success = TrackingAssistant.Instance.ModifyTrackedObject(
                 trackedObjectToModify,
                 newTrackedObjectValues,
+                m_toggleRenamePins.isOn,
                 out bool conflicting,
                 out TrackedObject foundConflict);
 
@@ -479,7 +492,7 @@ namespace WxAxW.PinAssistant.Components
             if (value >= (int)Minimap.PinType.None) value++;    // since I base this on dropdown values and I excluded pintype.none, I have to increment value by 1 or -1 (if not from dropdown) to avoid getting the value of the none pin
 
             Minimap.PinType pinType = (Minimap.PinType)(value); // cast value to PinType enum
-            m_previewIcon.sprite = m_dictionaryPinIcons[pinType];
+            m_previewIcon.sprite = MinimapAssistant.Instance.DictionaryPinType[pinType].Item1;
             m_pinTypeInput = pinType;
         }
 

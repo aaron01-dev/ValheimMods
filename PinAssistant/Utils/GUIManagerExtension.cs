@@ -157,6 +157,11 @@ namespace WxAxW.PinAssistant.Utils
             @this.ApplyTMPInputFieldStyle(field, 16);
         }
 
+        public static void ApplyTMPInputFieldStyle(this GUIManager @this, TMP_InputField field, int fontSize = 16)
+        {
+            @this.ApplyTMPInputFieldStyle(field, AveriaSerif, fontSize);
+        }
+
         //
         // Summary:
         //     Apply Valheim style to an TMPro.TMP_InputField Component.
@@ -167,7 +172,7 @@ namespace WxAxW.PinAssistant.Utils
         //
         //   fontSize:
         //     Optional font size, defaults to 16
-        public static void ApplyTMPInputFieldStyle(this GUIManager @this, TMP_InputField field, int fontSize = 16)
+        public static void ApplyTMPInputFieldStyle(this GUIManager @this, TMP_InputField field, TMP_FontAsset font, int fontSize = 16)
         {
             @this.UpdateGUIInStart();
             if (field.targetGraphic is Image image)
@@ -179,7 +184,7 @@ namespace WxAxW.PinAssistant.Utils
 
             if (field.placeholder is TMP_Text text)
             {
-                text.font = AveriaSerif;
+                text.font = font;
                 text.fontStyle = FontStyles.Bold | FontStyles.Italic;
                 text.color = Color.grey;
                 text.fontSize = fontSize;
@@ -187,7 +192,7 @@ namespace WxAxW.PinAssistant.Utils
 
             if ((bool)field.textComponent)
             {
-                @this.ApplyTMPTextStyle(field.textComponent, fontSize);
+                @this.ApplyTMPTextStyle(field.textComponent, font, Color.white, fontSize);
             }
         }
 
@@ -286,6 +291,15 @@ namespace WxAxW.PinAssistant.Utils
                 @this.ApplyTMPTextStyle(componentInChildren, @this.ValheimOrange, fontSize);
                 componentInChildren.alignment = TextAlignmentOptions.Left;
             }
+        }
+
+        // taken from jotunn gui extension
+        internal static GameObject SetSize(this GameObject go, float width, float height)
+        {
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.SetSizeWithCurrentAnchors((RectTransform.Axis)0, width);
+            rect.SetSizeWithCurrentAnchors((RectTransform.Axis)1, height);
+            return go;
         }
     }
 }

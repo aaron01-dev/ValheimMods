@@ -1,4 +1,5 @@
 using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
 using Jotunn.Entities;
 using Jotunn.Managers;
@@ -24,7 +25,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.5.2";
+        public const string PluginVersion = "1.6.0";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -59,6 +60,7 @@ namespace WxAxW.PinAssistant
             // initialize ui after event loads
             GUIManager.OnCustomGUIAvailable += LoadTrackObjectUI;
             MinimapManager.OnVanillaMapAvailable += LoadMinimapFilterUI;
+            MinimapManager.OnVanillaMapAvailable += UpdateMinimapMinZoom;
 
             pluginComponents = new List<Component>()
             {
@@ -95,7 +97,7 @@ namespace WxAxW.PinAssistant
             harmony.UnpatchSelf();
             // unsubscribe loose listeners
             ModConfig.Instance.IsEnabledConfig.SettingChanged -= OnTogglePluginConfig;
-            SceneManager.sceneLoaded -= OnSceneChange;  // subscribe regardless if in main menu or in game or whatever
+            SceneManager.sceneLoaded -= OnSceneChange;
             GUIManager.OnCustomGUIAvailable -= LoadTrackObjectUI;
             MinimapManager.OnVanillaMapAvailable -= LoadMinimapFilterUI;
 
@@ -130,16 +132,13 @@ namespace WxAxW.PinAssistant
             }
         }
 
-        private void ModToggle()
-        {
-            // is the config enabled and you're in game?
-            bool valid = ModConfig.Instance.IsEnabledConfig.Value && (m_isInGame || ModConfig.Instance.IsDebugModeConfig.Value);
-            enabled = valid;
-        }
-
         private void OnEnable()
         {
             Debug.Log(TextType.MOD_ENABLED);
+            foreach (Component comp in pluginComponents)
+            {
+                comp.enabled = true;
+            }
 
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = true;
             if (FilterPinsUI.Instance != null)
@@ -148,12 +147,7 @@ namespace WxAxW.PinAssistant
                 FilterPinsUI.Instance.ModEnable();
             }
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged += OnToggleAutoPinningConfig;
-
-            foreach (Component comp in pluginComponents)
-            {
-                comp.enabled = true;
-            }
-            ToggleAutoPinning();
+            ModConfig.Instance.MaxZoomMultiplier.SettingChanged += OnMaxZoomMultiplierConfig;
         }
 
         private void OnDisable()
@@ -163,6 +157,7 @@ namespace WxAxW.PinAssistant
             {
                 comp.enabled = false;
             }
+
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = false;
             if (FilterPinsUI.Instance != null)
             {
@@ -170,19 +165,21 @@ namespace WxAxW.PinAssistant
                 FilterPinsUI.Instance.ModDisable();
             }
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged -= OnToggleAutoPinningConfig;
-
-            ToggleAutoPinning();
+            ModConfig.Instance.MaxZoomMultiplier.SettingChanged -= OnMaxZoomMultiplierConfig;
         }
-
-        private void CheckScene()
+        private void ModToggle()
         {
-            m_isInGame = SceneManager.GetActiveScene().name.Equals("main");
+            // is the config enabled and you're in game?
+            bool valid = ModConfig.Instance.IsEnabledConfig.Value && (m_isInGame || ModConfig.Instance.IsDebugModeConfig.Value);
+            enabled = valid;
+            UpdateMinimapMinZoom();
+            ToggleAutoPinning();
         }
 
         private void OnSceneChange(Scene scene, LoadSceneMode mode)
         {
             Debug.Log(TextType.SCENE_CHANGE, scene.name);
-            CheckScene();
+            m_isInGame = SceneManager.GetActiveScene().name.Equals("main");
             ModToggle();
         }
 
@@ -202,6 +199,14 @@ namespace WxAxW.PinAssistant
                 if (m_coroutineAutoPin != null) return;
                 m_coroutineAutoPin = StartCoroutine("StartAutoPinCoroutine");
             }
+        }
+        private void UpdateMinimapMinZoom()
+        {
+            if (Minimap.instance == null) return;
+            float value = 0.01f;
+            float mult = ModConfig.Instance.MaxZoomMultiplier.Value;
+            if (enabled && mult != 0) value /= mult;
+            Minimap.instance.m_minZoom = value;
         }
 
         private void LoadTrackObjectUI()
@@ -223,6 +228,11 @@ namespace WxAxW.PinAssistant
         private void OnToggleAutoPinningConfig(object sender, EventArgs e)
         {
             ToggleAutoPinning();
+        }
+
+        private void OnMaxZoomMultiplierConfig(object sender, EventArgs e)
+        {
+            UpdateMinimapMinZoom();
         }
 
         private bool ModExists(string assemblyName)

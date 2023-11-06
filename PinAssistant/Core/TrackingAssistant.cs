@@ -40,7 +40,7 @@ namespace WxAxW.PinAssistant.Core
 
         public event Action<TrackedObject> OnTrackedObjectRemove;
 
-        public event Action<TrackedObject, TrackedObject> OnTrackedObjectUpdate;
+        public event Action<TrackedObject, TrackedObject, bool> OnTrackedObjectUpdate;
 
         public event Action OnTrackedObjectSaved;
 
@@ -54,8 +54,9 @@ namespace WxAxW.PinAssistant.Core
         {
             DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);
             MinimapPatches.OnPinAdd += OnPinAdd;
-            MinimapPatches.OnPinClear += OnPinsClear;
             MinimapPatches.OnPinRemove += OnPinRemove;
+            MinimapPatches.OnPinUpdate += OnPinUpdate;
+            MinimapPatches.OnPinClear += OnPinsClear;
             OnModifiedTrackedObjects += SerializeTrackedObjects;
             PopulatePins();
         }
@@ -65,8 +66,9 @@ namespace WxAxW.PinAssistant.Core
             m_trackedTypes.Clear();
             m_trackedObjects.Clear();
             MinimapPatches.OnPinAdd -= OnPinAdd;
-            MinimapPatches.OnPinClear -= OnPinsClear;
             MinimapPatches.OnPinRemove -= OnPinRemove;
+            MinimapPatches.OnPinUpdate -= OnPinUpdate;
+            MinimapPatches.OnPinClear -= OnPinsClear;
             OnModifiedTrackedObjects -= SerializeTrackedObjects;
             ClearPins();
         }
@@ -207,7 +209,7 @@ namespace WxAxW.PinAssistant.Core
         // only happens when loading to in game or re-enabling mod
         private void PopulatePins()
         {
-            if (Minimap.instance == null) { Debug.Log(TextType.MINIMAP_NOT_FOUND); return; }
+            if (Minimap.instance == null) { Debug.Warning(TextType.MINIMAP_NOT_FOUND); return; }
             // populate pins with valheim pins
             List<Minimap.PinData> MapPins = Minimap.instance.m_pins;
 
@@ -261,30 +263,38 @@ namespace WxAxW.PinAssistant.Core
             return true;
         }
 
-        public bool ModifyTrackedObject(TrackedObject objToEdit, TrackedObject newValues, out bool conficting, out TrackedObject foundConflict)
+        public bool ModifyTrackedObject(TrackedObject objToEdit, TrackedObject newValues, bool renamePins, out bool conficting, out TrackedObject foundConflict)
         {
-            // attempt to change key
+            conficting = false;
+            foundConflict = null;
 
-            if (!m_trackedObjects.ChangeKey(
+            // attempt to change key
+            if (!m_trackedObjects.AltDictionary.ContainsKey(objToEdit.ObjectID.ToLower()))
+            {
+                Debug.Error("Tracked object id not found report this to the dev");
+                return false;
+            }
+            bool changeKeySuccess = m_trackedObjects.ChangeKey(
                 key: objToEdit.ObjectID,
                 newKey: newValues.ObjectID,
                 out conficting,
                 out foundConflict
-                )) return false;
+                );
+            if (!changeKeySuccess)
+            {
+                Debug.Warning("New ObjectID already exists, will not modify");
+                return false;
+            }
 
             // modify values
-            bool success = m_trackedObjects.Modify(
+            m_trackedObjects.Modify(
                 key: newValues.ObjectID,
                 newValues,
                 newNodeExact: newValues.IsExactMatchOnly,
                 newBlackListWord: newValues.BlackListWords
                 );
-            if (!success)
-            {
-                Debug.Warning("Tracked object not found");
-                return false;
-            }
-            OnTrackedObjectUpdate?.Invoke(objToEdit, newValues);
+
+            OnTrackedObjectUpdate?.Invoke(objToEdit, newValues, renamePins);
             OnModifiedTrackedObjects?.Invoke();
             return true;
         }
@@ -357,7 +367,7 @@ namespace WxAxW.PinAssistant.Core
             Debug.Log(TextType.PIN_ADDING, "OnPinAdd", pinData.m_name, pinData.m_pos);
             if (MinimapPatches.isSpecialPin)
             {
-                Debug.Log("Special Pin found will not include in the list of pins");
+                Debug.Log("Special Pin found will not include in the list of pins in PinAssistant");
                 return;
             }
             if (pinData.m_pos == Vector3.zero)
@@ -377,6 +387,14 @@ namespace WxAxW.PinAssistant.Core
         private void OnPinRemove(Minimap.PinData pinData)
         {
             RemovePin(pinData);
+        }
+
+        private void OnPinUpdate()
+        {
+            Minimap.PinData oldPin = MinimapPatches.m_edittingPinInitial;
+            Minimap.PinData newPin = MinimapPatches.m_edittingPin;
+            if (oldPin.m_pos == newPin.m_pos) return;
+            m_pins.ChangeKey(oldPin.m_pos, newPin.m_pos);
         }
 
         private void OnPinsClear()

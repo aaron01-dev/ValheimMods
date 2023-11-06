@@ -12,6 +12,7 @@ namespace WxAxW.PinAssistant.Utils
         public class TraverseDetails
         {
             public string searchKey;
+            public string originalKey;
             public TValue value;
             public TrieNode nodeResult;
             public string actualKey;
@@ -27,6 +28,7 @@ namespace WxAxW.PinAssistant.Utils
             public TraverseDetails(string searchKey, TValue value = default, string actualKey = "", string blackListedWord = "", bool deleteMode = false, bool exactMatchOnly = false)
             {
                 this.searchKey = searchKey;
+                this.originalKey = searchKey;
                 this.value = value;
                 this.actualKey = actualKey;
                 this.blackListedWord = blackListedWord;
@@ -104,7 +106,8 @@ namespace WxAxW.PinAssistant.Utils
             if (m_altDictionary.ContainsKey(newKey) || !m_altDictionary.TryGetValue(key, out TrieNode nodeToSwap)) return false; // return fail if error
 
             TrieNode newNode = nodeToSwap.Clone();  // retrieve node copy its values
-            m_altDictionary.ChangeKey(key, newKey);            // delete old node from dictionary
+            m_altDictionary.Remove(key);            // delete old node from dictionary
+            m_altDictionary.Add(newKey, newNode);   // add new node to new key
             RemoveNode(key);             // delete old node from trienode (or reset values depends if it has children)
 
             // check for conflicts
@@ -182,7 +185,7 @@ namespace WxAxW.PinAssistant.Utils
             for (int i = 0; i < key.Length; i++)
             {
                 substr = key.Substring(i);
-                if (!root.TryGetValueRecursiveLite(substr, out result)) continue;
+                if (!root.TryGetValueRecursiveLite(substr, key, out result)) continue;
                 return true;
             }
 
@@ -313,7 +316,7 @@ namespace WxAxW.PinAssistant.Utils
                 }
 
                 // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
-                if (newIsNodeValid(nodeToCheck, td.searchKey, currentIndex, td.exactMatchOnly))
+                if (IsNodeValid(nodeToCheck, td.originalKey, currentIndex, td.exactMatchOnly))
                 {
                     // node is valid, return results
                     td.value = nodeToCheck.m_value;
@@ -337,11 +340,11 @@ namespace WxAxW.PinAssistant.Utils
                 return true;
             }
 
-            private bool newIsNodeValid(TrieNode nodeToCheck, string key, int currentIndex, bool exactMatchOnly = false)
+            private bool IsNodeValid(TrieNode nodeToCheck, string key, int currentIndex, bool exactMatchOnly = false)
             {
                 if (nodeToCheck.m_value == null || // check if node is filled
                     ((nodeToCheck.m_nodeExactMatchOnly || exactMatchOnly) && currentIndex != key.Length - 1) || // found a close match, but can only be accessed through exact match
-                    (!string.IsNullOrEmpty(nodeToCheck.m_blackListWord) && key.IndexOf(nodeToCheck.BlackListWord) != -1) // if the found node has a blacklisted word that is not found in the main key
+                    (!string.IsNullOrEmpty(nodeToCheck.m_blackListWord) && key.IndexOf(nodeToCheck.m_blackListWord) != -1) // if the found node has a blacklisted word that is not found in the main key
                    )
                 {
                     return false;
@@ -378,7 +381,7 @@ namespace WxAxW.PinAssistant.Utils
             }
 
             // searches similar to contains/indexof but for trie, probably more efficient since if calling indexof from a list of keys it will call it for each entry
-            public bool TryGetValueRecursiveLite(string key, out TValue result, int currentIndex = 0)
+            public bool TryGetValueRecursiveLite(string key, string originalKey, out TValue result, int currentIndex = 0)
             {
                 result = default;
                 // keep checking until end of key, if true means there's more chars to check
@@ -395,7 +398,7 @@ namespace WxAxW.PinAssistant.Utils
 
                 // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
 
-                if (newIsNodeValid(nodeToCheck, key, currentIndex))
+                if (IsNodeValid(nodeToCheck, originalKey, currentIndex))
                 {
                     // node is valid, return results
                     result = nodeToCheck.m_value;
@@ -403,7 +406,7 @@ namespace WxAxW.PinAssistant.Utils
                 }
 
                 // invalid node result therefore keep looping until end of key or end of node (either the node can only be found through exact searching only or there's a blacklisted word that the node doens't want)
-                return nodeToCheck.TryGetValueRecursiveLite(key, out result, currentIndex + 1);
+                return nodeToCheck.TryGetValueRecursiveLite(key, originalKey, out result, currentIndex + 1);
             }
 
             public void SetValues(TrieNode nodeToRetrieve)
@@ -456,7 +459,7 @@ namespace WxAxW.PinAssistant.Utils
                 }
 
                 // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
-                if (IsNodeValidOld(nodeToCheck, td.searchKey, nodeLength, td.exactMatchOnly))
+                if (IsNodeValidLoose(nodeToCheck, td.searchKey, nodeLength, td.exactMatchOnly))
                 {
                     // node is valid, return results
                     td.value = nodeToCheck.m_value;
@@ -505,7 +508,7 @@ namespace WxAxW.PinAssistant.Utils
 
                 // if node exists, check if node is valid ie. node has result is node can only be found through exact match, or key search does not contain blacklisted words by node
 
-                if (IsNodeValidOld(nodeToCheck, key, nodeLength))
+                if (IsNodeValidLoose(nodeToCheck, key, nodeLength))
                 {
                     // node is valid, return results
                     result = nodeToCheck.m_value;
@@ -523,7 +526,7 @@ namespace WxAxW.PinAssistant.Utils
 
                 return foundValid;
             }
-            private bool IsNodeValidOld(TrieNode nodeToCheck, string key, int nodeLength, bool exactMatchOnly = false)
+            private bool IsNodeValidLoose(TrieNode nodeToCheck, string key, int nodeLength, bool exactMatchOnly = false)
             {
                 if (nodeToCheck.m_value == null || // check if node is filled
                     ((nodeToCheck.m_nodeExactMatchOnly || exactMatchOnly) && nodeLength != key.Length) || // found a close match, but can only be accessed through exact match

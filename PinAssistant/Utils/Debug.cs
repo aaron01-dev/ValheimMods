@@ -21,6 +21,12 @@ namespace WxAxW.PinAssistant.Utils
         {
             Jotunn.Logger.LogWarning(message);
         }
+        public static string Warning(TextType messageType, params object[] parameters)
+        {
+            string message = Text.Get(messageType, parameters);
+            Jotunn.Logger.LogError(message);
+            return message;
+        }
 
         public static void Error(object message)
         {

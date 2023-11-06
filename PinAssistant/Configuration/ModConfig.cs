@@ -15,31 +15,34 @@ namespace WxAxW.PinAssistant.Configuration
         private ConfigEntry<bool> m_isEnabledConfig;
         private ConfigEntry<bool> m_isAutoPinningEnabledConfig;
         private ConfigEntry<bool> m_isSearchWindowEnabledConfig;
-        private ConfigEntry<float> m_lookDistanceConfig;
-        private ConfigEntry<string> m_trackedObjectsConfig;
-        private ConfigEntry<float> m_redundancyDistanceConfig;
         private ConfigEntry<float> m_tickRateConfig;
+        private ConfigEntry<float> m_redundancyDistanceConfig;
+        private ConfigEntry<float> m_lookDistanceConfig;
+        private ConfigEntry<float> m_maxZoomMultiplier;
 
         private ConfigEntry<KeyboardShortcut> m_trackLookedObjectConfig;
         private ConfigEntry<KeyboardShortcut> m_pinLookedObjectConfig;
         private ConfigEntry<KeyboardShortcut> m_toggleFilterWindowConfig;
         private ConfigEntry<KeyboardShortcut> m_reloadTrackedObjectsConfig;
 
+        private ConfigEntry<string> m_trackedObjectsConfig;
         private ConfigEntry<bool> m_isDebugModeConfig;
 
         public ConfigEntry<bool> IsEnabledConfig { get => m_isEnabledConfig; set => m_isEnabledConfig = value; }
         public ConfigEntry<bool> IsAutoPinningEnabledConfig { get => m_isAutoPinningEnabledConfig; set => m_isAutoPinningEnabledConfig = value; }
         public ConfigEntry<bool> IsSearchWindowEnabledConfig { get => m_isSearchWindowEnabledConfig; set => m_isSearchWindowEnabledConfig = value; }
-        public ConfigEntry<float> LookDistanceConfig { get => m_lookDistanceConfig; set => m_lookDistanceConfig = value; }
-        public ConfigEntry<float> RedundancyDistanceConfig { get => m_redundancyDistanceConfig; set => m_redundancyDistanceConfig = value; }
         public ConfigEntry<float> TickRateConfig { get => m_tickRateConfig; set => m_tickRateConfig = value; }
-        public ConfigEntry<string> TrackedObjectsConfig { get => m_trackedObjectsConfig; set => m_trackedObjectsConfig = value; }
-        public ConfigEntry<bool> IsDebugModeConfig { get => m_isDebugModeConfig; set => m_isDebugModeConfig = value; }
+        public ConfigEntry<float> RedundancyDistanceConfig { get => m_redundancyDistanceConfig; set => m_redundancyDistanceConfig = value; }
+        public ConfigEntry<float> LookDistanceConfig { get => m_lookDistanceConfig; set => m_lookDistanceConfig = value; }
+        public ConfigEntry<float> MaxZoomMultiplier { get => m_maxZoomMultiplier; set => m_maxZoomMultiplier = value; }
 
         public ConfigEntry<KeyboardShortcut> TrackLookedObjectConfig { get => m_trackLookedObjectConfig; set => m_trackLookedObjectConfig = value; }
         public ConfigEntry<KeyboardShortcut> PinLookedObjectConfig { get => m_pinLookedObjectConfig; set => m_pinLookedObjectConfig = value; }
         public ConfigEntry<KeyboardShortcut> ToggleFilterWindowConfig { get => m_toggleFilterWindowConfig; set => m_toggleFilterWindowConfig = value; }
         public ConfigEntry<KeyboardShortcut> ReloadTrackedObjectsConfig { get => m_reloadTrackedObjectsConfig; set => m_reloadTrackedObjectsConfig = value; }
+
+        public ConfigEntry<string> TrackedObjectsConfig { get => m_trackedObjectsConfig; set => m_trackedObjectsConfig = value; }
+        public ConfigEntry<bool> IsDebugModeConfig { get => m_isDebugModeConfig; set => m_isDebugModeConfig = value; }
 
         #endregion config vars
 
@@ -66,7 +69,7 @@ namespace WxAxW.PinAssistant.Configuration
                         Text.Get(TextType.CONFIG_NAME_TOGGLE_AUTOPINNING)
                         ),
                     null,
-                    new ConfigurationManagerAttributes { Order = 6 })
+                    new ConfigurationManagerAttributes { Order = 7 })
                 );
             m_isAutoPinningEnabledConfig = Config.Bind<bool>(
                 Text.Get(TextType.CONFIG_CATEGORY_GENERAL),
@@ -78,7 +81,7 @@ namespace WxAxW.PinAssistant.Configuration
                         Text.Get(TextType.CONFIG_NAME_KEY_TRACKOBJECT)
                         ),
                     null,
-                    new ConfigurationManagerAttributes { Order = 5 })
+                    new ConfigurationManagerAttributes { Order = 6 })
                 );
             m_isSearchWindowEnabledConfig = Config.Bind<bool>(
                 Text.Get(TextType.CONFIG_CATEGORY_GENERAL),
@@ -87,7 +90,7 @@ namespace WxAxW.PinAssistant.Configuration
                 new ConfigDescription(
                     Text.Get(TextType.CONFIG_MESSAGE_TOGGLE_STARTFILTERENABLED),
                     null,
-                    new ConfigurationManagerAttributes { Order = 4 })
+                    new ConfigurationManagerAttributes { Order = 5 })
                 );
 
             m_tickRateConfig = Config.Bind<float>(
@@ -97,7 +100,7 @@ namespace WxAxW.PinAssistant.Configuration
                 new ConfigDescription(
                     Text.Get(TextType.CONFIG_MESSAGE_VAL_TICKRATE),
                     null,
-                    new ConfigurationManagerAttributes { Order = 3 })
+                    new ConfigurationManagerAttributes { Order = 4 })
                 );
             m_redundancyDistanceConfig = Config.Bind<float>(
                 Text.Get(TextType.CONFIG_CATEGORY_GENERAL),
@@ -106,7 +109,7 @@ namespace WxAxW.PinAssistant.Configuration
                 new ConfigDescription(
                     Text.Get(TextType.CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY),
                     null,
-                    new ConfigurationManagerAttributes { Order = 2 })
+                    new ConfigurationManagerAttributes { Order = 3 })
                 );
             m_lookDistanceConfig = Config.Bind<float>(
                 Text.Get(TextType.CONFIG_CATEGORY_GENERAL),
@@ -115,8 +118,18 @@ namespace WxAxW.PinAssistant.Configuration
                 new ConfigDescription(
                     Text.Get(TextType.CONFIG_MESSAGE_VAL_DISTANCELOOK),
                     null,
+                    new ConfigurationManagerAttributes { Order = 2 })
+                );
+            m_maxZoomMultiplier = Config.Bind<float>(
+                Text.Get(TextType.CONFIG_CATEGORY_GENERAL),
+                Text.Get(TextType.CONFIG_NAME_VAL_MAXZOOMMULT),
+                2f,
+                new ConfigDescription(
+                    Text.Get(TextType.CONFIG_MESSAGE_VAL_MAXZOOMMULT),
+                    null,
                     new ConfigurationManagerAttributes { Order = 1 })
                 );
+
 
             m_trackLookedObjectConfig = Config.Bind(
                 Text.Get(TextType.CONFIG_CATEGORY_HOTKEYS),

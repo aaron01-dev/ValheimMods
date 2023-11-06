@@ -24,6 +24,7 @@ namespace WxAxW.PinAssistant.Configuration
         [Text("Look Tick Rate")] CONFIG_NAME_VAL_TICKRATE,
         [Text("Redundancy Distance")] CONFIG_NAME_VAL_DISTANCEREDUNDANCY,
         [Text("Look Distance")] CONFIG_NAME_VAL_DISTANCELOOK,
+        [Text("Max Zoom Multiplier")] CONFIG_NAME_VAL_MAXZOOMMULT,
 
         [Text("Track Looked Object")] CONFIG_NAME_KEY_TRACKOBJECT,
         [Text("Pin Object")] CONFIG_NAME_KEY_PINOBJECT,
@@ -41,6 +42,7 @@ namespace WxAxW.PinAssistant.Configuration
         [Text("The tick rate for when to check the object you're looking at to attempt to pin it\nThe value is 'n seconds per tick'")] CONFIG_MESSAGE_VAL_TICKRATE,
         [Text("The minimum distance to prevent pinning multiple objects close together")] CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY,
         [Text("The maximum distance you can detect an object")] CONFIG_MESSAGE_VAL_DISTANCELOOK,
+        [Text("The multiplier to increase the maximum zoom")] CONFIG_MESSAGE_VAL_MAXZOOMMULT,
 
         [Text("Key to open the GUI\nTo register the object you're looking at to the list of objects to automaticaly pin")] CONFIG_MESSAGE_KEY_TRACKOBJECT,
         [Text("Key to manually pin the object you're looking at\nUsed for when you disable '{0}'\n(Object must be tracked using '{1}' to pin)")] CONFIG_MESSAGE_KEY_PINOBJECT,
@@ -56,7 +58,7 @@ namespace WxAxW.PinAssistant.Configuration
         [Text("{0}:\tLayerMask: {1} | {2}")] OBJECT_INFO,
 
         // Pins
-        [Text("Minimap not found, this should not happen I think")] MINIMAP_NOT_FOUND,
+        [Text("Minimap not found, this should not happen unless Debug Mode is enabled while in main menu")] MINIMAP_NOT_FOUND,
 
         [Text("No pins found, I assume you're loading your world")] WORLD_LOADING,
         [Text("{0}: attempting to add: '{1}' at '{2}'!")] PIN_ADDING,
@@ -130,11 +132,11 @@ namespace WxAxW.PinAssistant.Configuration
             Value = value;
         }
 
-        public static string Get(TextType value, params object[] parameters)
+        public static string Get(object enumType, params object[] parameters)
         {
-            var fieldInfo = value.GetType().GetField(value.ToString());
+            var fieldInfo = enumType.GetType().GetField(enumType.ToString());
             var stringValueAttribute = fieldInfo.GetCustomAttribute<TextAttribute>();
-            if (stringValueAttribute == null) return value.ToString();
+            if (stringValueAttribute == null) return enumType.ToString();
             // Alternatively, you can use string interpolation
             // return string.Format(format, parameters);
 
