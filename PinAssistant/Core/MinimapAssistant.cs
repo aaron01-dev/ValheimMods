@@ -11,7 +11,7 @@ using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant.Core
 {
-    internal class MinimapAssistant : Component
+    internal class MinimapAssistant : PluginComponent
     {
         private class PinGroup
         {
@@ -211,7 +211,6 @@ namespace WxAxW.PinAssistant.Core
         public void SearchPins(string pinNameQuery, Minimap.PinType pinTypeQuery, bool whitelist = false, bool isRegex = false)
         {
             ResetFilteredPins();
-            pinNameQuery = pinNameQuery.ToLower();
             if (isRegex)
             {
                 if (!IsRegexValid(pinNameQuery)) return;
@@ -219,7 +218,7 @@ namespace WxAxW.PinAssistant.Core
                 m_listUnfilteredPinsQuery = TrackingAssistant.Instance.Pins.Values
                     .Where(pinData =>
                     {
-                        bool pinNameMatches = Regex.IsMatch(pinData.m_name.ToLower(), pinNameQuery);
+                        bool pinNameMatches = Regex.IsMatch(pinData.m_name, pinNameQuery, RegexOptions.IgnoreCase);
                         bool pinTypeMatches = PinTypeMatches(pinData.m_type, pinTypeQuery);
                         bool filterOut = pinNameMatches && pinTypeMatches;
                         return whitelist ? !filterOut : filterOut;
@@ -275,9 +274,8 @@ namespace WxAxW.PinAssistant.Core
 
         private bool CompareSearch(string foundPin, string query, bool isExact = false)
         {
-            foundPin = foundPin.ToLower();
-            if (isExact) return foundPin.Equals(query);
-            else return foundPin.IndexOf(query) != -1;
+            if (isExact) return foundPin.Equals(query, StringComparison.OrdinalIgnoreCase);
+            else return foundPin.IndexOf(query, StringComparison.OrdinalIgnoreCase) != -1;
         }
 
         public void ResetFilteredPins()
@@ -354,7 +352,6 @@ namespace WxAxW.PinAssistant.Core
         public void ModifyPins(string oldPinsQuery, string newPinsName, Minimap.PinType oldType, Minimap.PinType newType, bool isRegex)
         {
             Debug.Log("Renaming all matching pins");
-            oldPinsQuery = oldPinsQuery.ToLower();
             bool isExact;
             if (isRegex && !IsRegexValid(oldPinsQuery))
             {
@@ -368,7 +365,7 @@ namespace WxAxW.PinAssistant.Core
 
             foreach (Minimap.PinData pinData in TrackingAssistant.Instance.Pins.Values)
             {
-                bool pinNameMatches = isRegex ? Regex.IsMatch(pinData.m_name.ToLower(), oldPinsQuery) : CompareSearch(pinData.m_name, oldPinsQuery, isExact);
+                bool pinNameMatches = isRegex ? Regex.IsMatch(pinData.m_name, oldPinsQuery, RegexOptions.IgnoreCase) : CompareSearch(pinData.m_name, oldPinsQuery, isExact);
                 if (!pinNameMatches) continue;
 
                 bool pinTypeMatches = PinTypeMatches(pinData.m_type, oldType);

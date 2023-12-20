@@ -1,5 +1,12 @@
+# If you like Pin Assistant, feel free to support me!
+Here's my [Ko-fi](https://ko-fi.com/WxAaRoNxW) page!
+and you can [PayPal.me](https://paypal.me/aaronagy?country.x=PH&locale.x=en_US) as well!
+
+I figured I could add a donation page here, but remember, you are not obligated to donate.
+I don't know much about foreign wallets, I only know PayPal and ko-fi, let me know if you have other suggestions!
+
 # Preview
-![Preview mp4](https://i.imgur.com/ntUecfL.mp4)
+[Preview alt](https://i.imgur.com/ntUecfL.mp4)
 
 ![Preview gif](https://i.imgur.com/ntUecfL.gif)
 
@@ -33,7 +40,7 @@ Technical stuff: Most of the system uses dictionaries especially the tracked ent
 ### GUI
 A Valheim style UI for you to easily manage your tracked objects
 
-![GUI mp4](https://i.imgur.com/tNbOz5V.mp4)
+[GUI alt](https://i.imgur.com/tNbOz5V.mp4)
 
 ![GUI](https://i.imgur.com/tNbOz5V.gif)
 
@@ -49,36 +56,36 @@ You can also set the entry to only find objects that are named exactly to what y
 ### Blacklisting
 However this means Sunken Crypts would also be included in the detection, that's where the Blacklist feature is needed. Add 'sunken' to the entry with crypt ID, and this would only allow non-Sunken Crypts to be pinned on that entry.
 
-![Blacklisting Sunken Crypts from Tracked Crypt Entry mp4](https://i.imgur.com/ODqeFo3.mp4)
+[Blacklisting Sunken Crypts from Tracked Crypt Entry alt](https://i.imgur.com/ODqeFo3.mp4)
 
 ![Blacklisting Sunken Crypts from Tracked Crypt Entry](https://i.imgur.com/ODqeFo3.gif)
 
 ### Redundancy Feature
 If you think your pin might clutter cause the objects are grouped together, you can change the redundancy setting to avoid pinning similar objects at a certain distance based on the pinned object.
 
-![Redundancy Distance Showcase mp4](https://imgur.com/lerLdHw.mp4)
+[Redundancy Distance Showcase alt](https://imgur.com/lerLdHw.mp4)
 
 ![Redundancy Distance Showcase](https://imgur.com/lerLdHw.gif)
 
 ### Colored Pins
 Hard to read the many pins you see? With this mod's tracking system you can change the pins you have into different colors! Due to limitations the pins colors are based on their Pin Names
 
-![Tracking/Coloring Dandelions mp4](https://i.imgur.com/WZ3ovBV.mp4)
+[Tracking/Coloring Dandelions alt](https://i.imgur.com/WZ3ovBV.mp4)
 
 ![Tracking/Coloring Dandelions](https://i.imgur.com/WZ3ovBV.gif)
 
 ### Searchable Pins
 Overcrowded map? Want to find specific pin/s? Just head over to your map and look to the top left and search away, use double quotes to search for a pin name with your exact search. You can also set it to whitelist mode or not to hide everything except your search or show everything except your search. RegEx is also a feature if you want a more versatile way to search pins!. Search window is too obstructive? Just press 'Tab' to hide it! Don't want it at all? Just go to your config manager and disable "Show search window on startup"!
 
-![Search Window mp4](https://i.imgur.com/ovZkUuN.mp4)
+[Search Window alt](https://i.imgur.com/ovZkUuN.mp4)
 
 ![Search Window](https://i.imgur.com/ovZkUuN.gif)
 
 ### Bulk Pins Modification
 Did you discover that there's actually more than one berry bush, and that all of your berry pins are too ambiguous? Fret not as you can do it over at the Search Window or at an existing Tracked Object entry. You also want to change the icon? You can do that too!
 
-![Tracked Object Modify Existing Pins mp4](https://i.imgur.com/SXO5Ro9.mp4)
-![Search Window Modify Pins mp4](https://i.imgur.com/UAab6UG.mp4)
+[Tracked Object Modify Existing Pins alt](https://i.imgur.com/SXO5Ro9.mp4)
+[Search Window Modify Pins alt](https://i.imgur.com/UAab6UG.mp4)
 
 ![Tracked Object Modify Existing Pins](https://i.imgur.com/SXO5Ro9.gif)
 ![Search Window Modify Pins](https://i.imgur.com/UAab6UG.gif)

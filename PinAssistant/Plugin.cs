@@ -1,5 +1,4 @@
 using BepInEx;
-using BepInEx.Configuration;
 using HarmonyLib;
 using Jotunn.Entities;
 using Jotunn.Managers;
@@ -14,7 +13,7 @@ using WxAxW.PinAssistant.Configuration;
 using WxAxW.PinAssistant.Core;
 using WxAxW.PinAssistant.Patches;
 using WxAxW.PinAssistant.Utils;
-using Component = WxAxW.PinAssistant.Core.Component;
+using PluginComponent = WxAxW.PinAssistant.Core.PluginComponent;
 using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant
@@ -25,7 +24,7 @@ namespace WxAxW.PinAssistant
     {
         public const string PluginGUID = "com.WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.6.0";
+        public const string PluginVersion = "1.7.0";
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -42,7 +41,7 @@ namespace WxAxW.PinAssistant
         public static Plugin Instance => m_instance;
 
         private AssetBundle m_assetBundle;
-        private List<Component> pluginComponents;
+        private List<PluginComponent> pluginComponents;
 
         private void Awake()
         {
@@ -62,18 +61,19 @@ namespace WxAxW.PinAssistant
             MinimapManager.OnVanillaMapAvailable += LoadMinimapFilterUI;
             MinimapManager.OnVanillaMapAvailable += UpdateMinimapMinZoom;
 
-            pluginComponents = new List<Component>()
+            pluginComponents = new List<PluginComponent>()
             {
                 TrackingAssistant.Instance,
                 MinimapAssistant.Instance
             };
 
-            foreach (Component comp in pluginComponents)
+            foreach (PluginComponent comp in pluginComponents)
             {
                 comp.Start();
             }
             PatchAll();
             Debug.Log(TextType.PLUGIN_ENABLED);
+            enabled = false;
         }
 
         private void Update()
@@ -85,7 +85,7 @@ namespace WxAxW.PinAssistant
             }
 
             if (ModConfig.Instance.PinLookedObjectConfig.Value.IsDown())
-                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
+                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceSameConfig.Value, ModConfig.Instance.RedundancyDistanceAnyConfig.Value);
 
             if (ModConfig.Instance.ReloadTrackedObjectsConfig.Value.IsDown())
                 //AutoPinning.Instance.TrackLookedObjectToAutoPin(ModConfig.Instance.LookDistanceConfig.Value);
@@ -101,7 +101,7 @@ namespace WxAxW.PinAssistant
             GUIManager.OnCustomGUIAvailable -= LoadTrackObjectUI;
             MinimapManager.OnVanillaMapAvailable -= LoadMinimapFilterUI;
 
-            foreach (Component comp in pluginComponents)
+            foreach (PluginComponent comp in pluginComponents)
             {
                 comp.Destroy();
             }
@@ -112,7 +112,7 @@ namespace WxAxW.PinAssistant
         {
             while (true)
             {
-                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceConfig.Value);
+                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceSameConfig.Value, ModConfig.Instance.RedundancyDistanceAnyConfig.Value);
                 yield return new WaitForSeconds(ModConfig.Instance.TickRateConfig.Value);
             }
         }
@@ -135,7 +135,7 @@ namespace WxAxW.PinAssistant
         private void OnEnable()
         {
             Debug.Log(TextType.MOD_ENABLED);
-            foreach (Component comp in pluginComponents)
+            foreach (PluginComponent comp in pluginComponents)
             {
                 comp.enabled = true;
             }
@@ -153,7 +153,7 @@ namespace WxAxW.PinAssistant
         private void OnDisable()
         {
             Debug.Log(TextType.MOD_DISABLED);
-            foreach (Component comp in pluginComponents)
+            foreach (PluginComponent comp in pluginComponents)
             {
                 comp.enabled = false;
             }
@@ -203,7 +203,7 @@ namespace WxAxW.PinAssistant
         private void UpdateMinimapMinZoom()
         {
             if (Minimap.instance == null) return;
-            float value = 0.01f;
+            float value = 0.01f; // vanilla value lower is more zoom
             float mult = ModConfig.Instance.MaxZoomMultiplier.Value;
             if (enabled && mult != 0) value /= mult;
             Minimap.instance.m_minZoom = value;

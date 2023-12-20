@@ -140,6 +140,7 @@ namespace WxAxW.PinAssistant.Components
             m_toggleCheckPin.onValueChanged.AddListener(OnToggleCheckPinChanged);
             m_toggleExactMatch.onValueChanged.AddListener(OnToggleExactMatchChanged);
             TrackingAssistant.Instance.OnTrackedObjectsReload += PopulateDropdownTracked;
+            TrackingAssistant.Instance.OnTrackedObjectSaved += PopulateDropdownTracked;
 
             TrackObjectUILoaded?.Invoke();
             //m_buttonUntrackCancel.onClick.AddListener()
@@ -164,7 +165,11 @@ namespace WxAxW.PinAssistant.Components
             m_dropDownTracked.onValueChanged.RemoveListener(OnTrackedDropDownChanged);
             m_toggleCheckPin.onValueChanged.RemoveListener(OnToggleCheckPinChanged);
             m_toggleExactMatch.onValueChanged.RemoveListener(OnToggleExactMatchChanged);
-            if (TrackingAssistant.Instance != null) TrackingAssistant.Instance.OnTrackedObjectsReload -= PopulateDropdownTracked;
+            if (TrackingAssistant.Instance != null)
+            {
+                TrackingAssistant.Instance.OnTrackedObjectsReload -= PopulateDropdownTracked;
+                TrackingAssistant.Instance.OnTrackedObjectSaved -= PopulateDropdownTracked;
+            }
             m_instance = null;
         }
 
@@ -246,7 +251,7 @@ namespace WxAxW.PinAssistant.Components
                 m_dropDownTrackedList.Add(trackedObject);
                 m_dropDownTracked.options.Add(new TMP_Dropdown.OptionData(trackedObject.Name));
             }
-            m_dropDownTracked.value = 0;
+            m_dropDownTracked.RefreshShownValue();
             Debug.Log(TextType.OBJECTS_DROPDOWN_LOADED);
         }
 
@@ -340,23 +345,24 @@ namespace WxAxW.PinAssistant.Components
             m_inputPinName.text = formattedName;
             m_inputObjectID.text = objIDName;
             m_inputBlackListWord.text = blackListWords;
-            m_dropDownPinIcon.value = (int)pinType;
+            m_dropDownPinIcon.value = pinType;
             SelectColor(color);
 
             m_toggleSavePin.isOn = !isSaved;
             m_toggleCheckPin.isOn = isChecked;
             m_toggleExactMatch.isOn = IsExactMatchOnly;
-            ChangeEditMode(trackedObject);
+            ChangeUIMode(trackedObject);
         }
 
-        private void ChangeEditMode(TrackedObject trackedObject = null)
+        private void ChangeUIMode(TrackedObject trackedObject = null)
         {
             m_editMode = false;
             if (trackedObject != null)
             {
                 m_editMode = true;
                 m_edittingObject = trackedObject;
-                m_dropDownTracked.SetValueWithoutNotify(m_dropDownTrackedList.IndexOf(trackedObject)); // switch to specified drop down
+                int newDropdownIndex = m_dropDownTrackedList.IndexOf(trackedObject);
+                m_dropDownTracked.SetValueWithoutNotify(newDropdownIndex); // switch to specified drop down
             }
             m_toggleRenamePins.gameObject.SetActive(m_editMode);
             int index = !m_editMode ? 0 : 1;
@@ -364,27 +370,6 @@ namespace WxAxW.PinAssistant.Components
 
             m_buttonTrackModifyText.text = m_modifiableText[index + 2];
             m_buttonUntrackCancelText.text = m_modifiableText[index + 4];
-        }
-
-        private void RemoveDropDownTracked(int index = -1)
-        {
-            int value = index == -1 ? m_dropDownTracked.value : index;
-            m_dropDownTracked.options.RemoveAt(value);
-            m_dropDownTrackedList.RemoveAt(value);
-        }
-
-        private void AddDropDownTracked(TrackedObject newTrackedObject, int index = -1)
-        {
-            if (index != -1)
-            {
-                m_dropDownTrackedList.Insert(index, newTrackedObject);
-                m_dropDownTracked.options.Insert(index, new TMP_Dropdown.OptionData(newTrackedObject.Name));
-            }
-            else
-            {
-                m_dropDownTrackedList.Add(newTrackedObject);
-                m_dropDownTracked.options.Add(new TMP_Dropdown.OptionData(newTrackedObject.Name));
-            }
         }
 
         private void TrackNewObject()
@@ -406,8 +391,7 @@ namespace WxAxW.PinAssistant.Components
 
             trackedObject = CreateTrackedObject();
             TrackingAssistant.Instance.AddTrackedObject(trackedObject, out bool conflicting);
-            AddDropDownTracked(trackedObject);  // add dropdown with object name
-            ChangeEditMode(trackedObject); // set to edit mode
+            ChangeUIMode(trackedObject); // set to edit mode
 
             if (!conflicting) ShowMessage(Debug.Log(TextType.TRACK_SUCCESS, trackedObject));
             else ShowMessage(Debug.Log(TextType.TRACK_WARNING_CONFLICT, trackedObject));
@@ -436,9 +420,8 @@ namespace WxAxW.PinAssistant.Components
             else ShowMessage(Debug.Log(TextType.MODIFY_SUCCESS, trackedObjectToModify));
 
             m_edittingObject = newTrackedObjectValues;
-            int currIndex = m_dropDownTracked.value;
-            m_dropDownTracked.options[currIndex].text = m_inputPinName.text;
-            m_dropDownTrackedList[currIndex] = newTrackedObjectValues;
+            int newIndex = m_dropDownTrackedList.IndexOf(m_edittingObject);
+            m_dropDownTracked.SetValueWithoutNotify(newIndex);
         }
 
         private TrackedObject CreateTrackedObject()
@@ -476,8 +459,7 @@ namespace WxAxW.PinAssistant.Components
                 ShowMessage(Debug.Log(TextType.UNTRACK_FAIL, m_edittingObject));
                 return;
             }
-            RemoveDropDownTracked(m_dropDownTracked.value);
-            m_dropDownTracked.value = 0;
+            OnTrackedDropDownChanged(0);
             ShowMessage(Debug.Log(TextType.UNTRACK_SUCCESS, m_edittingObject));
         }
 

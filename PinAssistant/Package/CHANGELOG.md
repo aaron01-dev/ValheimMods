@@ -2,6 +2,43 @@
 
 <details>
 <summary><b>
+v1.7.0 More Quality of Life Update
+</b></summary>
+
+- New
+	- Added configuration for Redundancy distance for any pins. More info on config tip
+	- Tracked Objects now automatically sorts by Pin name! (Don't ask me why I never implemented it, even I don't know)
+	- Thumbnail change for the mod. (I finally had the motivation to design one)
+- Changes
+	- Similar pin Redundancy distance logic are now case insensitive. Used to be, comparing for nearby similar pins' based on names, is case sensitive.
+	- Changed old versions' changelog's backend entry to its own backend entry.
+- Fixes
+	- Some warning logs are being logged as errors. (fixed "Minimap not found" error log, hooray)
+	- Visual bug for tracked objects. Reloading Tracked Objects no longer show a blank dropdown selection.
+- <details>
+	<summary>
+	Backend
+	</summary>
+
+	- PluginComponent
+		- Changed from Component
+	- TrackingAssistant
+		- changed OnTrackedObjectSave to have LooseDicitonary parameter
+	- TrackObjectUI
+		- Tracked Object Dropdown/List now resets on every Add, Modify, or Remove actions, it's negligibly slower, but it greatly avoids logical errors by having a separate add modify remove logic in the UI.
+	- TrackedObject
+		- Added IComparable interface
+	- LooseDictionary
+		- Added IComparable interface
+		- Added sort function, sorts dictionary based on TValue
+	- Project
+		- Used RegexOptions / StringComparison Ignore case, instead of making both strings into ToLower(), (never knew this existed, discovered out of curiosity if comparison methods had overloads, which it had)
+	</details>
+
+</details>
+
+<details>
+<summary><b>
 v1.6.0 Bulk Modify Pins + QoL Update
 </b></summary>
 
@@ -21,10 +58,10 @@ v1.6.0 Bulk Modify Pins + QoL Update
 - Fixes
 	- If you have a mod that can change a pin's position you'll be able to overlap a new pin if the positions are absolutely the same to the prior position.
 	- When a filter is active, newly created pins (from double clicking in the map) will be invisible.
-	- Change entry's Object ID will no longer work with detecting objects with matching id (oversight)
-	- Blacklist Word not working properly all the time (happens when the blacklist word is before the id)
+	- Changing an entry's Object ID will stop detecting objects with the currently editted matching id (oversight).
+	- Blacklist Word not working properly all the time (happens when the blacklist word is before the id).
 		- ex. `SunkenCrypt4(Clone)` | entry: objectID > Crypt, blacklist > Sunken
-		- Looking at a structure named `SunkenCrypt4(Clone)` will still get detected because Sunken if before Crypt
+		- Looking at a structure named `SunkenCrypt4(Clone)` will still get detected because the 'Sunken' word is before the 'Crypt' word.
 
 - <details>
 	<summary>
@@ -298,16 +335,16 @@ v1.2.2 Valheim v0.217.22 Compatibility Update
 
 - Changes
 	- Slightly changed tracking UI.
-	- <details>
-		<summary>
-		Backend
-		</summary>
-
-		- Updated dependency to latest Jotunn 2.14.3 and BepInEx 5.4.2200.
-		</details>
 - Fixes
 	- Fixed UI bug due to latest Valheim update. (disappeared buttons and an error on main menu load)
 	- Fixed a logical error existing since initial release. When modifying an object's ID (modifying a tracked object's ID to an existing ID it will work having 2 entries with identical IDs bugging out of the entry (the latest).
+- <details>
+	<summary>
+	Backend
+	</summary>
+	
+	- Updated dependency to latest Jotunn 2.14.3 and BepInEx 5.4.2200.
+	</details>
 
 </details>
 
@@ -318,15 +355,15 @@ v1.2.1
 
 - Changes
 	- Organized CHANGELOG.md.
-	- <details>
-		<summary>
-		Backend
-		</summary>
-
-		- Similar to Plugin.cs and FilterPinsUI.cs, refactored TrackObjectUI.cs to use OnDisable when mod is turned off or UI is inactive to not process stuff on every frame.
-		</details>
 - Fixes
 	- Fixed unable to track, modify or untrack objects randomly occuring. Chances increases when you have too many tracked objects.
+- <details>
+	<summary>
+	Backend
+	</summary>
+	
+	- Similar to Plugin.cs and FilterPinsUI.cs, refactored TrackObjectUI.cs to use OnDisable when mod is turned off or UI is inactive to not process stuff on every frame.
+	</details>
 
 </details>
 
@@ -342,20 +379,20 @@ v1.2.0 Search Update
 		- You can also change its visibility on world startup/mod enabled through the config.
 		- If you have Pinnacle and want both of them to show/hide together, just disable `Show Search Window on startup` and toggle off and on `Enabled Mod`.
 
-- Changes
-	- <details>
-		<summary>
-		Backend
-		</summary>
+- <details>
+	<summary>
+	Backend
+	</summary>
 
-		- Plugin.cs 					- refactored to use MonoBehavior OnEnable/Disable (forgot this exists and can be used similarly to my situation).
-			- added unsubscription to some missed events on OnDestroy (not really important since plugins don't get destroyed).
-		- PinAssistantScripts.cs
-			- refactored to not initialize on Instance reference, but instead only create a new instance on Init() (to follow init convention on other classes).
-		- MinimapPatches.cs
-			- refactored to contain patches in one class only instead of many classes (didn't know you can do it this way.
-		- Changed README.md to include new search feature.
+	- Plugin.cs 				- refactored to use MonoBehavior OnEnable/Disable (forgot this exists and can be used similarly to my situation).
+		- added unsubscription to some missed events on OnDestroy (not really important since plugins don't get destroyed).
+	- PinAssistantScripts.cs
+		- refactored to not initialize on Instance reference, but instead only create a new instance on Init() (to follow init convention on other classes).
+	- MinimapPatches.cs
+		- refactored to contain patches in one class only instead of many classes (didn't know you can do it this way.
+	- Changed README.md to include new search feature.
 	</details>
+
 </details>
 
 <details>
@@ -368,18 +405,18 @@ v1.1.0 Trackable Types Update
 		- Hover each type in the config manager to figure out which do you want to be detectable.
 - Changes
 	- Separated changelog to CHANGELOG.md.
-	- <details>
-		<summary>
-		Backend
-		</summary>
-
-		- Added Dictionary class version for whenever there's changes to how tracked objects are saved in future version.
-		- Made UI elements public for modders to change its style (although you can probably do that through just Instance property alone).
-		- Updated Jotunn library from 2.12.6 - 2.14.0 (didn't think about updating the template I used).
-		- Cleaned up some codes.
-		</details>
 - Fixes
 	- Fixed build uploads to not contain versions 1.0.0 and 1.0.1 zips. (sorry for the extra file size).
+- <details>
+	<summary>
+	Backend
+	</summary>
+
+	- Added Dictionary class version for whenever there's changes to how tracked objects are saved in future version.
+	- Made UI elements public for modders to change its style (although you can probably do that through just Instance property alone).
+	- Updated Jotunn library from 2.12.6 - 2.14.0 (didn't think about updating the template I used).
+	- Cleaned up some codes.
+	</details>
 </details>
 
 <details>

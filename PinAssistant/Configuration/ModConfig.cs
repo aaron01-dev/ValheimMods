@@ -16,7 +16,8 @@ namespace WxAxW.PinAssistant.Configuration
         private ConfigEntry<bool> m_isAutoPinningEnabledConfig;
         private ConfigEntry<bool> m_isSearchWindowEnabledConfig;
         private ConfigEntry<float> m_tickRateConfig;
-        private ConfigEntry<float> m_redundancyDistanceConfig;
+        private ConfigEntry<float> m_redundancyDistanceSameConfig;
+        private ConfigEntry<float> m_redundancyDistanceAnyConfig;
         private ConfigEntry<float> m_lookDistanceConfig;
         private ConfigEntry<float> m_maxZoomMultiplier;
 
@@ -32,7 +33,8 @@ namespace WxAxW.PinAssistant.Configuration
         public ConfigEntry<bool> IsAutoPinningEnabledConfig { get => m_isAutoPinningEnabledConfig; set => m_isAutoPinningEnabledConfig = value; }
         public ConfigEntry<bool> IsSearchWindowEnabledConfig { get => m_isSearchWindowEnabledConfig; set => m_isSearchWindowEnabledConfig = value; }
         public ConfigEntry<float> TickRateConfig { get => m_tickRateConfig; set => m_tickRateConfig = value; }
-        public ConfigEntry<float> RedundancyDistanceConfig { get => m_redundancyDistanceConfig; set => m_redundancyDistanceConfig = value; }
+        public ConfigEntry<float> RedundancyDistanceSameConfig { get => m_redundancyDistanceSameConfig; set => m_redundancyDistanceSameConfig = value; }
+        public ConfigEntry<float> RedundancyDistanceAnyConfig { get => m_redundancyDistanceAnyConfig; set => m_redundancyDistanceAnyConfig = value; }
         public ConfigEntry<float> LookDistanceConfig { get => m_lookDistanceConfig; set => m_lookDistanceConfig = value; }
         public ConfigEntry<float> MaxZoomMultiplier { get => m_maxZoomMultiplier; set => m_maxZoomMultiplier = value; }
 
@@ -69,7 +71,7 @@ namespace WxAxW.PinAssistant.Configuration
                         Text.Get(TextType.CONFIG_NAME_TOGGLE_AUTOPINNING)
                         ),
                     null,
-                    new ConfigurationManagerAttributes { Order = 7 })
+                    new ConfigurationManagerAttributes { Order = 8 })
                 );
             m_isAutoPinningEnabledConfig = Config.Bind<bool>(
                 Text.Get(TextType.CONFIG_CATEGORY_GENERAL),
@@ -81,7 +83,7 @@ namespace WxAxW.PinAssistant.Configuration
                         Text.Get(TextType.CONFIG_NAME_KEY_TRACKOBJECT)
                         ),
                     null,
-                    new ConfigurationManagerAttributes { Order = 6 })
+                    new ConfigurationManagerAttributes { Order = 7 })
                 );
             m_isSearchWindowEnabledConfig = Config.Bind<bool>(
                 Text.Get(TextType.CONFIG_CATEGORY_GENERAL),
@@ -90,7 +92,7 @@ namespace WxAxW.PinAssistant.Configuration
                 new ConfigDescription(
                     Text.Get(TextType.CONFIG_MESSAGE_TOGGLE_STARTFILTERENABLED),
                     null,
-                    new ConfigurationManagerAttributes { Order = 5 })
+                    new ConfigurationManagerAttributes { Order = 6 })
                 );
 
             m_tickRateConfig = Config.Bind<float>(
@@ -100,14 +102,23 @@ namespace WxAxW.PinAssistant.Configuration
                 new ConfigDescription(
                     Text.Get(TextType.CONFIG_MESSAGE_VAL_TICKRATE),
                     null,
-                    new ConfigurationManagerAttributes { Order = 4 })
+                    new ConfigurationManagerAttributes { Order = 5 })
                 );
-            m_redundancyDistanceConfig = Config.Bind<float>(
+            m_redundancyDistanceSameConfig = Config.Bind<float>(
                 Text.Get(TextType.CONFIG_CATEGORY_GENERAL),
-                Text.Get(TextType.CONFIG_NAME_VAL_DISTANCEREDUNDANCY),
+                Text.Get(TextType.CONFIG_NAME_VAL_DISTANCEREDUNDANCY_SAME),
                 20f,
                 new ConfigDescription(
-                    Text.Get(TextType.CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY),
+                    Text.Get(TextType.CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY_SAME),
+                    null,
+                    new ConfigurationManagerAttributes { Order = 4 })
+                );
+            m_redundancyDistanceAnyConfig = Config.Bind<float>(
+                Text.Get(TextType.CONFIG_CATEGORY_GENERAL),
+                Text.Get(TextType.CONFIG_NAME_VAL_DISTANCEREDUNDANCY_ANY),
+                10f,
+                new ConfigDescription(
+                    Text.Get(TextType.CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY_ANY),
                     null,
                     new ConfigurationManagerAttributes { Order = 3 })
                 );

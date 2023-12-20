@@ -6,7 +6,7 @@ using UnityEngine;
 namespace WxAxW.PinAssistant.Core
 {
     [Serializable]
-    public class TrackedObject
+    public class TrackedObject : IComparable<TrackedObject>
     {
         public class SerializableColor
         {
@@ -134,6 +134,11 @@ namespace WxAxW.PinAssistant.Core
         public override int GetHashCode()
         {
             return 1328540911 + EqualityComparer<string>.Default.GetHashCode(m_objectID);
+        }
+
+        public int CompareTo(TrackedObject other)
+        {
+            return m_name.CompareTo(other.m_name);
         }
     }
 }

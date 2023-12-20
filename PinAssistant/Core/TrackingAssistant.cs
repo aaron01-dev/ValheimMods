@@ -10,7 +10,7 @@ using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant.Core
 {
-    public class TrackingAssistant : Component
+    public class TrackingAssistant : PluginComponent
     {
         private static TrackingAssistant m_instance = new TrackingAssistant();
         public static TrackingAssistant Instance => m_instance;
@@ -42,7 +42,7 @@ namespace WxAxW.PinAssistant.Core
 
         public event Action<TrackedObject, TrackedObject, bool> OnTrackedObjectUpdate;
 
-        public event Action OnTrackedObjectSaved;
+        public event Action<LooseDictionary<TrackedObject>> OnTrackedObjectSaved;
 
         public event Action<LooseDictionary<TrackedObject>> OnTrackedObjectsReload;
 
@@ -78,11 +78,12 @@ namespace WxAxW.PinAssistant.Core
             m_instance = null;
         }
 
-        public void PinLookedObject(float lookDistance, float redundancyDistance)
+        public void PinLookedObject(float lookDistance, float redundancyDistanceSame, float redundancyDistanceAny)
         {
-            if (!LookAt(lookDistance, out string id, out GameObject obj)) return;
+            bool foundObject = LookAt(lookDistance, out string id, out GameObject obj);
+            if (!foundObject) return;
             
-            AddObjAsPin(id, obj, redundancyDistance);
+            AddObjAsPin(id, obj, redundancyDistanceSame, redundancyDistanceAny);
         }
 
         public bool LookAt(float lookDistance, out string id, out GameObject obj)
@@ -130,7 +131,7 @@ namespace WxAxW.PinAssistant.Core
             }
         }
 
-        public void AddObjAsPin(string id, GameObject obj, float redundancyDistance)
+        public void AddObjAsPin(string id, GameObject obj, float redundancyDistanceSame, float redundancyDistanceAny)
         {
             if (Minimap.instance is null) return;
             bool exist = m_trackedObjects.TryGetValueLooseLite(id, out TrackedObject trackedObject);
@@ -146,17 +147,23 @@ namespace WxAxW.PinAssistant.Core
                 Debug.Log(TextType.PIN_ADDING_EXISTS);
                 return;
             }
-            if (!CheckValidPinPosition(pos, trackedObject.Name, redundancyDistance))
+            if (redundancyDistanceAny != 0f && !CheckValidPinPosition(pos, trackedObject.Name, redundancyDistanceAny, allPins: true))
             {
                 Debug.Log(TextType.PIN_ADDING_EXISTS_NEARBY);
                 return;
             }
+            if (redundancyDistanceSame != 0f && !CheckValidPinPosition(pos, trackedObject.Name, redundancyDistanceSame, allPins: false))
+            {
+                Debug.Log(TextType.PIN_ADDING_EXISTS_SIMILAR_NEARBY);
+                return;
+            }
+
             Minimap.instance.AddPin(pos, trackedObject.Icon, trackedObject.Name, trackedObject.Save, trackedObject.IsChecked);
         }
 
+        // Used for easy checking of existing pins instead of iterating through the list of pins
         private bool CheckPinPositionExist(Vector3 pinPos)
         {
-            // check plugin created dictionary for pinData player pin data from valheim to easily check for existing by using vector position as key
             return m_pins.ContainsKey(pinPos);
         }
 
@@ -183,11 +190,15 @@ namespace WxAxW.PinAssistant.Core
             return name;
         }
 
-        private bool CheckValidPinPosition(Vector3 pinToAdd, string pinName, float redundancyDistance)
+        private bool CheckValidPinPosition(Vector3 pinToAdd, string pinName, float redundancyDistance, bool allPins)
         {
             foreach (Minimap.PinData pin in m_pins.Values)
             {
-                if (!pin.m_name.Equals(pinName)) continue;
+                if (!allPins)
+                {
+                    bool diffName = pin.m_name.IndexOf(pinName, StringComparison.OrdinalIgnoreCase) == -1;
+                    if (diffName) continue;
+                }
                 bool valid = CheckValidDistance(pinToAdd, pin.m_pos, redundancyDistance);
                 if (valid) continue;
                 return false;
@@ -313,6 +324,7 @@ namespace WxAxW.PinAssistant.Core
         public string SerializeTrackedObjects()
         {
             Debug.Log("Serializing tracked objects");
+            m_trackedObjects.SortTrackedObjects();
             string json = JsonConvert.SerializeObject(
                 m_trackedObjects,
                 new JsonSerializerSettings()
@@ -323,7 +335,7 @@ namespace WxAxW.PinAssistant.Core
             Debug.Log("Serialized, saving to data");
             ModConfig.Instance.TrackedObjectsConfig.Value = json;
             Debug.Log("Saved");
-            OnTrackedObjectSaved?.Invoke();
+            OnTrackedObjectSaved?.Invoke(m_trackedObjects);
             return json;
         }
 

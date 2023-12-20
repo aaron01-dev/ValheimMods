@@ -22,9 +22,10 @@ namespace WxAxW.PinAssistant.Configuration
         [Text("Auto Pinning")] CONFIG_NAME_TOGGLE_AUTOPINNING,
         [Text("Show Search Window on startup")] CONFIG_NAME_TOGGLE_STARTFILTERENABLED,
         [Text("Look Tick Rate")] CONFIG_NAME_VAL_TICKRATE,
-        [Text("Redundancy Distance")] CONFIG_NAME_VAL_DISTANCEREDUNDANCY,
+        [Text("Similar Pin Redundancy Distance")] CONFIG_NAME_VAL_DISTANCEREDUNDANCY_SAME,
+        [Text("Any Pin Redundancy Distance")] CONFIG_NAME_VAL_DISTANCEREDUNDANCY_ANY,
         [Text("Look Distance")] CONFIG_NAME_VAL_DISTANCELOOK,
-        [Text("Max Zoom Multiplier")] CONFIG_NAME_VAL_MAXZOOMMULT,
+        [Text("Max Mini/Map Zoom Multiplier")] CONFIG_NAME_VAL_MAXZOOMMULT,
 
         [Text("Track Looked Object")] CONFIG_NAME_KEY_TRACKOBJECT,
         [Text("Pin Object")] CONFIG_NAME_KEY_PINOBJECT,
@@ -40,9 +41,10 @@ namespace WxAxW.PinAssistant.Configuration
         [Text("Enable or disable auto pinning when looking at an object (only auto pins objects from '{0}'")] CONFIG_MESSAGE_TOGGLE_AUTOPINNING,
         [Text("Shows/Hides the Search Window on startup.\n(added this for the purpose of Pinnacle so they show/hide in tandem.\nto do so, hide Pinnacle's panel, toggle off this entry and re-enable this mod, you only need to do this once.)")] CONFIG_MESSAGE_TOGGLE_STARTFILTERENABLED,
         [Text("The tick rate for when to check the object you're looking at to attempt to pin it\nThe value is 'n seconds per tick'")] CONFIG_MESSAGE_VAL_TICKRATE,
-        [Text("The minimum distance to prevent pinning multiple objects close together")] CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY,
+        [Text("The minimum distance or space required to prevent pinning similar pins close together. (Based on pin's name, 0 to completely stop this check")] CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY_SAME,
+        [Text("The minimum distance or space required to prevent pinning any pins close together. (0 to completely stop this check)")] CONFIG_MESSAGE_VAL_DISTANCEREDUNDANCY_ANY,
         [Text("The maximum distance you can detect an object")] CONFIG_MESSAGE_VAL_DISTANCELOOK,
-        [Text("The multiplier to increase the maximum zoom")] CONFIG_MESSAGE_VAL_MAXZOOMMULT,
+        [Text("The multiplier to increase the maximum zoom of the mini/map")] CONFIG_MESSAGE_VAL_MAXZOOMMULT,
 
         [Text("Key to open the GUI\nTo register the object you're looking at to the list of objects to automaticaly pin")] CONFIG_MESSAGE_KEY_TRACKOBJECT,
         [Text("Key to manually pin the object you're looking at\nUsed for when you disable '{0}'\n(Object must be tracked using '{1}' to pin)")] CONFIG_MESSAGE_KEY_PINOBJECT,
@@ -58,14 +60,15 @@ namespace WxAxW.PinAssistant.Configuration
         [Text("{0}:\tLayerMask: {1} | {2}")] OBJECT_INFO,
 
         // Pins
-        [Text("Minimap not found, this should not happen unless Debug Mode is enabled while in main menu")] MINIMAP_NOT_FOUND,
+        [Text("Minimap not found, this should not happen unless Debug Mode is enabled while starting up or in main menu")] MINIMAP_NOT_FOUND,
 
         [Text("No pins found, I assume you're loading your world")] WORLD_LOADING,
         [Text("{0}: attempting to add: '{1}' at '{2}'!")] PIN_ADDING,
         [Text("Pin Added")] PIN_ADDED,
         [Text("This is a ping, not adding to database")] PING_ADDING,
         [Text("Pin already exists")] PIN_ADDING_EXISTS,
-        [Text("Nearby pin with same name already exists")] PIN_ADDING_EXISTS_NEARBY,
+        [Text("Won't add. Nearby pin with same name already exists")] PIN_ADDING_EXISTS_SIMILAR_NEARBY,
+        [Text("Won't add. Nearby pin exists")] PIN_ADDING_EXISTS_NEARBY,
 
         [Text("Removed '{0}' at '{1}'!")] PIN_REMOVED,
 

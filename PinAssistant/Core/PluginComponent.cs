@@ -1,8 +1,10 @@
-﻿namespace WxAxW.PinAssistant.Core
+﻿using WxAxW.PinAssistant.Utils;
+
+namespace WxAxW.PinAssistant.Core
 {
-    public abstract class Component
+    public abstract class PluginComponent
     {
-        private bool m_enabled = true;
+        private bool m_enabled = false;
 
         public bool enabled
         {
@@ -10,6 +12,7 @@
 
             set
             {
+                if (m_enabled == value) return;
                 m_enabled = value;
 
                 if (m_enabled) OnEnable();

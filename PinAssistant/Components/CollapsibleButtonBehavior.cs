@@ -18,10 +18,7 @@ namespace WxAxW.PinAssistant.Components
         public bool IsOn
         {
             get => m_IsOn;
-            set
-            {
-                SetState(value);
-            }
+            set => SetState(value);
         }
         private void Awake()
         {
@@ -33,19 +30,11 @@ namespace WxAxW.PinAssistant.Components
 
         private void SetState(bool value)
         {
-            if (m_IsOn == value)
-                return;
+            if (m_IsOn == value) return;
 
             m_IsOn = value;
-            if (value)
-            {
-                m_textButton.SetText("v");
-
-            }
-            else
-            {
-                m_textButton.SetText(">");
-            }
+            if (value) m_textButton.SetText("v");
+            else m_textButton.SetText(">");
 
             foreach (GameObject obj in m_targetObjs)
             {

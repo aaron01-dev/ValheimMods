@@ -2,12 +2,13 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace WxAxW.PinAssistant.Utils
 {
     [Serializable]
-    public class LooseDictionary<TValue>
+    public class LooseDictionary<TValue> where TValue : IComparable<TValue>
     {
         public class TraverseDetails
         {
@@ -70,7 +71,6 @@ namespace WxAxW.PinAssistant.Utils
         public bool Add(string key, TValue value, out bool conflicting, string blackListWord = "", bool exactMatchOnly = false)
         {
             key = key.ToLower();
-            blackListWord = blackListWord.ToLower();
             conflicting = false;
             if (m_altDictionary.ContainsKey(key)) return false; // skip if key exists
 
@@ -88,7 +88,6 @@ namespace WxAxW.PinAssistant.Utils
         public bool Modify(string key, TValue newValue, bool newNodeExact, string newBlackListWord)
         {
             key = key.ToLower();
-            newBlackListWord = newBlackListWord.ToLower();
 
             if (!m_altDictionary.TryGetValue(key, out TrieNode nodeResult)) return false;
 
@@ -127,6 +126,14 @@ namespace WxAxW.PinAssistant.Utils
             if (!m_altDictionary.Remove(key)) return false;
             RemoveNode(key);
             return true;
+        }
+
+        public void SortTrackedObjects()
+        {
+            // Sort the dictionary by the "Name" property of MyClass
+            var sortedList = m_altDictionary.OrderBy(kvp => kvp.Value).ToList();
+            
+            m_altDictionary = sortedList.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
         public void Clear()
@@ -206,7 +213,7 @@ namespace WxAxW.PinAssistant.Utils
             return false;
         }
 
-        public class TrieNode
+        public class TrieNode : IComparable<TrieNode>
         {
             private readonly Dictionary<char, TrieNode> m_children = new Dictionary<char, TrieNode>();
 
@@ -344,7 +351,7 @@ namespace WxAxW.PinAssistant.Utils
             {
                 if (nodeToCheck.m_value == null || // check if node is filled
                     ((nodeToCheck.m_nodeExactMatchOnly || exactMatchOnly) && currentIndex != key.Length - 1) || // found a close match, but can only be accessed through exact match
-                    (!string.IsNullOrEmpty(nodeToCheck.m_blackListWord) && key.IndexOf(nodeToCheck.m_blackListWord) != -1) // if the found node has a blacklisted word that is not found in the main key
+                    (!string.IsNullOrEmpty(nodeToCheck.m_blackListWord) && key.IndexOf(nodeToCheck.m_blackListWord, StringComparison.OrdinalIgnoreCase) != -1) // if the found node has a blacklisted word that is not found in the main key
                    )
                 {
                     return false;
@@ -372,7 +379,7 @@ namespace WxAxW.PinAssistant.Utils
                     TrieNode currChildNode = descendants[i];
                     if (currChildNode.m_value == null ||  // check if node is filled
                         currChildNode.m_nodeExactMatchOnly) continue; // found a close match, but can only be accessed through exact match
-                    bool keyBlacklisted = !string.IsNullOrEmpty(currChildNode.m_blackListWord) && key.IndexOf(currChildNode.BlackListWord) != -1;
+                    bool keyBlacklisted = !string.IsNullOrEmpty(currChildNode.m_blackListWord) && key.IndexOf(currChildNode.m_blackListWord, StringComparison.OrdinalIgnoreCase) != -1;
                     if (keyBlacklisted) continue;
 
                     return true;
@@ -530,12 +537,17 @@ namespace WxAxW.PinAssistant.Utils
             {
                 if (nodeToCheck.m_value == null || // check if node is filled
                     ((nodeToCheck.m_nodeExactMatchOnly || exactMatchOnly) && nodeLength != key.Length) || // found a close match, but can only be accessed through exact match
-                    (!string.IsNullOrEmpty(nodeToCheck.m_blackListWord) && key.IndexOf(nodeToCheck.BlackListWord) != -1) // if the found node has a blacklisted word that is not found in the main key
+                    (!string.IsNullOrEmpty(nodeToCheck.m_blackListWord) && key.IndexOf(nodeToCheck.m_blackListWord, StringComparison.OrdinalIgnoreCase) != -1) // if the found node has a blacklisted word that is not found in the main key
                    )
                 {
                     return false;
                 }
                 return true;
+            }
+
+            public int CompareTo(TrieNode other)
+            {
+                return m_value.CompareTo(other.m_value);
             }
         }
     }
