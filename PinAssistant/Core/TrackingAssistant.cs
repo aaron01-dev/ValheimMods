@@ -220,7 +220,7 @@ namespace WxAxW.PinAssistant.Core
         // only happens when loading to in game or re-enabling mod
         private void PopulatePins()
         {
-            if (Minimap.instance == null) { Debug.Warning(TextType.MINIMAP_NOT_FOUND); return; }
+            if (Minimap.instance == null && !Plugin.Instance.m_isInGame) { Debug.Warning(TextType.MINIMAP_NOT_FOUND); return; }
             // populate pins with valheim pins
             List<Minimap.PinData> MapPins = Minimap.instance.m_pins;
 

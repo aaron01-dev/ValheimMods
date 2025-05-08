@@ -120,8 +120,8 @@ namespace WxAxW.PinAssistant.Core
 
         private readonly Dictionary<string, PinGroup> m_pins = new Dictionary<string, PinGroup>();
 
-        private IEnumerable<Minimap.PinData> m_listUnfilteredPinsQuery;
-        private List<Minimap.PinData> m_listUnfilteredPins;
+        private IEnumerable<Minimap.PinData> m_listFilteredOutPinsQuery;
+        private List<Minimap.PinData> m_listFilteredOutPins;
 
         private Dictionary<Minimap.PinType, Tuple<Sprite, string>> m_dictionaryPinType = new Dictionary<Minimap.PinType, Tuple<Sprite, string>>();
         private bool m_dictionaryPinTypePopulated = false;
@@ -138,6 +138,7 @@ namespace WxAxW.PinAssistant.Core
             MinimapPatches.OnPinRemove += OnPinRemove;
             MinimapPatches.OnPinSetTarget += OnPinSetup;
             MinimapPatches.OnPinUpdate += OnPinUpdate;
+            MinimapPatches.OnPinsUpdate += OnPinsUpdate;
             MinimapManager.OnVanillaMapAvailable += PopulateIcons;
         }
 
@@ -147,6 +148,7 @@ namespace WxAxW.PinAssistant.Core
             MinimapPatches.OnPinRemove -= OnPinRemove;
             MinimapPatches.OnPinSetTarget -= OnPinSetup;
             MinimapPatches.OnPinUpdate -= OnPinUpdate;
+            MinimapPatches.OnPinsUpdate -= OnPinsUpdate;
             m_instance = null;
         }
 
@@ -215,7 +217,7 @@ namespace WxAxW.PinAssistant.Core
             {
                 if (!IsRegexValid(pinNameQuery)) return;
 
-                m_listUnfilteredPinsQuery = TrackingAssistant.Instance.Pins.Values
+                m_listFilteredOutPinsQuery = TrackingAssistant.Instance.Pins.Values
                     .Where(pinData =>
                     {
                         bool pinNameMatches = Regex.IsMatch(pinData.m_name, pinNameQuery, RegexOptions.IgnoreCase);
@@ -228,7 +230,7 @@ namespace WxAxW.PinAssistant.Core
             {
                 bool isExact = IsExact(pinNameQuery, out pinNameQuery);
 
-                m_listUnfilteredPinsQuery = TrackingAssistant.Instance.Pins.Values
+                m_listFilteredOutPinsQuery = TrackingAssistant.Instance.Pins.Values
                     .Where(pinData =>
                     {
                         bool pinNameMatches = CompareSearch(pinData.m_name, pinNameQuery, isExact);
@@ -237,7 +239,8 @@ namespace WxAxW.PinAssistant.Core
                         return whitelist ? !filterOut : filterOut;
                     });
             }
-            m_listUnfilteredPins = m_listUnfilteredPinsQuery.ToList();
+            m_listFilteredOutPins = m_listFilteredOutPinsQuery.ToList();
+            FilterOutPins(); // Immediately Filter out pins, as Minimap doesn't update all the time.
         }
 
         private bool IsRegexValid(string pinNameQuery)
@@ -280,21 +283,23 @@ namespace WxAxW.PinAssistant.Core
 
         public void ResetFilteredPins()
         {
-            if (m_listUnfilteredPinsQuery == null) return;
-            FilterPins(renderPins: true);
-            m_listUnfilteredPinsQuery = null;
-            m_listUnfilteredPins = null;
+            // Skip if no pins are filtered out
+            if (m_listFilteredOutPinsQuery == null) return;
+            FilterOutPins(renderPins: true);
+            m_listFilteredOutPinsQuery = null;
+            m_listFilteredOutPins = null;
         }
 
-        public void FilterPins()
+        public void FilterOutPins()
         {
-            if (m_listUnfilteredPinsQuery == null) return;
-            FilterPins(renderPins: false);
+            // Skip if no pins are filtered out
+            if (m_listFilteredOutPinsQuery == null) return;
+            FilterOutPins(renderPins: false);
         }
 
-        public void FilterPins(bool renderPins)
+        public void FilterOutPins(bool renderPins)
         {
-            foreach (Minimap.PinData unFilteredPin in m_listUnfilteredPins)
+            foreach (Minimap.PinData unFilteredPin in m_listFilteredOutPins)
             {
                 unFilteredPin.m_NamePinData?.PinNameGameObject?.SetActive(renderPins);
                 unFilteredPin.m_uiElement?.gameObject.SetActive(renderPins); // icon and checked
@@ -376,7 +381,7 @@ namespace WxAxW.PinAssistant.Core
                 ModifyPin(pinData, newPinsName, actualNewType);
             }
 
-            UpdateUnfilteredPins();
+            UpdateFilteredOutPins();
         }
 
         private void TransferPinGroup(string oldPinsName, string newPinsName, Minimap.PinType oldType, Minimap.PinType newType)
@@ -407,10 +412,12 @@ namespace WxAxW.PinAssistant.Core
             return formattedPinKey;
         }
 
-        public void UpdateUnfilteredPins()
+        public void UpdateFilteredOutPins()
         {
-            if (m_listUnfilteredPins == null) return;
-            m_listUnfilteredPins = m_listUnfilteredPinsQuery.ToList();
+            // Skip if no pins are filtered out
+            if (m_listFilteredOutPinsQuery == null) return;
+            m_listFilteredOutPins = m_listFilteredOutPinsQuery.ToList();
+            FilterOutPins(); // Immediately Filter out pins, as Minimap doesn't update all the time after update v0.220.
         }
 
         private void PinAdd(Minimap.PinData pin)
@@ -423,7 +430,7 @@ namespace WxAxW.PinAssistant.Core
         {
             if (MinimapPatches.isSpecialPin) return;
             PinAdd(pin);
-            if (!MinimapPatches.isManualPin) UpdateUnfilteredPins();
+            if (!MinimapPatches.isManualPin) UpdateFilteredOutPins();
         }
 
         private void OnPinRemove(Minimap.PinData pin)
@@ -435,8 +442,9 @@ namespace WxAxW.PinAssistant.Core
         private void OnPinSetup(Minimap.PinData pin)
         {
             if (MinimapPatches.m_edittingPin == null) return;
-            if (pin == MinimapPatches.m_edittingPin) return;
-            UpdateUnfilteredPins();
+            if (pin == MinimapPatches.m_edittingPin) return; // Event is triggered when player has entered the edit menu.
+            // Event is triggered when player has left the edit menu.
+            UpdateFilteredOutPins();
         }
 
         private void OnPinUpdate()
@@ -449,6 +457,12 @@ namespace WxAxW.PinAssistant.Core
             Debug.Log($"Updating pin from, {oldName} | {oldType}, to {newName} | {newType}");
 
             ModifyPin(MinimapPatches.m_edittingPin, oldName, newName, oldType, newType);
+        }
+
+        private void OnPinsUpdate()
+        {
+            FilterOutPins();
+            ColorPins();
         }
 
         private void OnTrackedObjectAdd(TrackedObject trackedObject)

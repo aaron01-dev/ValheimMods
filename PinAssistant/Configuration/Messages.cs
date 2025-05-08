@@ -60,7 +60,7 @@ namespace WxAxW.PinAssistant.Configuration
         [Text("{0}:\tLayerMask: {1} | {2}")] OBJECT_INFO,
 
         // Pins
-        [Text("Minimap not found, this should not happen unless Debug Mode is enabled while starting up or in main menu")] MINIMAP_NOT_FOUND,
+        [Text("Minimap not found")] MINIMAP_NOT_FOUND,
 
         [Text("No pins found, I assume you're loading your world")] WORLD_LOADING,
         [Text("{0}: attempting to add: '{1}' at '{2}'!")] PIN_ADDING,

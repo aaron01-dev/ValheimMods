@@ -7,6 +7,7 @@ using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant.Patches
 {
+    // Compatibility patch to work with Pinnacles edit feature.
     [HarmonyPatch(typeof(PinEditPanel))]
     internal class PinnaclePatches
     {

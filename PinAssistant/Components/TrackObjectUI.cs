@@ -113,7 +113,6 @@ namespace WxAxW.PinAssistant.Components
         {
             GameObject prefab = assetBundle.LoadAsset<GameObject>("Assets/ObjTrackObjectUI.prefab");
             m_instance = Instantiate(prefab, GUIManager.CustomGUIFront.transform, false).GetComponent<TrackObjectUI>();
-            m_instance.gameObject.SetActive(false);
         }
 
 #pragma warning disable IDE0051 // Remove unused private members
@@ -144,13 +143,14 @@ namespace WxAxW.PinAssistant.Components
 
             TrackObjectUILoaded?.Invoke();
             //m_buttonUntrackCancel.onClick.AddListener()
+            enabled = false;
         }
 
         private void Update()
         {
             // keybind to close ui
             if (Input.GetKeyDown(KeyCode.Escape))
-                SetUIActive(false);
+                enabled = false;
             if (Input.GetKeyDown(KeyCode.Return))
                 OnButtonTrackedModifyPressed();
         }
@@ -285,16 +285,15 @@ namespace WxAxW.PinAssistant.Components
         {
             GUIManager.BlockInput(value);
             gameObject.SetActive(value);
-            enabled = value;
             if (m_edittingColor) ColorPicker.Cancel();
         }
 
         public void SetupTrackObject(string objName)
         {
-            SetUIActive(!gameObject.activeSelf);
-
+            enabled = !enabled;
+            SetUIActive(enabled);
             // check if opening or closing
-            if (!gameObject.activeSelf) return;
+            if (!enabled) return;
 
             // setup values
             m_dropDownTracked.SetValueWithoutNotify(0);
@@ -450,7 +449,7 @@ namespace WxAxW.PinAssistant.Components
         {
             if (m_dropDownTracked.value == 0) // cancel new entry
             {
-                SetUIActive(false);
+                enabled = false;
                 return;
             }
             // untrack entry

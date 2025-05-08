@@ -1,5 +1,38 @@
 # Changelog
 
+<details open>
+<summary><b>
+v1.8.0 Compatibility Update
+</b></summary>
+
+- Update
+	- Now works for Valheim v0.220.
+- Changes
+	- JsonDotNet - Changed dependency from Tekla JsonDotNet -> ValheimModding JsonDotNet.
+	- Track Object and Pin Object now defaults to LeftShift + T/P instead of Left Control, configurable in ConfigManager F1 or Valheim\Bepinex\config\com.WxAxW.PinAssistant.cfg. (Just realized how dumb it is for the character to always crouch when doing it)
+	- Track Object UI no longer toggles when Filter UI is open. (Since the new default keybind is Shift + T, it will toggle the Track Object UI when typing texts in the filter ui.)
+	- Dependency updates.
+- Fixes
+	- Fixed a bug where player movement is allowed when both Filter UI is focused and Track Object UI is open, then Track Object UI is closed.
+- <details>
+	<summary>
+	Backend
+	</summary>
+
+	- Updated repo to latest JotunnModStub, haven't tested UnityMod project.
+	- Not really sure how I fixed the new bug that was encountered on v0.220, but I guess updating my project with the latest JotunnModStub, fixes it? Possibly some compiler issue on my old project.
+	- FilterPinsUI
+		- Removed ModDisable/ModEnable method, consolidated to OnDisable and OnEnable. (Unsure what my train of thought was here.)
+	- MinimapPatches - Decoupled from MinimapAssistant by adding event systems that MinimapAssistant will subscribe to.
+	- MinimapAssistant
+		- Subscribed to MinimapPatches events instead of having to patch the Minimap class with MinimapAssistant methods.
+		- Renamed filter variables and methods to better match its purpose.
+		- ModifyPins and SearchPins method now immediately executes FilterOutPins, due to Valheim's new update, the pins are not being filtered out immediately.
+	- TrackObjectUI - Change toggle behavior by simply calling 'enabled' fixes looping issue.
+	</details>
+
+</details>
+
 <details>
 <summary><b>
 v1.7.0 More Quality of Life Update
@@ -384,7 +417,8 @@ v1.2.0 Search Update
 	Backend
 	</summary>
 
-	- Plugin.cs 				- refactored to use MonoBehavior OnEnable/Disable (forgot this exists and can be used similarly to my situation).
+	- Plugin.cs 		
+		- refactored to use MonoBehavior OnEnable/Disable (forgot this exists and can be used similarly to my situation).
 		- added unsubscription to some missed events on OnDestroy (not really important since plugins don't get destroyed).
 	- PinAssistantScripts.cs
 		- refactored to not initialize on Instance reference, but instead only create a new instance on Init() (to follow init convention on other classes).
@@ -424,7 +458,9 @@ v1.1.0 Trackable Types Update
 v1.0.1
 </b></summary>
 
-- Changes	- Changed the hover description for "Look Tick Rate" into a more detailed explanation, the prior message might confuse people.	- Changed default Redundancy Distance from 30 to 20 (I found that it might be too big of a distance to check for redundancy).
+- Changes
+	- Changed the hover description for "Look Tick Rate" into a more detailed explanation, the prior message might confuse people.
+	- Changed default Redundancy Distance from 30 to 20 (I found that it might be too big of a distance to check for redundancy).
 	- Slightly organized README.md and added a suggestion section.
 - Fixes
 	- Fixed sub string searching in TrieNode when a prefix exists in the entry.

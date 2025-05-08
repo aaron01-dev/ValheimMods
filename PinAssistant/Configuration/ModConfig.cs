@@ -145,7 +145,7 @@ namespace WxAxW.PinAssistant.Configuration
             m_trackLookedObjectConfig = Config.Bind(
                 Text.Get(TextType.CONFIG_CATEGORY_HOTKEYS),
                 Text.Get(TextType.CONFIG_NAME_KEY_TRACKOBJECT),
-                new KeyboardShortcut(KeyCode.T, KeyCode.LeftControl),
+                new KeyboardShortcut(KeyCode.T, KeyCode.LeftShift),
                 new ConfigDescription(
                     Text.Get(TextType.CONFIG_MESSAGE_KEY_TRACKOBJECT),
                     null,
@@ -154,7 +154,7 @@ namespace WxAxW.PinAssistant.Configuration
             m_pinLookedObjectConfig = Config.Bind(
                 Text.Get(TextType.CONFIG_CATEGORY_HOTKEYS),
                 Text.Get(TextType.CONFIG_NAME_KEY_PINOBJECT),
-                new KeyboardShortcut(KeyCode.P, KeyCode.LeftControl),
+                new KeyboardShortcut(KeyCode.P, KeyCode.LeftShift),
                 new ConfigDescription(
                     Text.Get(
                         TextType.CONFIG_MESSAGE_KEY_PINOBJECT,

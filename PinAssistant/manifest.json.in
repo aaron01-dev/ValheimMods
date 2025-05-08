@@ -1,0 +1,11 @@
+{
+    "name": "PinAssistant",
+    "description": "An assistant for pinning objects easily or automatically, changing colors of your pins, searching pins, and replacing pins",
+    "version_number": "$(Version)",
+    "website_url": "https://github.com/aaron01-dev/ValheimMods/blob/main/PinAssistant",
+    "dependencies": [
+        "denikson-BepInExPack_Valheim-5.4.2202",
+        "ValheimModding-Jotunn-2.24.3",
+        "ValheimModding-JsonDotNET-13.0.3"
+    ]
+}

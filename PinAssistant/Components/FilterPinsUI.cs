@@ -60,6 +60,7 @@ namespace WxAxW.PinAssistant.Components
         public Button ButtonReplace { get => m_buttonReplace; set => m_buttonReplace = value; }
 
         public Toggle ToggleIsRegEx { get => m_toggleIsRegEx; set => m_toggleIsRegEx = value; }
+        public bool IsFocused { get => m_isFocused; set => m_isFocused = value; }
 
         public static void Init(AssetBundle assetBundle, bool showOnStartup)
         {
@@ -108,6 +109,8 @@ namespace WxAxW.PinAssistant.Components
         {
             m_inputPinNameFind.onSelect.AddListener(OnInputFocus);
             m_inputPinNameFind.onDeselect.AddListener(OnInputLossFocus);
+            m_inputPinNameReplace.onSelect.AddListener(OnInputFocus);
+            m_inputPinNameReplace.onDeselect.AddListener(OnInputLossFocus);
             m_inputPinNameFind.onSubmit.AddListener(OnSubmit);
             m_buttonFind.onClick.AddListener(OnButtonFind);
             m_buttonReset.onClick.AddListener(OnButtonReset);
@@ -116,12 +119,15 @@ namespace WxAxW.PinAssistant.Components
             m_dropdownPinIconReplace.onValueChanged.AddListener(OnDropdownReplaceChanged);
             m_buttonReplaceMode.OnValueChanged.AddListener(OnToggleReplaceModeClicked);
             m_buttonReplace.onClick.AddListener(OnButtonReplace);
+            m_body.SetActive(m_showOnStartup);
         }
 
         private void OnDisable()
         {
             m_inputPinNameFind.onSelect.RemoveListener(OnInputFocus);
             m_inputPinNameFind.onDeselect.RemoveListener(OnInputLossFocus);
+            m_inputPinNameReplace.onSelect.RemoveListener(OnInputFocus);
+            m_inputPinNameReplace.onDeselect.RemoveListener(OnInputLossFocus);
             m_inputPinNameFind.onSubmit.RemoveListener(OnSubmit);
             m_buttonFind.onClick.RemoveListener(OnButtonFind);
             m_buttonReset.onClick.RemoveListener(OnButtonReset);
@@ -130,15 +136,6 @@ namespace WxAxW.PinAssistant.Components
             m_dropdownPinIconReplace.onValueChanged.RemoveListener(OnDropdownReplaceChanged);
             m_buttonReplaceMode.OnValueChanged.RemoveListener(OnToggleReplaceModeClicked);
             m_buttonReplace.onClick.RemoveListener(OnButtonReplace);
-        }
-
-        public void ModEnable()
-        {
-            m_body.SetActive(m_showOnStartup);
-        }
-
-        public void ModDisable()
-        {
             m_body.SetActive(false);
         }
 

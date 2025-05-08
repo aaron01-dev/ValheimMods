@@ -17,6 +17,7 @@ namespace WxAxW.PinAssistant.Patches
         public static event Action OnPinClear;
         public static event Action<Minimap.PinData> OnPinSetTarget;
         public static event Action OnPinUpdate;
+        public static event Action OnPinsUpdate;
 
         public static bool isSpecialPin = false;
         public static bool isManualPin = false;
@@ -54,13 +55,12 @@ namespace WxAxW.PinAssistant.Patches
             OnPinClear?.Invoke();
         }
 
+        // Always run after Minimap.UpdatePins, to reapply filters and colors on every tick
         [HarmonyPostfix]
         [HarmonyPatch(nameof(Minimap.UpdatePins))]
         private static void PostFixUpdatePins()
         {
-            if (!ModConfig.Instance.IsEnabledConfig.Value) return;
-            MinimapAssistant.Instance.FilterPins();
-            MinimapAssistant.Instance.ColorPins();
+            OnPinsUpdate?.Invoke();
         }
 
         // set as new pin
@@ -134,22 +134,14 @@ namespace WxAxW.PinAssistant.Patches
 
         public static IEnumerable<CodeInstruction> ExcludePinsInMethod(IEnumerable<CodeInstruction> instructions, bool isVirtual = false)
         {
-            /* with emit delegate
-            return FindBeforeAddPin(instructions)
-                .Insert(
-                    new CodeInstruction(Transpilers.EmitDelegate<Func<bool>>(SetIsSpecialPin)),
-                    new CodeInstruction(OpCodes.Pop)    // remove the return value of SetIsSpecialPin
-                )
-                .InstructionEnumeration();
-            */
             // without emit delegate
             return FindBeforeCall(instructions, isVirtual, AccessTools.Method(typeof(Minimap), nameof(Minimap.AddPin)))
                 .Repeat(
                     matcher =>
                     {
                         matcher.InsertAndAdvance(
-                            new CodeInstruction(OpCodes.Ldc_I4_1), // add 1 (true) to stack
-                            new CodeInstruction(OpCodes.Stsfld, AccessTools.Field(typeof(MinimapPatches), nameof(isSpecialPin)))
+                            new CodeInstruction(OpCodes.Ldc_I4_1), // add 1 (true) to stack to set "isSpecialPin" to true
+                            new CodeInstruction(OpCodes.Stsfld, AccessTools.Field(typeof(MinimapPatches), nameof(isSpecialPin))) // add variable isSpecialPin
                         )
                         .Advance(1); // advance to after AddPin Method
                     }
@@ -162,7 +154,7 @@ namespace WxAxW.PinAssistant.Patches
             return new CodeMatcher(instructions)
                 .MatchForward(
                     false,
-                    new CodeMatch(isVirtual ? OpCodes.Callvirt : OpCodes.Call, method)
+                    new CodeMatch(isVirtual ? OpCodes.Callvirt : OpCodes.Call, method) // ex. find the op code call/virt, before the "method" (AddPin, in this case)
                     );
         }
     }

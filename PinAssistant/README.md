@@ -117,6 +117,10 @@ If you want to look for a pin in your map
 - type the pin's name (you can enclose it with double quotes, "pin name", to search for pins with the exact entry.
 - and then search!
 
+Configuring the plugin
+- you must have ConfigurationManager installed
+- just press F1
+
 ## Installation (manual)
 Same as any other mods I assume, extract contents to Bepinex's Plugins folder
 More detail:

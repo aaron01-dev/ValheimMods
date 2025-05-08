@@ -14,6 +14,9 @@ param(
 
     [Parameter(Mandatory)]
     [System.String]$ProjectPath,
+
+    [Parameter(Mandatory)]
+    [System.String]$Version,
     
     [System.String]$DeployPath
 )
@@ -44,11 +47,13 @@ Write-Host "Publishing for $Target from $TargetPath"
 
 if ($Target.Equals("Debug")) {
     if ($DeployPath.Equals("")){
-      $DeployPath = "$ValheimPath\BepInEx\plugins"
-    } elseif ($DeployPath.Contains("scripts")) {
-        $plug = New-Item -Type Directory -Path "$DeployPath" -Force
-    } else {
+        $DeployPath = "$ValheimPath\BepInEx\plugins"
+    }
+    
+    if (!$DeployPath.Contains("scripts")) {
         $plug = New-Item -Type Directory -Path "$DeployPath\$name" -Force
+    } else {
+        $plug = New-Item -Type Directory -Path "$DeployPath" -Force
     }
         
     Write-Host "Copy $TargetAssembly to $plug"
@@ -68,7 +73,7 @@ if($Target.Equals("Release")) {
     Copy-Item -Path "$TargetPath\$TargetAssembly" -Destination "$PackagePath\plugins\$TargetAssembly" -Force
     Copy-Item -Path "$ProjectPath\README.md" -Destination "$PackagePath\README.md" -Force
     Copy-Item -Path "$ProjectPath\CHANGELOG.md" -Destination "$PackagePath\CHANGELOG.md" -Force
-    Compress-Archive -Path "$PackagePath\*" -DestinationPath "$BuildPath\$name.zip" -Force
+    Compress-Archive -Path "$PackagePath\*" -DestinationPath "$BuildPath\$name v$Version.zip" -Force
 }
 
 # Pop Location

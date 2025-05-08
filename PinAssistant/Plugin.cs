@@ -22,9 +22,9 @@ namespace WxAxW.PinAssistant
     [BepInDependency(Jotunn.Main.ModGuid)]
     internal class Plugin : BaseUnityPlugin
     {
-        public const string PluginGUID = "com.WxAxW" + "." + PluginName;
+        public const string PluginGUID = "WxAxW" + "." + PluginName;
         public const string PluginName = "PinAssistant";
-        public const string PluginVersion = "1.7.0";
+        public const string PluginVersion = VersionInfo.Current;
 
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -78,7 +78,7 @@ namespace WxAxW.PinAssistant
 
         private void Update()
         {
-            if (ModConfig.Instance.TrackLookedObjectConfig.Value.IsDown())
+            if (ModConfig.Instance.TrackLookedObjectConfig.Value.IsDown() && !FilterPinsUI.Instance.IsFocused)
             {
                 TrackingAssistant.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value, out string id, out GameObject _);
                 TrackObjectUI.Instance?.SetupTrackObject(id);
@@ -141,11 +141,7 @@ namespace WxAxW.PinAssistant
             }
 
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = true;
-            if (FilterPinsUI.Instance != null)
-            {
-                FilterPinsUI.Instance.enabled = true;
-                FilterPinsUI.Instance.ModEnable();
-            }
+            if (FilterPinsUI.Instance != null) FilterPinsUI.Instance.enabled = true;
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged += OnToggleAutoPinningConfig;
             ModConfig.Instance.MaxZoomMultiplier.SettingChanged += OnMaxZoomMultiplierConfig;
         }
@@ -159,11 +155,7 @@ namespace WxAxW.PinAssistant
             }
 
             if (TrackObjectUI.Instance != null) TrackObjectUI.Instance.enabled = false;
-            if (FilterPinsUI.Instance != null)
-            {
-                FilterPinsUI.Instance.enabled = false;
-                FilterPinsUI.Instance.ModDisable();
-            }
+            if (FilterPinsUI.Instance != null) FilterPinsUI.Instance.enabled = false;
             ModConfig.Instance.IsAutoPinningEnabledConfig.SettingChanged -= OnToggleAutoPinningConfig;
             ModConfig.Instance.MaxZoomMultiplier.SettingChanged -= OnMaxZoomMultiplierConfig;
         }
