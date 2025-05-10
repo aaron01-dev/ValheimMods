@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 using WxAxW.PinAssistant.Configuration;
 using WxAxW.PinAssistant.Core;
 using Debug = WxAxW.PinAssistant.Utils.Debug;
@@ -24,11 +25,6 @@ namespace WxAxW.PinAssistant.Patches
 
         public static Minimap.PinData m_edittingPinInitial = new Minimap.PinData();
         public static Minimap.PinData m_edittingPin;
-
-        private static FieldInfo AccessMinimapField(string field)
-        {
-            return AccessTools.Field(typeof(Minimap), field);
-        }
 
         [HarmonyPostfix]
         [HarmonyPatch(nameof(Minimap.AddPin))]
@@ -69,7 +65,7 @@ namespace WxAxW.PinAssistant.Patches
         [HarmonyPatch(nameof(Minimap.OnMapDblClick))]
         private static IEnumerable<CodeInstruction> TranspilerIsManualPin(IEnumerable<CodeInstruction> instructions)
         {
-            return FindBeforeCall(instructions, isVirtual: false, AccessTools.Method(typeof(Minimap), nameof(Minimap.ShowPinNameInput)))
+            return FindCall(instructions, useEnd: false, isVirtual: false, AccessTools.Method(typeof(Minimap), nameof(Minimap.ShowPinNameInput)))
                 .InsertAndAdvance(
                     new CodeInstruction(OpCodes.Ldc_I4_1), // add 1 (true) to stack
                     new CodeInstruction(OpCodes.Stsfld, AccessTools.Field(typeof(MinimapPatches), nameof(isManualPin)))
@@ -135,7 +131,7 @@ namespace WxAxW.PinAssistant.Patches
         public static IEnumerable<CodeInstruction> ExcludePinsInMethod(IEnumerable<CodeInstruction> instructions, bool isVirtual = false)
         {
             // without emit delegate
-            return FindBeforeCall(instructions, isVirtual, AccessTools.Method(typeof(Minimap), nameof(Minimap.AddPin)))
+            return FindCall(instructions, useEnd: false, isVirtual, AccessTools.Method(typeof(Minimap), nameof(Minimap.AddPin)))
                 .Repeat(
                     matcher =>
                     {
@@ -143,19 +139,36 @@ namespace WxAxW.PinAssistant.Patches
                             new CodeInstruction(OpCodes.Ldc_I4_1), // add 1 (true) to stack to set "isSpecialPin" to true
                             new CodeInstruction(OpCodes.Stsfld, AccessTools.Field(typeof(MinimapPatches), nameof(isSpecialPin))) // add variable isSpecialPin
                         )
-                        .Advance(1); // advance to after AddPin Method
+                        .Advance(1); // advance to after AddPin Method so we don’t re-process it
                     }
                 )
                 .InstructionEnumeration();
         }
 
-        private static CodeMatcher FindBeforeCall(IEnumerable<CodeInstruction> instructions, bool isVirtual, MethodInfo method)
+        // Finds a match where it's a call with a specified method and sets the position to before or after that call
+        private static CodeMatcher FindCall(IEnumerable<CodeInstruction> instructions, bool useEnd, bool isVirtual, MethodInfo method)
+        {
+            return new CodeMatcher(instructions)
+                .MatchForward(
+                    useEnd,
+                    new CodeMatch(isVirtual ? OpCodes.Callvirt : OpCodes.Call, method) // ex. find the op code call/virt, before the "method" (AddPin, in this case)
+                    );
+        }
+
+        /* Test code to change pin color
+        [HarmonyTranspiler]
+        [HarmonyPatch(nameof(Minimap.UpdatePins))] // ignore newly discovered pin
+        private static IEnumerable<CodeInstruction> TranspilerChangePinColor(IEnumerable<CodeInstruction> instructions)
         {
             return new CodeMatcher(instructions)
                 .MatchForward(
                     false,
-                    new CodeMatch(isVirtual ? OpCodes.Callvirt : OpCodes.Call, method) // ex. find the op code call/virt, before the "method" (AddPin, in this case)
-                    );
+                    new CodeMatch(OpCodes.Call, AccessTools.PropertyGetter(typeof(Color), nameof(Color.white)) // find the instruction that gets Color.white
+                    )
+                )
+                .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Color), nameof(Color.red)))) // set the instruction to get Color.Red
+                .InstructionEnumeration();
         }
+        */
     }
 }

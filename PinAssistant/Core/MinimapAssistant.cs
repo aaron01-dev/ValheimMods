@@ -426,6 +426,12 @@ namespace WxAxW.PinAssistant.Core
             initializedPinGroup.Add(pin);
         }
 
+        public Color GetColor(Minimap.PinData pin)
+        {
+            if (!m_instance.m_pins.TryGetValue(m_instance.GetPinKey(pin), out PinGroup pinGroup)) return Color.white;
+            return pinGroup.PinColor;
+        }
+
         private void OnPinAdd(Minimap.PinData pin)
         {
             if (MinimapPatches.isSpecialPin) return;

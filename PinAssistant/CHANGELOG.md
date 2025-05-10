@@ -2,6 +2,30 @@
 
 <details open>
 <summary><b>
+v1.8.1 HUD Compass Compatibility
+</b></summary>
+
+- Update
+	- HUDCompass' markers are now colored based on your Tracked Objects' data. If the pin color is white, it will be colored as the default color of HUDCompass.
+- Changes
+	- Removed ability to focus on Filter UI's text input box using WASD, to avoid accidental focus, leading to player movements getting blocked.
+- <details>
+	<summary>
+	Backend
+	</summary>
+
+	- FilterPinsUI - Added DeactivateInputField to m_inputPinNameReplace method in UI close, for consistency.
+	- TrackObjectUI - Renamed toggleRenamePins member and property to toggleModifyPins.
+	- MinimapAssistant - Added GetColor method.
+	- OtherModPatches - Added HUDCompassPatches.
+	- HUDCompassHandler - Added.
+	- AssetBundle - renamed pin_assistant to pin_assistant_bundle.
+	</details>
+
+</details>
+
+<details open>
+<summary><b>
 v1.8.0 Compatibility Update
 </b></summary>
 

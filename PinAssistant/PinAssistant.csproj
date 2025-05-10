@@ -36,10 +36,17 @@
 
   <!-- Plugin version -->
   <PropertyGroup>
-    <Version>1.8.0</Version>
+    <Version>1.8.1</Version>
   </PropertyGroup>
   
   <ItemGroup>
+    <Reference Include="AutoMapPins" Publicize="true">
+      <HintPath>..\packages\AutoMapPins.dll</HintPath>
+    </Reference>
+    <Reference Include="HUDCompass" Publicize="true">
+      <HintPath>..\packages\HUDCompass.dll</HintPath>
+	  <Aliases>HUDCompassAlias</Aliases>
+    </Reference>
     <Reference Include="Kits_Bitz.Under_The_Radar" Publicize="true">
       <HintPath>..\packages\Kits_Bitz.Under_The_Radar.dll</HintPath>
     </Reference>
@@ -57,8 +64,8 @@
 
   <ItemGroup>
 	<None Include="CHANGELOG.md" />
-	<EmbeddedResource Include="pin_assistant" />
     <None Include="README.md" />
+	<EmbeddedResource Include="pin_assistant_bundle" />
   </ItemGroup>
 
   <ItemGroup>

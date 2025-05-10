@@ -65,8 +65,8 @@ namespace WxAxW.PinAssistant.Components
         public static void Init(AssetBundle assetBundle, bool showOnStartup)
         {
             GameObject prefabFilterUI = assetBundle.LoadAsset<GameObject>("Assets/ObjFilterPinsUI.prefab");
-            GameObject prefabLayouUI = assetBundle.LoadAsset<GameObject>("Assets/TopLeftGroup.prefab");
-            Transform layoutTrans = Instantiate(prefabLayouUI, Minimap.instance.m_largeRoot.transform, false).transform;
+            GameObject prefabLayoutUI = assetBundle.LoadAsset<GameObject>("Assets/TopLeftGroup.prefab");
+            Transform layoutTrans = Instantiate(prefabLayoutUI, Minimap.instance.m_largeRoot.transform, false).transform;
             m_instance = Instantiate(prefabFilterUI, layoutTrans, false).GetComponent<FilterPinsUI>();
             m_instance.m_showOnStartup = showOnStartup;
         }
@@ -95,6 +95,7 @@ namespace WxAxW.PinAssistant.Components
                 m_body.SetActive(!m_body.activeSelf);
                 if (m_body.activeSelf) return;
                 m_inputPinNameFind.DeactivateInputField();
+                m_inputPinNameReplace.DeactivateInputField();
                 SetFocused(false);
             }
         }

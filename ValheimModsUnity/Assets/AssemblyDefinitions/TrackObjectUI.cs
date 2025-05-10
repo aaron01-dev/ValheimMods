@@ -17,7 +17,7 @@ namespace WxAxW.PinAssistant.Components {
         [SerializeField] private TMP_Text m_previewIconText;
 
         [SerializeField] private TMP_InputField m_inputPinName;
-        [SerializeField] private Toggle m_toggleRenamePins;
+        [SerializeField] private Toggle m_toggleModifyPins;
 
         [SerializeField] private TMP_InputField m_inputObjectID;
         [SerializeField] private TMP_InputField m_inputBlackListWord;
@@ -41,5 +41,4 @@ namespace WxAxW.PinAssistant.Components {
         [SerializeField] private Transform m_creditRow;
         [SerializeField] private TMP_Text m_versionNumber;
     }
-
 }

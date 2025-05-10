@@ -24,5 +24,6 @@ namespace WxAxW.PinAssistant.Components {
         [SerializeField] private Button m_buttonReplace;
 
         [SerializeField] private Toggle m_toggleIsRegEx;
+
     }
 }

@@ -51,7 +51,7 @@ namespace WxAxW.PinAssistant
             // https://valheim-modding.github.io/Jotunn/tutorials/overview.html
             ModConfig.Init(Config);
 
-            m_assetBundle = AssetUtils.LoadAssetBundleFromResources("pin_assistant");
+            m_assetBundle = AssetUtils.LoadAssetBundleFromResources("pin_assistant_bundle");
             ModConfig.Instance.IsEnabledConfig.SettingChanged += OnTogglePluginConfig;    // add permanent listener to mod toggle
             SceneManager.sceneLoaded += OnSceneChange;  // subscribe regardless if in main menu or in game or whatever
             SceneManager.sceneLoaded += GUIManager.Instance.InitialTMPLoad;
@@ -86,7 +86,7 @@ namespace WxAxW.PinAssistant
 
             if (ModConfig.Instance.PinLookedObjectConfig.Value.IsDown())
                 TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceSameConfig.Value, ModConfig.Instance.RedundancyDistanceAnyConfig.Value);
-
+            
             if (ModConfig.Instance.ReloadTrackedObjectsConfig.Value.IsDown())
                 //AutoPinning.Instance.TrackLookedObjectToAutoPin(ModConfig.Instance.LookDistanceConfig.Value);
                 TrackingAssistant.Instance.DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);
@@ -130,6 +130,11 @@ namespace WxAxW.PinAssistant
                 Debug.Log("Under_The_Radar exists patching mod for compatibility");
                 harmony.PatchAll(typeof(UnderTheRadarPatches));
             }
+            if (ModExists("HUDCompass"))
+            {
+                Debug.Log("HUDCompass exists patching mod for compatibility");
+                harmony.PatchAll(typeof(HUDCompassPatches));
+            }
         }
 
         private void OnEnable()
@@ -162,7 +167,7 @@ namespace WxAxW.PinAssistant
         private void ModToggle()
         {
             // is the config enabled and you're in game?
-            bool valid = ModConfig.Instance.IsEnabledConfig.Value && (m_isInGame || ModConfig.Instance.IsDebugModeConfig.Value);
+            bool valid = ModConfig.Instance.IsEnabledConfig.Value && m_isInGame;
             enabled = valid;
             UpdateMinimapMinZoom();
             ToggleAutoPinning();

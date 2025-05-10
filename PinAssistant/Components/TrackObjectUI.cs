@@ -39,7 +39,7 @@ namespace WxAxW.PinAssistant.Components
         [SerializeField] private TMP_Text m_previewIconText;
 
         [SerializeField] private TMP_InputField m_inputPinName;
-        [SerializeField] private Toggle m_toggleRenamePins;
+        [SerializeField] private Toggle m_toggleModifyPins;
 
         [SerializeField] private TMP_InputField m_inputObjectID;
         [SerializeField] private TMP_InputField m_inputBlackListWord;
@@ -85,7 +85,7 @@ namespace WxAxW.PinAssistant.Components
         public TMP_Text PreviewIconText { get => m_previewIconText; set => m_previewIconText = value; }
 
         public TMP_InputField InputPinName { get => m_inputPinName; set => m_inputPinName = value; }
-        public Toggle ToggleRenamePins { get => m_toggleRenamePins; set => m_toggleRenamePins = value; }
+        public Toggle ToggleModifyPins { get => m_toggleModifyPins; set => m_toggleModifyPins = value; }
 
         public TMP_InputField InputObjectID { get => m_inputObjectID; set => m_inputObjectID = value; }
         public TMP_InputField InputBlackListWord { get => m_inputBlackListWord; set => m_inputBlackListWord = value; }
@@ -128,7 +128,7 @@ namespace WxAxW.PinAssistant.Components
             m_previewIconChecked.sprite = GUIManager.Instance.GetSprite("mapicon_checked");
             m_previewIconText.text = string.Empty; // reset
             m_previewIconChecked.gameObject.SetActive(false); // reset
-            m_toggleRenamePins.gameObject.SetActive(false);
+            m_toggleModifyPins.gameObject.SetActive(false);
 
             m_inputPinName.onValueChanged.AddListener(OnPinNameChange);
             m_buttonTrackModify.onClick.AddListener(OnButtonTrackedModifyPressed);
@@ -213,7 +213,7 @@ namespace WxAxW.PinAssistant.Components
             {
                 GUIManager.Instance.ApplyTMPToggleStyle(toggle, 16);
             }
-            GUIManager.Instance.ApplyTMPToggleStyle(m_toggleRenamePins, 14);
+            GUIManager.Instance.ApplyTMPToggleStyle(m_toggleModifyPins, 14);
 
             foreach (Button button in new Button[] { m_buttonTrackModify, m_buttonUntrackCancel })
             {
@@ -306,7 +306,7 @@ namespace WxAxW.PinAssistant.Components
         {
             // reset values when changing to a different entry
             m_oldObjectID = string.Empty;
-            m_toggleRenamePins.isOn = false;
+            m_toggleModifyPins.isOn = false;
 
             // check if object id loosely matches a key in dictionary
             string formattedName = string.Empty;
@@ -363,7 +363,7 @@ namespace WxAxW.PinAssistant.Components
                 int newDropdownIndex = m_dropDownTrackedList.IndexOf(trackedObject);
                 m_dropDownTracked.SetValueWithoutNotify(newDropdownIndex); // switch to specified drop down
             }
-            m_toggleRenamePins.gameObject.SetActive(m_editMode);
+            m_toggleModifyPins.gameObject.SetActive(m_editMode);
             int index = !m_editMode ? 0 : 1;
             m_headerText.text = m_modifiableText[index];
 
@@ -404,7 +404,7 @@ namespace WxAxW.PinAssistant.Components
             bool success = TrackingAssistant.Instance.ModifyTrackedObject(
                 trackedObjectToModify,
                 newTrackedObjectValues,
-                m_toggleRenamePins.isOn,
+                m_toggleModifyPins.isOn,
                 out bool conflicting,
                 out TrackedObject foundConflict);
 
