@@ -15,15 +15,19 @@ namespace WxAxW.PinAssistant.Core
         private static TrackingAssistant m_instance = new TrackingAssistant();
         public static TrackingAssistant Instance => m_instance;
 
-        private Dictionary<Vector3, Minimap.PinData> m_pins = new Dictionary<Vector3, Minimap.PinData>();
-        public Dictionary<Vector3, Minimap.PinData> Pins { get => m_pins; set => m_pins = value; }
         private LooseDictionary<TrackedObject> m_trackedObjects = new LooseDictionary<TrackedObject>();
 
         // a lot of things  | tins, rocks, etc      | pickables | totems,post or possible poi   | carrot seeds, etc     | minerals ores, rocks, etc | so you won't detect through walls
         // Default - 0      | Default_small - 20    | item - 12 | piece - 10                    | piece_nonsolid - 16   | static_solid - 15         | terrain - 11
-        public int m_layersToCheck = LayerMask.GetMask("Default", "Default_small", "item", "piece", "piece_nonsolid", "static_solid", "terrain");
-
-        //private Dictionary<TrackedObject, string> m_trackedObjects = new Dictionary<TrackedObject, string>();
+        public int m_layersToCheck = LayerMask.GetMask(
+            "Default",          // 0 - a lot of things
+            "Default_small",    // 20 - tins, rocks, etc
+            "item",             // 12 - pickables
+            "piece",            // 10 - totems, post or possible poi
+            "piece_nonsolid",   // 16 - carrot seeds, etc
+            "static_solid",     // 15 - minerals ores, rocks, etc
+            "terrain"           // 11 - so you won't detect through walls
+            );
 
         /*
         Check ModConfig for different types
@@ -53,24 +57,14 @@ namespace WxAxW.PinAssistant.Core
         public override void OnEnable()
         {
             DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);
-            MinimapPatches.OnPinAdd += OnPinAdd;
-            MinimapPatches.OnPinRemove += OnPinRemove;
-            MinimapPatches.OnPinUpdate += OnPinUpdate;
-            MinimapPatches.OnPinClear += OnPinsClear;
             OnModifiedTrackedObjects += SerializeTrackedObjects;
-            PopulatePins();
         }
 
         public override void OnDisable()
         {
             m_trackedTypes.Clear();
             m_trackedObjects.Clear();
-            MinimapPatches.OnPinAdd -= OnPinAdd;
-            MinimapPatches.OnPinRemove -= OnPinRemove;
-            MinimapPatches.OnPinUpdate -= OnPinUpdate;
-            MinimapPatches.OnPinClear -= OnPinsClear;
             OnModifiedTrackedObjects -= SerializeTrackedObjects;
-            ClearPins();
         }
 
         public override void Destroy()
@@ -78,12 +72,12 @@ namespace WxAxW.PinAssistant.Core
             m_instance = null;
         }
 
-        public void PinLookedObject(float lookDistance, float redundancyDistanceSame, float redundancyDistanceAny)
+        public void PinLookedObject(float lookDistance)
         {
             bool foundObject = LookAt(lookDistance, out string id, out GameObject obj);
             if (!foundObject) return;
             
-            AddObjAsPin(id, obj, redundancyDistanceSame, redundancyDistanceAny);
+            AddObjAsPin(id, obj);
         }
 
         public bool LookAt(float lookDistance, out string id, out GameObject obj)
@@ -99,12 +93,12 @@ namespace WxAxW.PinAssistant.Core
 
             if (hit.transform.gameObject.layer == 11) return false; // skip if terrain
             obj = hit.transform.root.gameObject;
-            id = ModifyLookedObject(obj);
+            id = ProcessLookedObjectName(obj);
             Debug.Log(TextType.OBJECT_INFO, id, LayerMask.LayerToName(obj.layer), obj.layer);
             return true;
         }
 
-        private string ModifyLookedObject(GameObject obj)
+        private string ProcessLookedObjectName(GameObject obj)
         {
             switch (obj.name)
             {
@@ -131,7 +125,7 @@ namespace WxAxW.PinAssistant.Core
             }
         }
 
-        public void AddObjAsPin(string id, GameObject obj, float redundancyDistanceSame, float redundancyDistanceAny)
+        public void AddObjAsPin(string id, GameObject obj)
         {
             if (Minimap.instance is null) return;
             bool exist = m_trackedObjects.TryGetValueLooseLite(id, out TrackedObject trackedObject);
@@ -142,29 +136,8 @@ namespace WxAxW.PinAssistant.Core
                 return;
             }
             Vector3 pos = obj.transform.position;
-            if (CheckPinPositionExist(pos))
-            {
-                Debug.Log(TextType.PIN_ADDING_EXISTS);
-                return;
-            }
-            if (redundancyDistanceAny != 0f && !CheckValidPinPosition(pos, trackedObject.Name, redundancyDistanceAny, allPins: true))
-            {
-                Debug.Log(TextType.PIN_ADDING_EXISTS_NEARBY);
-                return;
-            }
-            if (redundancyDistanceSame != 0f && !CheckValidPinPosition(pos, trackedObject.Name, redundancyDistanceSame, allPins: false))
-            {
-                Debug.Log(TextType.PIN_ADDING_EXISTS_SIMILAR_NEARBY);
-                return;
-            }
 
-            Minimap.instance.AddPin(pos, trackedObject.Icon, trackedObject.Name, trackedObject.Save, trackedObject.IsChecked);
-        }
-
-        // Used for easy checking of existing pins instead of iterating through the list of pins
-        private bool CheckPinPositionExist(Vector3 pinPos)
-        {
-            return m_pins.ContainsKey(pinPos);
+            PinHandler.Instance.AddPin(pos, trackedObject.Name, trackedObject.Icon, trackedObject.Save, trackedObject.IsChecked);
         }
 
         public string FormatObjectName(string name)
@@ -188,65 +161,6 @@ namespace WxAxW.PinAssistant.Core
             name = Regex.Replace(name, @"([a-z])([A-Z])", "$1 $2").Trim();
 
             return name;
-        }
-
-        private bool CheckValidPinPosition(Vector3 pinToAdd, string pinName, float redundancyDistance, bool allPins)
-        {
-            foreach (Minimap.PinData pin in m_pins.Values)
-            {
-                if (!allPins)
-                {
-                    bool diffName = pin.m_name.IndexOf(pinName, StringComparison.OrdinalIgnoreCase) == -1;
-                    if (diffName) continue;
-                }
-                bool valid = CheckValidDistance(pinToAdd, pin.m_pos, redundancyDistance);
-                if (valid) continue;
-                return false;
-            }
-            return true;
-        }
-
-        private bool CheckValidDistance(Vector3 v1, Vector3 v2, float redundancyDistance)
-        {
-            return Get2DDistance(v1, v2) > redundancyDistance;
-        }
-
-        private float Get2DDistance(Vector3 v1, Vector3 v2)
-        {
-            // (x_2 - x_1)
-            return Mathf.Sqrt(Mathf.Pow((v2.x - v1.x), 2f) + Mathf.Pow((v2.z - v1.z), 2f));
-        }
-
-        // only happens when loading to in game or re-enabling mod
-        private void PopulatePins()
-        {
-            if (Minimap.instance == null && !Plugin.Instance.m_isInGame) { Debug.Warning(TextType.MINIMAP_NOT_FOUND); return; }
-            // populate pins with valheim pins
-            List<Minimap.PinData> MapPins = Minimap.instance.m_pins;
-
-            if (MapPins == null || MapPins.Count == 0) { Debug.Log(TextType.WORLD_LOADING); return; }
-            foreach (Minimap.PinData pin in MapPins)
-            {
-                Debug.Log(TextType.PIN_ADDING, "PopulatePins", pin.m_name, pin.m_pos);
-                if (m_pins.ContainsKey(pin.m_pos)) continue;
-                m_pins.Add(pin.m_pos, pin);
-            }
-            Debug.Log(TextType.PINS_POPULATED);
-        }
-
-        private void RemovePin(Minimap.PinData pinData)
-        {
-            Vector3 key = pinData.m_pos;
-            if (!m_pins.TryGetValue(key, out var pin)) return;
-            if (pin != pinData) return;
-            m_pins.Remove(key);
-            Debug.Log(TextType.PIN_REMOVED, pinData.m_name, pinData.m_pos);
-        }
-
-        private void ClearPins()
-        {
-            m_pins.Clear();
-            Debug.Log(TextType.PINS_CLEARED);
         }
 
         public bool AddTrackedObject(TrackedObject trackedObjectToAdd, out bool conflicting)
@@ -374,44 +288,5 @@ namespace WxAxW.PinAssistant.Core
             OnTrackedObjectsReload?.Invoke(m_trackedObjects);
         }
 
-        private void OnPinAdd(Minimap.PinData pinData)
-        {
-            Debug.Log(TextType.PIN_ADDING, "OnPinAdd", pinData.m_name, pinData.m_pos);
-            if (MinimapPatches.isSpecialPin)
-            {
-                Debug.Log("Special Pin found will not include in the list of pins in PinAssistant");
-                return;
-            }
-            if (pinData.m_pos == Vector3.zero)
-            {
-                Debug.Log(TextType.PING_ADDING);
-                return;
-            }
-            if (m_pins.ContainsKey(pinData.m_pos))
-            {
-                Debug.Log(TextType.PIN_ADDING_EXISTS);
-                return;
-            }
-            Debug.Log(TextType.PIN_ADDED);
-            m_pins.Add(pinData.m_pos, pinData);
-        }
-
-        private void OnPinRemove(Minimap.PinData pinData)
-        {
-            RemovePin(pinData);
-        }
-
-        private void OnPinUpdate()
-        {
-            Minimap.PinData oldPin = MinimapPatches.m_edittingPinInitial;
-            Minimap.PinData newPin = MinimapPatches.m_edittingPin;
-            if (oldPin.m_pos == newPin.m_pos) return;
-            m_pins.ChangeKey(oldPin.m_pos, newPin.m_pos);
-        }
-
-        private void OnPinsClear()
-        {
-            m_pins.Clear();
-        }
     }
 }

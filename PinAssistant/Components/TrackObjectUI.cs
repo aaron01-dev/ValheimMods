@@ -120,8 +120,8 @@ namespace WxAxW.PinAssistant.Components
         private void Awake()
 #pragma warning restore IDE0051 // Remove unused private members
         {
-            if (MinimapAssistant.Instance.DictionaryPinTypePopulated) PopulateDropdownPinType();
-            else MinimapAssistant.Instance.OnDictionaryPinTypePopulated += PopulateDropdownPinType;
+            if (PinHandler.Instance.DictionaryPinTypePopulated) PopulateDropdownPinType();
+            else PinHandler.Instance.OnDictionaryPinTypePopulated += PopulateDropdownPinType;
             PopulateDropdownTracked(TrackingAssistant.Instance.TrackedObjects);
             ApplyStyle();
             m_versionNumber.text = $"v{Plugin.PluginVersion}";
@@ -229,13 +229,13 @@ namespace WxAxW.PinAssistant.Components
         private void PopulateDropdownPinType()
         {
             if (Minimap.instance == null) return;
-            foreach (var kvp in MinimapAssistant.Instance.DictionaryPinType.ToList())
+            foreach (var kvp in PinHandler.Instance.DictionaryPinType.ToList())
             {
                 if (kvp.Key == Minimap.PinType.None) continue;
                 string iconName = kvp.Value.Item2;
                 m_dropDownPinIcon.options.Add(new TMP_Dropdown.OptionData(iconName));
             }
-            MinimapAssistant.Instance.OnDictionaryPinTypePopulated -= PopulateDropdownPinType;
+            PinHandler.Instance.OnDictionaryPinTypePopulated -= PopulateDropdownPinType;
         }
 
         private void PopulateDropdownTracked(LooseDictionary<TrackedObject> trackedObjects)
@@ -473,7 +473,7 @@ namespace WxAxW.PinAssistant.Components
             if (value >= (int)Minimap.PinType.None) value++;    // since I base this on dropdown values and I excluded pintype.none, I have to increment value by 1 or -1 (if not from dropdown) to avoid getting the value of the none pin
 
             Minimap.PinType pinType = (Minimap.PinType)(value); // cast value to PinType enum
-            m_previewIcon.sprite = MinimapAssistant.Instance.DictionaryPinType[pinType].Item1;
+            m_previewIcon.sprite = PinHandler.Instance.DictionaryPinType[pinType].Item1;
             m_pinTypeInput = pinType;
         }
 

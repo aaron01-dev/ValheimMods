@@ -13,142 +13,24 @@ namespace WxAxW.PinAssistant.Core
 {
     internal class MinimapAssistant : PluginComponent
     {
-        private class PinGroup
-        {
-            private readonly List<Minimap.PinData> m_pins = new List<Minimap.PinData>();
-            private string pinName = string.Empty;
-            private Minimap.PinType pinType = Minimap.PinType.None;
-            private Color m_pinColor;
-            private Color m_pinColorShared;
-
-            public Color PinColor
-            {
-                get => m_pinColor;
-                set
-                {
-                    m_pinColor = value;
-                    m_pinColorShared = new Color(value.r * 0.7f, value.g * 0.7f, value.b * 0.7f, value.a * 0.8f);
-                }
-            }
-
-            public PinGroup(string pinName, Minimap.PinType pinType, Color pinColor)
-            {
-                SetValues(pinName, pinType, pinColor);
-            }
-
-            public void ApplyColor()
-            {
-                if (m_pinColor == Color.white) return;
-                Color pinFadeColor = m_pinColorShared;
-                pinFadeColor.a *= Minimap.instance.m_sharedMapDataFade;
-                foreach (var pin in m_pins)
-                {
-                    Image currPinIcon = pin.m_iconElement;
-                    if (currPinIcon == null) continue;
-
-                    currPinIcon.color = pin.m_ownerID == 0 ? m_pinColor : pinFadeColor;
-                }
-            }
-
-            public void ResetColor()
-            {
-                m_pinColor = Color.white;
-            }
-
-            public void ModifyPins(string newName, Minimap.PinType newType)
-            {
-                if (!pinName.Equals(newName))
-                {
-                    pinName = newName;
-                    foreach (var pin in m_pins)
-                    {
-                        SetPinName(pin, pinName);
-                    }
-                }
-                if (pinType != newType)
-                {
-                    pinType = newType;
-                    Sprite pinSprite = Minimap.instance.GetSprite(pinType);
-                    foreach (var pin in m_pins)
-                    {
-                        SetPinType(pin, pinType, pinSprite);
-                    }
-                }
-            }
-
-            public void Add(Minimap.PinData pin)
-            {
-                m_pins.Add(pin);
-            }
-
-            public void AddRange(PinGroup pinGroup)
-            {
-                pinGroup.ModifyPins(pinName, pinType);
-                AddFormattedRange(pinGroup);
-            }
-            
-            public void AddFormattedRange(PinGroup pinGroup)
-            {
-                m_pins.AddRange(pinGroup.m_pins);
-                pinGroup.Clear();
-            }
-
-            public bool Remove(Minimap.PinData pin)
-            {
-                if (m_pins.Remove(pin))
-                {
-                    Debug.Log("Removed pin");
-                    return true;
-                }
-                return false;
-            }
-
-            public void Clear()
-            {
-                m_pins.Clear();
-            }
-
-            public void SetValues(string pinName, Minimap.PinType pinType, Color pinColor)
-            {
-                this.pinName = pinName;
-                this.pinType = pinType;
-                PinColor = pinColor;
-            }
-        }
-
         private static MinimapAssistant m_instance = new MinimapAssistant();
 
         private readonly Dictionary<string, PinGroup> m_pins = new Dictionary<string, PinGroup>();
 
-        private IEnumerable<Minimap.PinData> m_listFilteredOutPinsQuery;
-        private List<Minimap.PinData> m_listFilteredOutPins;
-
-        private Dictionary<Minimap.PinType, Tuple<Sprite, string>> m_dictionaryPinType = new Dictionary<Minimap.PinType, Tuple<Sprite, string>>();
-        private bool m_dictionaryPinTypePopulated = false;
-
-        public Action OnDictionaryPinTypePopulated;
-
         public static MinimapAssistant Instance { get => m_instance; private set => m_instance = value; }
-        public Dictionary<Minimap.PinType, Tuple<Sprite, string>> DictionaryPinType { get => m_dictionaryPinType; set => m_dictionaryPinType = value; }
-        public bool DictionaryPinTypePopulated { get => m_dictionaryPinTypePopulated; set => m_dictionaryPinTypePopulated = value; }
 
         public override void Start()
         {
             MinimapPatches.OnPinAdd += OnPinAdd;
             MinimapPatches.OnPinRemove += OnPinRemove;
-            MinimapPatches.OnPinSetTarget += OnPinSetup;
             MinimapPatches.OnPinUpdate += OnPinUpdate;
-            MinimapPatches.OnPinsUpdate += OnPinsUpdate;
-            MinimapManager.OnVanillaMapAvailable += PopulateIcons;
         }
 
         public override void Destroy()
         {
             MinimapPatches.OnPinAdd -= OnPinAdd;
             MinimapPatches.OnPinRemove -= OnPinRemove;
-            MinimapPatches.OnPinSetTarget -= OnPinSetup;
             MinimapPatches.OnPinUpdate -= OnPinUpdate;
-            MinimapPatches.OnPinsUpdate -= OnPinsUpdate;
             m_instance = null;
         }
 
@@ -161,6 +43,7 @@ namespace WxAxW.PinAssistant.Core
             TrackingAssistant.Instance.OnTrackedObjectRemove += OnTrackedObjectRemove;
             TrackingAssistant.Instance.OnTrackedObjectUpdate += OnTrackedObjectUpdate;
             TrackingAssistant.Instance.OnTrackedObjectsReload += OnTrackedObjectsReload;
+            MinimapPatches.OnPinsUpdate += OnMinimapUpdatePins;
         }
 
         public override void OnDisable()
@@ -169,37 +52,7 @@ namespace WxAxW.PinAssistant.Core
             TrackingAssistant.Instance.OnTrackedObjectRemove -= OnTrackedObjectRemove;
             TrackingAssistant.Instance.OnTrackedObjectUpdate -= OnTrackedObjectUpdate;
             TrackingAssistant.Instance.OnTrackedObjectsReload -= OnTrackedObjectsReload;
-            ResetFilteredPins();
-        }
-
-        private void PopulateIcons()
-        {
-            if (Minimap.instance == null) return;
-            Array pinTypes = Enum.GetValues(typeof(Minimap.PinType));
-            m_dictionaryPinType.Add(Minimap.PinType.None, new Tuple<Sprite, string>(null, "None"));
-            foreach (Minimap.PinType pinType in pinTypes)
-            {
-                if (pinType == Minimap.PinType.None) continue;
-                Sprite pinIcon = Minimap.instance.GetSprite(pinType);
-                string iconName = FormatSpriteName(pinIcon.name);
-                m_dictionaryPinType.Add(pinType, new Tuple<Sprite, string>(pinIcon, iconName));
-            }
-            MinimapManager.OnVanillaMapAvailable -= PopulateIcons;
-            m_dictionaryPinTypePopulated = true;
-            OnDictionaryPinTypePopulated?.Invoke();
-        }
-        private string FormatSpriteName(string sprName)
-        {
-            // Remove alphanumeric values ex. "SunkenCrypt4" -> "SunkenCrypt"
-            //sprName = Regex.Replace(name, @"\d", string.Empty);
-
-            // Remove mapicon prefix
-            sprName = Regex.Replace(sprName, "mapicon_", string.Empty);
-            if (sprName.IndexOf("_32") != -1) sprName = Regex.Replace(sprName, "_32", string.Empty); // format for player_32
-            if (sprName.IndexOf("_colored") != -1) sprName = Regex.Replace(sprName, "_colored", string.Empty); // format for boss_colored
-            sprName = Regex.Replace(sprName, @"(^\w)|(\s\w)", m => m.Value.ToUpper());
-
-            return sprName;
+            MinimapPatches.OnPinsUpdate -= OnMinimapUpdatePins; // do not color pins when mod is disabled
         }
 
         public void ColorPins()
@@ -210,107 +63,18 @@ namespace WxAxW.PinAssistant.Core
             }
         }
 
-        public void SearchPins(string pinNameQuery, Minimap.PinType pinTypeQuery, bool whitelist = false, bool isRegex = false)
+        private void PinAdd(Minimap.PinData pin)
         {
-            ResetFilteredPins();
-            if (isRegex)
-            {
-                if (!IsRegexValid(pinNameQuery)) return;
-
-                m_listFilteredOutPinsQuery = TrackingAssistant.Instance.Pins.Values
-                    .Where(pinData =>
-                    {
-                        bool pinNameMatches = Regex.IsMatch(pinData.m_name, pinNameQuery, RegexOptions.IgnoreCase);
-                        bool pinTypeMatches = PinTypeMatches(pinData.m_type, pinTypeQuery);
-                        bool filterOut = pinNameMatches && pinTypeMatches;
-                        return whitelist ? !filterOut : filterOut;
-                    });
-            }
-            else
-            {
-                bool isExact = IsExact(pinNameQuery, out pinNameQuery);
-
-                m_listFilteredOutPinsQuery = TrackingAssistant.Instance.Pins.Values
-                    .Where(pinData =>
-                    {
-                        bool pinNameMatches = CompareSearch(pinData.m_name, pinNameQuery, isExact);
-                        bool pinTypeMatches = PinTypeMatches(pinData.m_type, pinTypeQuery);
-                        bool filterOut = pinNameMatches && pinTypeMatches;
-                        return whitelist ? !filterOut : filterOut;
-                    });
-            }
-            m_listFilteredOutPins = m_listFilteredOutPinsQuery.ToList();
-            FilterOutPins(); // Immediately Filter out pins, as Minimap doesn't update all the time.
+            PinGroup initializedPinGroup = InitializePinGroup(pin, Color.white);
+            initializedPinGroup.Add(pin);
         }
 
-        private bool IsRegexValid(string pinNameQuery)
-        {
-            try
-            {
-                Regex.Match("", pinNameQuery); // check if regex is valid
-                return true;
-            }
-            catch (Exception)
-            {
-                Debug.Warning("Invalid RegEx Pattern!");
-                return false;
-            }
-        }
-
-        private bool IsExact(string pinNameQuery, out string trimmedString)
-        {
-            trimmedString = pinNameQuery;
-            // Define a regular expression pattern to match strings with double quotes at the front and back
-            string pattern = "^\".*\"$";
-
-            // Use Regex.IsMatch to check if the input matches the pattern
-            bool isExact = Regex.IsMatch(pinNameQuery, pattern) || string.IsNullOrEmpty(pinNameQuery);
-            if (isExact) trimmedString = pinNameQuery.Trim('"');
-            return isExact;
-        }
-
-        private bool PinTypeMatches(Minimap.PinType pinType, Minimap.PinType pinTypeQuery)
-        {
-            if (pinTypeQuery == Minimap.PinType.None) return true; // always return true if `None` cause None = every icons
-            return pinType == pinTypeQuery;
-        }
-
-        private bool CompareSearch(string foundPin, string query, bool isExact = false)
-        {
-            if (isExact) return foundPin.Equals(query, StringComparison.OrdinalIgnoreCase);
-            else return foundPin.IndexOf(query, StringComparison.OrdinalIgnoreCase) != -1;
-        }
-
-        public void ResetFilteredPins()
-        {
-            // Skip if no pins are filtered out
-            if (m_listFilteredOutPinsQuery == null) return;
-            FilterOutPins(renderPins: true);
-            m_listFilteredOutPinsQuery = null;
-            m_listFilteredOutPins = null;
-        }
-
-        public void FilterOutPins()
-        {
-            // Skip if no pins are filtered out
-            if (m_listFilteredOutPinsQuery == null) return;
-            FilterOutPins(renderPins: false);
-        }
-
-        public void FilterOutPins(bool renderPins)
-        {
-            foreach (Minimap.PinData unFilteredPin in m_listFilteredOutPins)
-            {
-                unFilteredPin.m_NamePinData?.PinNameGameObject?.SetActive(renderPins);
-                unFilteredPin.m_uiElement?.gameObject.SetActive(renderPins); // icon and checked
-            }
-        }
-
-        private PinGroup InitializeKey(Minimap.PinData newPin, Color pinColor)
+        private PinGroup InitializePinGroup(Minimap.PinData newPin, Color pinColor)
         {
             return InitializeKey(GetPinKey(newPin), newPin.m_name, newPin.m_type, pinColor);
         }
 
+        // Groups may exist naturally or generated by the plugin, if it was made naturally by manual player created pins, simply change the color instead when initializing.
         private PinGroup InitializeKey(string key, string pinName, Minimap.PinType pinType, Color pinColor, bool forceChangeColor = false)
         {
             if (!m_pins.TryGetValue(key, out PinGroup foundPinGroup))
@@ -334,10 +98,11 @@ namespace WxAxW.PinAssistant.Core
             ModifyPin(pinData, pinData.m_name, newName, pinData.m_type, newType);
         }
 
+        // Sometimes pins are immediately modified so we can't rely on pinData's m_name, it could be old or new, hence the extra arguments
         public void ModifyPin(Minimap.PinData pinData, string oldName, string newName, Minimap.PinType oldType, Minimap.PinType newType)
         {
-            Debug.Log($"Modifying {oldName} | {oldType} to {newName} | {newType}");
             if (oldName.Equals(newName) && oldType == newType) return;
+            Debug.Log($"Modifying {oldName} | {oldType} to {newName} | {newType}");
 
             string oldPinKey = GetPinKey(oldName, oldType);
             if (!m_pins.TryGetValue(oldPinKey, out PinGroup foundPinGroup))
@@ -349,39 +114,9 @@ namespace WxAxW.PinAssistant.Core
             {
                 Debug.Error("Pin not found in group, contact dev");
             }
-            if (!oldName.Equals(newName)) SetPinName(pinData, newName);
-            if (!oldType.Equals(newType)) SetPinType(pinData, newType);
+            if (!oldName.Equals(newName)) PinHandler.SetPinName(pinData, newName);
+            if (!oldType.Equals(newType)) PinHandler.SetPinType(pinData, newType);
             PinAdd(pinData);
-        }
-
-        public void ModifyPins(string oldPinsQuery, string newPinsName, Minimap.PinType oldType, Minimap.PinType newType, bool isRegex)
-        {
-            Debug.Log("Renaming all matching pins");
-            bool isExact;
-            if (isRegex && !IsRegexValid(oldPinsQuery))
-            {
-                Debug.Error("Invalid Regex pattern!");
-                return;
-            }
-            else
-            {
-                isExact = IsExact(oldPinsQuery, out oldPinsQuery);
-            }
-
-            foreach (Minimap.PinData pinData in TrackingAssistant.Instance.Pins.Values)
-            {
-                bool pinNameMatches = isRegex ? Regex.IsMatch(pinData.m_name, oldPinsQuery, RegexOptions.IgnoreCase) : CompareSearch(pinData.m_name, oldPinsQuery, isExact);
-                if (!pinNameMatches) continue;
-
-                bool pinTypeMatches = PinTypeMatches(pinData.m_type, oldType);
-                if (!pinTypeMatches) continue;
-                
-                Minimap.PinType actualNewType = newType == Minimap.PinType.None ? pinData.m_type : newType;
-                
-                ModifyPin(pinData, newPinsName, actualNewType);
-            }
-
-            UpdateFilteredOutPins();
         }
 
         private void TransferPinGroup(string oldPinsName, string newPinsName, Minimap.PinType oldType, Minimap.PinType newType)
@@ -411,32 +146,18 @@ namespace WxAxW.PinAssistant.Core
             string formattedPinKey = pinName.ToLower() + "_" + pinType.ToString();
             return formattedPinKey;
         }
-
-        public void UpdateFilteredOutPins()
-        {
-            // Skip if no pins are filtered out
-            if (m_listFilteredOutPinsQuery == null) return;
-            m_listFilteredOutPins = m_listFilteredOutPinsQuery.ToList();
-            FilterOutPins(); // Immediately Filter out pins, as Minimap doesn't update all the time after update v0.220.
-        }
-
-        private void PinAdd(Minimap.PinData pin)
-        {
-            PinGroup initializedPinGroup = InitializeKey(pin, Color.white);
-            initializedPinGroup.Add(pin);
-        }
-
+        
         public Color GetColor(Minimap.PinData pin)
         {
             if (!m_instance.m_pins.TryGetValue(m_instance.GetPinKey(pin), out PinGroup pinGroup)) return Color.white;
             return pinGroup.PinColor;
         }
 
+
         private void OnPinAdd(Minimap.PinData pin)
         {
             if (MinimapPatches.isSpecialPin) return;
             PinAdd(pin);
-            if (!MinimapPatches.isManualPin) UpdateFilteredOutPins();
         }
 
         private void OnPinRemove(Minimap.PinData pin)
@@ -445,29 +166,23 @@ namespace WxAxW.PinAssistant.Core
             oldPinGroup.Remove(pin);
         }
 
-        private void OnPinSetup(Minimap.PinData pin)
-        {
-            if (MinimapPatches.m_edittingPin == null) return;
-            if (pin == MinimapPatches.m_edittingPin) return; // Event is triggered when player has entered the edit menu.
-            // Event is triggered when player has left the edit menu.
-            UpdateFilteredOutPins();
-        }
-
         private void OnPinUpdate()
         {
-            if (MinimapPatches.m_edittingPin == null) return;
-            string oldName = MinimapPatches.m_edittingPinInitial.m_name;
-            string newName = MinimapPatches.m_edittingPin.m_name;
-            Minimap.PinType oldType = MinimapPatches.m_edittingPinInitial.m_type;
-            Minimap.PinType newType = MinimapPatches.m_edittingPin.m_type;
+            Minimap.PinData oldPin = MinimapPatches.m_edittingPinInitial;
+            Minimap.PinData newPin = MinimapPatches.m_edittingPin;
+            if (newPin == null) return;
+            string oldName = oldPin.m_name;
+            string newName = newPin.m_name;
+            Minimap.PinType oldType = oldPin.m_type;
+            Minimap.PinType newType = newPin.m_type;
             Debug.Log($"Updating pin from, {oldName} | {oldType}, to {newName} | {newType}");
 
-            ModifyPin(MinimapPatches.m_edittingPin, oldName, newName, oldType, newType);
+            ModifyPin(newPin, oldName, newName, oldType, newType);
         }
 
-        private void OnPinsUpdate()
+        // Event that runs on every minimap updates, as the color reverts everytime Minimap.UpdatePins execute.
+        private void OnMinimapUpdatePins()
         {
-            FilterOutPins();
             ColorPins();
         }
 
@@ -527,21 +242,6 @@ namespace WxAxW.PinAssistant.Core
                 OnTrackedObjectAdd(item.Value);
             }
             Debug.Log("Minimap Pin color reloaded");
-        }
-
-        public static void SetPinName(Minimap.PinData pin, string newName)
-        {
-            pin.m_name = newName;
-            pin.m_NamePinData?.PinNameText?.SetText(newName);
-        }
-
-        public static void SetPinType(Minimap.PinData pin, Minimap.PinType newPinType, Sprite pinSprite = null)
-        {
-            pin.m_type = newPinType;
-            if (pinSprite == null) pinSprite = Minimap.instance.GetSprite(newPinType);
-            pin.m_icon = pinSprite;
-            if (pin.m_iconElement == null) return; // skip changing visual if it's out of visual range
-            pin.m_iconElement.sprite = pin.m_icon;
         }
     }
 }
