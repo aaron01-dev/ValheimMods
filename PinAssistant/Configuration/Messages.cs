@@ -59,7 +59,7 @@ namespace WxAxW.PinAssistant.Configuration
         // Info
         [Text("{0}:\tLayerMask: {1} | {2}")] OBJECT_INFO,
 
-        // Pins
+        // MonitoredPins
         [Text("Minimap not found")] MINIMAP_NOT_FOUND,
 
         [Text("No pins found, I assume you're loading your world")] WORLD_LOADING,
@@ -74,7 +74,7 @@ namespace WxAxW.PinAssistant.Configuration
 
         [Text("Cleared mod's pin storage")] PINS_CLEARED,
 
-        [Text("Pins Populated")] PINS_POPULATED,
+        [Text("MonitoredPins Populated")] PINS_POPULATED,
 
         // Object Tracking
         [Text("Empty tracked objects, initializing instead")] TRACKED_OBJECTS_INITIALIZED,

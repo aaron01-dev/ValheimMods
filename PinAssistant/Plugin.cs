@@ -63,8 +63,10 @@ namespace WxAxW.PinAssistant
 
             pluginComponents = new List<PluginComponent>()
             {
+                PinHandler.Instance,
                 TrackingAssistant.Instance,
-                MinimapAssistant.Instance
+                MinimapAssistant.Instance,
+                FilterPinsAssistant.Instance
             };
 
             foreach (PluginComponent comp in pluginComponents)
@@ -85,7 +87,7 @@ namespace WxAxW.PinAssistant
             }
 
             if (ModConfig.Instance.PinLookedObjectConfig.Value.IsDown())
-                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceSameConfig.Value, ModConfig.Instance.RedundancyDistanceAnyConfig.Value);
+                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value);
             
             if (ModConfig.Instance.ReloadTrackedObjectsConfig.Value.IsDown())
                 //AutoPinning.Instance.TrackLookedObjectToAutoPin(ModConfig.Instance.LookDistanceConfig.Value);
@@ -112,7 +114,7 @@ namespace WxAxW.PinAssistant
         {
             while (true)
             {
-                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value, ModConfig.Instance.RedundancyDistanceSameConfig.Value, ModConfig.Instance.RedundancyDistanceAnyConfig.Value);
+                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value);
                 yield return new WaitForSeconds(ModConfig.Instance.TickRateConfig.Value);
             }
         }

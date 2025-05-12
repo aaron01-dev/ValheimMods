@@ -73,8 +73,8 @@ namespace WxAxW.PinAssistant.Components
 
         private void Awake()
         {
-            if (MinimapAssistant.Instance.DictionaryPinTypePopulated) PopulateDropdownPinType();
-            else MinimapAssistant.Instance.OnDictionaryPinTypePopulated += PopulateDropdownPinType;
+            if (PinHandler.Instance.DictionaryPinTypePopulated) PopulateDropdownPinType();
+            else PinHandler.Instance.OnDictionaryPinTypePopulated += PopulateDropdownPinType;
             ApplyStyle();
             m_body.SetActive(m_showOnStartup);
         }
@@ -172,7 +172,7 @@ namespace WxAxW.PinAssistant.Components
             if (Minimap.instance == null) return;
             m_dropdownPinIconFind.AddOptionWithList("All", m_listFindPins, Minimap.PinType.None);
             m_dropdownPinIconReplace.AddOptionWithList("Unchanged", m_listReplacePins, Minimap.PinType.None);
-            foreach (var kvp in MinimapAssistant.Instance.DictionaryPinType.ToList())
+            foreach (var kvp in PinHandler.Instance.DictionaryPinType.ToList())
             {
                 if (kvp.Key == Minimap.PinType.None) continue;
                 Minimap.PinType pinType = kvp.Key;
@@ -182,7 +182,7 @@ namespace WxAxW.PinAssistant.Components
             }
             m_findPinType = m_listFindPins[0];
             m_replacePinType = m_listReplacePins[0];
-            MinimapAssistant.Instance.OnDictionaryPinTypePopulated -= PopulateDropdownPinType;
+            PinHandler.Instance.OnDictionaryPinTypePopulated -= PopulateDropdownPinType;
         }
 
         private void OnToggleSearchWindowStartup(object sender, EventArgs eventArgs)
@@ -224,16 +224,16 @@ namespace WxAxW.PinAssistant.Components
 
         private void OnButtonFind()
         {
-            MinimapAssistant.Instance.SearchPins(m_inputPinNameFind.text, m_findPinType, m_toggleIsWhiteList.isOn, m_toggleIsRegEx.isOn);
+            FilterPinsAssistant.Instance.SearchPins(m_inputPinNameFind.text, m_findPinType, m_toggleIsWhiteList.isOn, m_toggleIsRegEx.isOn);
         }
 
         private void OnButtonReset()
         {
-            MinimapAssistant.Instance.ResetFilteredPins();
+            FilterPinsAssistant.Instance.ResetFilteredPins();
         }
         private void OnButtonReplace()
         {
-            MinimapAssistant.Instance.ModifyPins(m_inputPinNameFind.text, m_inputPinNameReplace.text, m_findPinType, m_replacePinType, m_toggleIsRegEx.isOn);
+            FilterPinsAssistant.Instance.ReplacePins(m_inputPinNameFind.text, m_inputPinNameReplace.text, m_findPinType, m_replacePinType, m_toggleIsRegEx.isOn);
         }
 
         private void SetFocused(bool focused)
