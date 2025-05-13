@@ -18,6 +18,7 @@ namespace WxAxW.PinAssistant.Patches
     internal class PinnaclePatches
     {
         // pin is either being created and editted or being selected and editted
+        // Pinnacle overrides adding pins so the PostFixShowPinNameInput patch in MinimapPatches is completely/skipped
         [HarmonyPostfix]
         [HarmonyPatch(nameof(PinEditPanel.SetTargetPin))]
         private static void PostfixSetTargetPin(ref Minimap.PinData pin) // get the return value of AddPin to add to plugin's pins dictionary

@@ -17,14 +17,14 @@ namespace WxAxW.PinAssistant.Patches
         public static event Action<Minimap.PinData> OnPinRemove;
         public static event Action OnPinClear;
         public static event Action<Minimap.PinData> OnPinSetTarget;
-        public static event Action OnPinUpdate;
-        public static event Action OnPinsUpdate;
+        public static event Action<Minimap.PinData, Minimap.PinData> OnPinUpdate; // when user changed the pin name/type once more. Doesn't apply to Vanilla
+        public static event Action OnMinimapUpdatePins;
 
         public static bool isSpecialPin = false;
         public static bool isManualPin = false;
 
         public static Minimap.PinData m_edittingPinInitial = new Minimap.PinData();
-        public static Minimap.PinData m_edittingPin;
+        public static Minimap.PinData m_edittingPinCurrent;
 
         [HarmonyPostfix]
         [HarmonyPatch(nameof(Minimap.AddPin))]
@@ -43,7 +43,7 @@ namespace WxAxW.PinAssistant.Patches
             OnPinRemove?.Invoke(pin);
         }
 
-        // patch to clear the plugin's m_pins as well
+        // patch to clear the plugin's m_monitoredPins as well
         [HarmonyPrefix]
         [HarmonyPatch(nameof(Minimap.ClearPins))]
         private static void PrefixClearPins()
@@ -56,7 +56,7 @@ namespace WxAxW.PinAssistant.Patches
         [HarmonyPatch(nameof(Minimap.UpdatePins))]
         private static void PostFixUpdatePins()
         {
-            OnPinsUpdate?.Invoke();
+            OnMinimapUpdatePins?.Invoke();
         }
 
         // set as new pin
@@ -79,7 +79,7 @@ namespace WxAxW.PinAssistant.Patches
         {
             if (!__runOriginal) return;
 
-            Debug.Log("New manual pin added");
+            Debug.Log("New manual pin added and editting");
             SetTargetPin(__instance.m_namePin);
         }
 
@@ -89,21 +89,21 @@ namespace WxAxW.PinAssistant.Patches
         {
             if (__instance.m_namePin == null) return;
             Debug.Log("New manual pin editted");
-            OnPinUpdate?.Invoke();
+            OnPinUpdate?.Invoke(m_edittingPinInitial, m_edittingPinCurrent);
             SetTargetPin(null);
         }
 
         public static void SetTargetPin(Minimap.PinData pin)
         {
             OnPinSetTarget?.Invoke(pin);
-            m_edittingPin = pin;
-            CopyValues(m_edittingPin);
+            m_edittingPinCurrent = pin;
+            CopyValues(m_edittingPinCurrent);
         }
 
         public static void UpdatePin()
         {
-            OnPinUpdate?.Invoke();
-            CopyValues(m_edittingPin);
+            OnPinUpdate?.Invoke(m_edittingPinInitial, m_edittingPinCurrent);
+            CopyValues(m_edittingPinCurrent);
         }
 
         private static void CopyValues(Minimap.PinData pin)
