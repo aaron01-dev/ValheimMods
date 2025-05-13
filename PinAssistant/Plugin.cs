@@ -65,7 +65,7 @@ namespace WxAxW.PinAssistant
             {
                 PinHandler.Instance,
                 TrackingAssistant.Instance,
-                MinimapAssistant.Instance,
+                PinGroupHandler.Instance,
                 FilterPinsAssistant.Instance
             };
 
