@@ -159,7 +159,7 @@ namespace WxAxW.PinAssistant.Core
 
                 Minimap.PinType actualNewType = newType == Minimap.PinType.None ? pinData.m_type : newType;
 
-                MinimapAssistant.Instance.ModifyPin(pinData, newPinsName, actualNewType);
+                PinGroupHandler.Instance.ModifyPin(pinData, newPinsName, actualNewType);
             }
 
             UpdateFilteredOutPins();

@@ -15,7 +15,7 @@ namespace WxAxW.PinAssistant.Integration
     {
         public static Color GetPinColor(Minimap.PinData pin)
         {
-            Color pinColor = MinimapAssistant.Instance.GetColor(pin);
+            Color pinColor = PinGroupHandler.Instance.GetColor(pin);
             if (pinColor == Color.white) return Cfg.colorPins.Value; // fallback to HUDCompass' config
             else return pinColor; // return the color from PinAssistant
         }
