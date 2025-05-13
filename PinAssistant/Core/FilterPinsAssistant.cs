@@ -26,14 +26,14 @@ namespace WxAxW.PinAssistant.Core
         {
             MinimapPatches.OnPinAdd += OnPinAdd;
             MinimapPatches.OnPinSetTarget += OnPinSetup;
-            MinimapPatches.OnPinsUpdate += OnMinimapUpdatePins;
+            MinimapPatches.OnMinimapUpdatePins += OnMinimapUpdatePins;
         }
 
         public override void OnDisable()
         {
             MinimapPatches.OnPinAdd -= OnPinAdd;
             MinimapPatches.OnPinSetTarget -= OnPinSetup;
-            MinimapPatches.OnPinsUpdate -= OnMinimapUpdatePins; // do not color pins when mod is disabled
+            MinimapPatches.OnMinimapUpdatePins -= OnMinimapUpdatePins; // do not color pins when mod is disabled
             ResetFilteredPins();
         }
 
@@ -183,8 +183,8 @@ namespace WxAxW.PinAssistant.Core
 
         private void OnPinSetup(Minimap.PinData pin)
         {
-            if (MinimapPatches.m_edittingPin == null) return;
-            if (pin == MinimapPatches.m_edittingPin) return; // Event is triggered when player is still editting.
+            if (MinimapPatches.m_edittingPinCurrent == null) return;
+            if (pin == MinimapPatches.m_edittingPinCurrent) return; // Event is triggered when player is still editting.
             // Event is triggered when player has left the edit menu.
             UpdateFilteredOutPins();
         }

@@ -220,10 +220,8 @@ namespace WxAxW.PinAssistant.Core
             RemovePin(pinData);
         }
 
-        private void OnPinUpdate()
+        private void OnPinUpdate(Minimap.PinData oldPin, Minimap.PinData newPin)
         {
-            Minimap.PinData oldPin = MinimapPatches.m_edittingPinInitial;
-            Minimap.PinData newPin = MinimapPatches.m_edittingPin;
             if (oldPin.m_pos == newPin.m_pos) return;
             m_monitoredPins.ChangeKey(oldPin.m_pos, newPin.m_pos);
         }

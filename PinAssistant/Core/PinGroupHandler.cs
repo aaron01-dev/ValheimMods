@@ -43,7 +43,7 @@ namespace WxAxW.PinAssistant.Core
             TrackingAssistant.Instance.OnTrackedObjectRemove += OnTrackedObjectRemove;
             TrackingAssistant.Instance.OnTrackedObjectUpdate += OnTrackedObjectUpdate;
             TrackingAssistant.Instance.OnTrackedObjectsReload += OnTrackedObjectsReload;
-            MinimapPatches.OnPinsUpdate += OnPinsUpdate;
+            MinimapPatches.OnMinimapUpdatePins += OnMinimapUpdatePins;
         }
 
         public override void OnDisable()
@@ -52,7 +52,7 @@ namespace WxAxW.PinAssistant.Core
             TrackingAssistant.Instance.OnTrackedObjectRemove -= OnTrackedObjectRemove;
             TrackingAssistant.Instance.OnTrackedObjectUpdate -= OnTrackedObjectUpdate;
             TrackingAssistant.Instance.OnTrackedObjectsReload -= OnTrackedObjectsReload;
-            MinimapPatches.OnPinsUpdate -= OnPinsUpdate; // do not color pins when mod is disabled
+            MinimapPatches.OnMinimapUpdatePins -= OnMinimapUpdatePins; // do not color pins when mod is disabled
         }
 
         public void ColorPins()
@@ -166,10 +166,8 @@ namespace WxAxW.PinAssistant.Core
             oldPinGroup.Remove(pin);
         }
 
-        private void OnPinUpdate()
+        private void OnPinUpdate(Minimap.PinData oldPin, Minimap.PinData newPin)
         {
-            Minimap.PinData oldPin = MinimapPatches.m_edittingPinInitial;
-            Minimap.PinData newPin = MinimapPatches.m_edittingPin;
             if (newPin == null) return;
             string oldName = oldPin.m_name;
             string newName = newPin.m_name;
@@ -181,7 +179,7 @@ namespace WxAxW.PinAssistant.Core
         }
 
         // Event that runs on every minimap updates, as the color reverts everytime Minimap.UpdatePins execute.
-        private void OnPinsUpdate()
+        private void OnMinimapUpdatePins()
         {
             ColorPins();
         }
