@@ -72,7 +72,7 @@ namespace WxAxW.PinAssistant.Patches
         [HarmonyPatch(nameof(Minimap.ShowPinNameInput))]
         private static void PostFixShowPinNameInput(Minimap __instance, ref bool __runOriginal)
         {
-            if (!__runOriginal) return;
+            if (!__runOriginal) return; // cases where other mods overrides this function
 
             SetTargetPin(__instance.m_namePin);
         }
@@ -83,15 +83,30 @@ namespace WxAxW.PinAssistant.Patches
         {
             if (__instance.m_namePin == null) return;
             Debug.Log("New manual pin editted");
-            OnPinUpdate?.Invoke(m_edittingPinInitial, m_edittingPinCurrent);
+            OnPinUpdate?.Invoke(m_edittingPinInitial, m_edittingPinCurrent); // initial is always 'icon x' and pin name is ''
             SetTargetPin(null);
         }
 
-        public static void SetTargetPin(Minimap.PinData pin)
+        public static void SetTargetPin(Minimap.PinData pinToSet)
         {
-            OnPinSetTarget?.Invoke(pin);
-            m_edittingPinCurrent = pin;
+            // skip if they targetting the same pin or both null.
+            if (pinToSet == m_edittingPinCurrent)
+            {
+                Debug.Log($"Editting same pin or no pin currently editting.");
+                return;
+            }
+            
+            if (pinToSet == null) // ending edit as the next target pin is null
+            {
+                Debug.Log($"End editting pin, {m_edittingPinCurrent.m_name}");
+            }
+            else // could be editting same(only possible with Pinnacle) new or editting
+            {
+                Debug.Log($"Start editting pin, {pinToSet.m_name}");
+            }
+            m_edittingPinCurrent = pinToSet;
             CopyValues(m_edittingPinCurrent);
+            OnPinSetTarget?.Invoke(m_edittingPinCurrent);
         }
 
         public static void UpdatePin()
