@@ -60,17 +60,12 @@ namespace WxAxW.PinAssistant.Patches
         }
 
         // set as new pin
-        [HarmonyTranspiler]
-        [HarmonyPatch(nameof(Minimap.UpdateMap))]
-        [HarmonyPatch(nameof(Minimap.OnMapDblClick))]
-        private static IEnumerable<CodeInstruction> TranspilerIsManualPin(IEnumerable<CodeInstruction> instructions)
+        [HarmonyPrefix]
+        [HarmonyPatch(nameof(Minimap.ShowPinNameInput))]
+        private static void ShowPinNameInputPrefix()
         {
-            return FindCall(instructions, useEnd: false, isVirtual: false, AccessTools.Method(typeof(Minimap), nameof(Minimap.ShowPinNameInput)))
-                .InsertAndAdvance(
-                    new CodeInstruction(OpCodes.Ldc_I4_1), // add 1 (true) to stack
-                    new CodeInstruction(OpCodes.Stsfld, AccessTools.Field(typeof(MinimapPatches), nameof(isManualPin)))
-                )
-                .InstructionEnumeration();
+            isManualPin = true;
+            Debug.Log("Manual pin added");
         }
 
         [HarmonyPostfix]
@@ -79,7 +74,6 @@ namespace WxAxW.PinAssistant.Patches
         {
             if (!__runOriginal) return;
 
-            Debug.Log("New manual pin added and editting");
             SetTargetPin(__instance.m_namePin);
         }
 
