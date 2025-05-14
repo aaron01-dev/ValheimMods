@@ -183,10 +183,8 @@ namespace WxAxW.PinAssistant.Core
 
         private void OnPinSetup(Minimap.PinData pin)
         {
-            if (MinimapPatches.m_edittingPinCurrent == null) return;
-            if (pin == MinimapPatches.m_edittingPinCurrent) return; // Event is triggered when player is still editting.
             // Event is triggered when player has left the edit menu.
-            UpdateFilteredOutPins();
+            if (pin == null) UpdateFilteredOutPins();
         }
 
         private void OnMinimapUpdatePins()
