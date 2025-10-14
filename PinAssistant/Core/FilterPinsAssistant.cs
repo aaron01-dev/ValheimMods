@@ -111,21 +111,16 @@ namespace WxAxW.PinAssistant.Core
         public void ResetFilteredPins()
         {
             // Skip if no pins are filtered out
-            if (m_listFilteredOutPinsQuery == null) return;
+            if (m_listFilteredOutPins == null) return;
             FilterOutPins(renderPins: true);
             m_listFilteredOutPinsQuery = null;
             m_listFilteredOutPins = null;
         }
 
-        public void FilterOutPins()
+        public void FilterOutPins(bool renderPins = false)
         {
             // Skip if no pins are filtered out
-            if (m_listFilteredOutPinsQuery == null) return;
-            FilterOutPins(renderPins: false);
-        }
-
-        public void FilterOutPins(bool renderPins)
-        {
+            if (m_listFilteredOutPins == null) return;
             foreach (Minimap.PinData unFilteredPin in m_listFilteredOutPins)
             {
                 unFilteredPin.m_NamePinData?.PinNameGameObject?.SetActive(renderPins);
