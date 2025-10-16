@@ -15,7 +15,7 @@ namespace WxAxW.PinAssistant.Core
         private string m_pinName = string.Empty;
         private Minimap.PinType m_pinType = Minimap.PinType.None;
         private Color m_pinColor;
-        private Color m_pinColorShared;
+        private Color m_pinColorShared; // Just to store the shared color variant to avoid constant maths every frame
 
         public Color PinColor
         {
@@ -34,7 +34,7 @@ namespace WxAxW.PinAssistant.Core
 
         public void ApplyColor()
         {
-            if (m_pinColor == Color.white) return;
+            if (PinColor == Color.white) return;
             Color pinFadeColor = m_pinColorShared;
             pinFadeColor.a *= Minimap.instance.m_sharedMapDataFade;
             foreach (var pin in m_pins)
@@ -42,13 +42,13 @@ namespace WxAxW.PinAssistant.Core
                 Image currPinIcon = pin.m_iconElement;
                 if (currPinIcon == null) continue;
 
-                currPinIcon.color = pin.m_ownerID == 0 ? m_pinColor : pinFadeColor;
+                currPinIcon.color = pin.m_ownerID == 0 ? PinColor : pinFadeColor;
             }
         }
 
         public void ResetColor()
         {
-            m_pinColor = Color.white;
+            PinColor = Color.white;
         }
 
         public void ModifyPins(string newName, Minimap.PinType newType)
