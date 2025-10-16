@@ -51,7 +51,7 @@ namespace WxAxW.PinAssistant.Core
             PinColor = Color.white;
         }
 
-        public void ModifyPins(string newName, Minimap.PinType newType)
+        public void ModifyPinGroupPins(string newName, Minimap.PinType newType)
         {
             if (!m_pinName.Equals(newName))
             {
@@ -79,7 +79,7 @@ namespace WxAxW.PinAssistant.Core
 
         public void AddRange(PinGroup pinGroup)
         {
-            pinGroup.ModifyPins(m_pinName, m_pinType);
+            pinGroup.ModifyPinGroupPins(m_pinName, m_pinType);
             AddFormattedRange(pinGroup);
         }
 
