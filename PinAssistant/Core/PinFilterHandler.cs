@@ -9,14 +9,14 @@ using WxAxW.PinAssistant.Utils;
 
 namespace WxAxW.PinAssistant.Core
 {
-    internal class FilterPinsAssistant : PluginComponent
+    internal class PinFilterHandler : PluginComponent
     {
-        private static FilterPinsAssistant m_instance = new FilterPinsAssistant();
+        private static PinFilterHandler m_instance = new PinFilterHandler();
 
         private IEnumerable<Minimap.PinData> m_listFilteredOutPinsQuery;
         private List<Minimap.PinData> m_listFilteredOutPins;
 
-        internal static FilterPinsAssistant Instance { get => m_instance; set => m_instance = value; }
+        internal static PinFilterHandler Instance { get => m_instance; set => m_instance = value; }
 
         public override void Start() {}
 

@@ -66,7 +66,7 @@ namespace WxAxW.PinAssistant
                 PinHandler.Instance,
                 TrackingAssistant.Instance,
                 PinGroupHandler.Instance,
-                FilterPinsAssistant.Instance
+                PinFilterHandler.Instance
             };
 
             foreach (PluginComponent comp in pluginComponents)

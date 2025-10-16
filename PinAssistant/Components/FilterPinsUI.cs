@@ -224,16 +224,16 @@ namespace WxAxW.PinAssistant.Components
 
         private void OnButtonFind()
         {
-            FilterPinsAssistant.Instance.SearchPins(m_inputPinNameFind.text, m_findPinType, m_toggleIsWhiteList.isOn, m_toggleIsRegEx.isOn);
+            PinFilterHandler.Instance.SearchPins(m_inputPinNameFind.text, m_findPinType, m_toggleIsWhiteList.isOn, m_toggleIsRegEx.isOn);
         }
 
         private void OnButtonReset()
         {
-            FilterPinsAssistant.Instance.ResetFilteredPins();
+            PinFilterHandler.Instance.ResetFilteredPins();
         }
         private void OnButtonReplace()
         {
-            FilterPinsAssistant.Instance.ReplacePins(m_inputPinNameFind.text, m_inputPinNameReplace.text, m_findPinType, m_replacePinType, m_toggleIsRegEx.isOn);
+            PinFilterHandler.Instance.ReplacePins(m_inputPinNameFind.text, m_inputPinNameReplace.text, m_findPinType, m_replacePinType, m_toggleIsRegEx.isOn);
         }
 
         private void SetFocused(bool focused)
