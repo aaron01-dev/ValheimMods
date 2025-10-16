@@ -70,6 +70,20 @@ namespace WxAxW.PinAssistant.Core
             pin.m_iconElement.sprite = pin.m_icon;
         }
 
+        public static void SetPinData(Minimap.PinData pin, string newName, Minimap.PinType newPinType, Sprite pinSprite = null)
+        {
+            SetPinName(pin, newName);
+            SetPinType(pin, newPinType, pinSprite);
+        }
+
+        public static void SetPinsData(List<Minimap.PinData> pins, string newName, Minimap.PinType newPinType)
+        {
+            foreach (Minimap.PinData pin in pins)
+            {
+                SetPinData(pin, newName, newPinType);
+            }
+        }
+
         // only happens when loading to in game or re-enabling mod
         private void PopulatePins()
         {
