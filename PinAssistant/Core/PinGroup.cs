@@ -40,6 +40,15 @@ namespace WxAxW.PinAssistant.Core
             Debug.Log($"PinGroup, {m_pinName}, {m_pinType}, Destroyed!");
         }
 
+        public void TransferTo(PinGroup newPinGroup)
+        {
+            // No 2 pin group can have the same pins, so we need to remove all pins from the other group and add them to the current group
+            List<Minimap.PinData> retrievedPins = RemoveAll();
+            newPinGroup.AddRange(retrievedPins);
+            Clear();
+            Debug.Log($"Transferred, {m_pinName} | {m_pinType} to {newPinGroup.m_pinName} | {newPinGroup.m_pinType}");
+        }
+
         public void ApplyColor()
         {
             if (PinColor == Color.white) return;
@@ -104,6 +113,13 @@ namespace WxAxW.PinAssistant.Core
                 return true;
             }
             return false;
+        }
+
+        public List<Minimap.PinData> RemoveAll()
+        {
+            List<Minimap.PinData> removedPins = new List<Minimap.PinData>(m_pins);
+            Clear();
+            return removedPins;
         }
 
         public void Clear()
