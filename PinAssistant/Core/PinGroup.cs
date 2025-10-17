@@ -72,10 +72,9 @@ namespace WxAxW.PinAssistant.Core
             if (m_pinType != newType)
             {
                 m_pinType = newType;
-                Sprite pinSprite = Minimap.instance.GetSprite(m_pinType);
                 foreach (var pin in m_pins)
                 {
-                    PinHandler.SetPinType(pin, m_pinType, pinSprite);
+                    PinHandler.SetPinType(pin, m_pinType);
                 }
             }
         }
