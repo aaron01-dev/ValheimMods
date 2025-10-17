@@ -84,10 +84,10 @@ namespace WxAxW.PinAssistant.Core
             m_pins.Add(pin);
         }
 
-        public void AddRange(PinGroup pinGroup)
+        public void AddRange(List<Minimap.PinData> pins)
         {
-            pinGroup.ModifyPinGroupPins(m_pinName, m_pinType);
-            AddFormattedRange(pinGroup);
+            PinHandler.SetPinsData(pins, m_pinName, m_pinType);
+            m_pins.AddRange(pins);
         }
 
         public void AddFormattedRange(PinGroup pinGroup)
