@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant.Core
 {
@@ -32,6 +33,11 @@ namespace WxAxW.PinAssistant.Core
         public PinGroup(string pinName, Minimap.PinType pinType, Color pinColor)
         {
             SetValues(pinName, pinType, pinColor);
+        }
+
+        ~PinGroup()
+        {
+            Debug.Log($"PinGroup, {m_pinName}, {m_pinType}, Destroyed!");
         }
 
         public void ApplyColor()
@@ -95,7 +101,7 @@ namespace WxAxW.PinAssistant.Core
         {
             if (m_pins.Remove(pin))
             {
-                Debug.Log("Removed pin");
+                Debug.Log($"Removed pin from group, {m_pinName}");
                 return true;
             }
             return false;
