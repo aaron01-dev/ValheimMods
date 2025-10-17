@@ -17,6 +17,8 @@ namespace WxAxW.PinAssistant.Core
         private Color m_pinColor;
         private Color m_pinColorShared; // Just to store the shared color variant to avoid constant maths every frame
 
+        public List<Minimap.PinData> Pins { get => m_pins; }
+
         public Color PinColor
         {
             get => m_pinColor;
