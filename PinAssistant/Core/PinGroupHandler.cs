@@ -133,8 +133,7 @@ namespace WxAxW.PinAssistant.Core
                 Debug.Log("No pins exists with current pin name and type.");
                 return;
             }
-            oldPinGroup.ModifyPinGroupPins(newPinsName, newType);
-            pinGroupToMerge.AddFormattedRange(oldPinGroup);
+            oldPinGroup.TransferTo(pinGroupToMerge);
         }
         
         private string GetPinKey(Minimap.PinData pinData)
