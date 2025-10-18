@@ -20,6 +20,10 @@ namespace WxAxW.PinAssistant.Core
 
         public List<Minimap.PinData> Pins { get => m_pins; }
 
+        public string PinName { get => m_pinName; }
+
+        public Minimap.PinType PinType { get => m_pinType; }
+
         public Color PinColor
         {
             get => m_pinColor;
