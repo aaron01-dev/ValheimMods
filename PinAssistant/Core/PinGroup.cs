@@ -31,6 +31,7 @@ namespace WxAxW.PinAssistant.Core
             {
                 m_pinColor = value;
                 m_pinColorShared = new Color(value.r * 0.7f, value.g * 0.7f, value.b * 0.7f, value.a * 0.8f);
+                ApplyColor(); // Apply color change immediately to all pins in the group
             }
         }
 
@@ -100,6 +101,7 @@ namespace WxAxW.PinAssistant.Core
         public void AddRange(List<Minimap.PinData> pins)
         {
             PinHandler.SetPinsData(pins, m_pinName, m_pinType);
+            ApplyColor(); // Apply color to newly added pins to immediately show in UI
             m_pins.AddRange(pins);
         }
 
