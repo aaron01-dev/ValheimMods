@@ -31,6 +31,9 @@ namespace WxAxW.PinAssistant
         public static CustomLocalization Localization = LocalizationManager.Instance.GetLocalization();
 
         public static Plugin m_instance;
+        public static event Action PluginSceneChanged;
+
+
         public bool m_isInGame = false; // variable to check if in game
 
         private readonly Harmony harmony = new Harmony(PluginGUID);
@@ -57,7 +60,7 @@ namespace WxAxW.PinAssistant
             SceneManager.sceneLoaded += GUIManager.Instance.InitialTMPLoad;
 
             // initialize ui after event loads
-            GUIManager.OnCustomGUIAvailable += LoadTrackObjectUI;
+            // GUIManager.OnCustomGUIAvailable += LoadTrackObjectUI;
             MinimapManager.OnVanillaMapAvailable += LoadMinimapFilterUI;
             MinimapManager.OnVanillaMapAvailable += UpdateMinimapMinZoom;
 
@@ -83,7 +86,9 @@ namespace WxAxW.PinAssistant
             if (ModConfig.Instance.TrackLookedObjectConfig.Value.IsDown() && !FilterPinsUI.Instance.IsFocused)
             {
                 TrackingAssistant.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value, out string id, out GameObject _);
-                TrackObjectUI.Instance?.SetupTrackObject(id);
+                
+                if (TrackObjectUI.Instance == null) Debug.Error("Track Object UI did not initialize correctly!");
+                else TrackObjectUI.Instance.SetupTrackObject(id);
             }
 
             if (ModConfig.Instance.PinLookedObjectConfig.Value.IsDown())
@@ -174,12 +179,14 @@ namespace WxAxW.PinAssistant
             UpdateMinimapMinZoom();
             ToggleAutoPinning();
         }
-
+            
         private void OnSceneChange(Scene scene, LoadSceneMode mode)
         {
             Debug.Log(TextType.SCENE_CHANGE, scene.name);
             m_isInGame = SceneManager.GetActiveScene().name.Equals("main");
             ModToggle();
+
+            TryLoadTrackObjectUI();
         }
 
         /// <summary>
@@ -208,9 +215,26 @@ namespace WxAxW.PinAssistant
             Minimap.instance.m_minZoom = value;
         }
 
+        private void TryLoadTrackObjectUI()
+        {
+            // basic conditions
+            if (TrackObjectUI.Instance != null) return; // already loaded
+            if (!m_isInGame && !ModConfig.Instance.IsDebugModeConfig.Value) return; // only load in game unless debug mode
+
+            // Scene changed to "main" but Jotunn's CustomGUI hasn't been initialized yet
+            if (GUIManager.CustomGUIFront == null)
+            {
+                GUIManager.OnCustomGUIAvailable += LoadTrackObjectUI;
+            }
+            else // initialize immediately
+            {
+                LoadTrackObjectUI();
+            }
+        }
+
         private void LoadTrackObjectUI()
         {
-            if (!m_isInGame && !ModConfig.Instance.IsDebugModeConfig.Value) return;
+            GUIManager.OnCustomGUIAvailable -= LoadTrackObjectUI; // unsubscribe if we got here from event
             TrackObjectUI.Init(m_assetBundle);
         }
 
