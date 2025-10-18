@@ -103,12 +103,6 @@ namespace WxAxW.PinAssistant.Core
             m_pins.AddRange(pins);
         }
 
-        public void AddFormattedRange(PinGroup pinGroup)
-        {
-            m_pins.AddRange(pinGroup.m_pins);
-            pinGroup.Clear();
-        }
-
         public bool Remove(Minimap.PinData pin)
         {
             if (m_pins.Remove(pin))
