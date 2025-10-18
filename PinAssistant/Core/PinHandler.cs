@@ -179,7 +179,7 @@ namespace WxAxW.PinAssistant.Core
             return m_monitoredPins.ContainsKey(pinPos);
         }
 
-        // TODO: use pin group
+        // TODO: use pin group so that even if they're close together, but in different groups, they can still be added
         internal bool CheckValidPinPosition(Vector3 pinToAdd, string pinName, float redundancyDistance, bool allPins)
         {
             foreach (Minimap.PinData pin in m_monitoredPins.Values)

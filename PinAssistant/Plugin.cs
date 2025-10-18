@@ -67,7 +67,7 @@ namespace WxAxW.PinAssistant
             pluginComponents = new List<PluginComponent>()
             {
                 PinHandler.Instance,
-                TrackingAssistant.Instance,
+                TrackingHandler.Instance,
                 PinGroupHandler.Instance,
                 PinFilterHandler.Instance
             };
@@ -85,18 +85,18 @@ namespace WxAxW.PinAssistant
         {
             if (ModConfig.Instance.TrackLookedObjectConfig.Value.IsDown() && !FilterPinsUI.Instance.IsFocused)
             {
-                TrackingAssistant.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value, out string id, out GameObject _);
+                TrackingHandler.Instance.LookAt(ModConfig.Instance.LookDistanceConfig.Value, out string id, out GameObject _);
                 
                 if (TrackObjectUI.Instance == null) Debug.Error("Track Object UI did not initialize correctly!");
                 else TrackObjectUI.Instance.SetupTrackObject(id);
             }
 
             if (ModConfig.Instance.PinLookedObjectConfig.Value.IsDown())
-                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value);
+                TrackingHandler.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value);
             
             if (ModConfig.Instance.ReloadTrackedObjectsConfig.Value.IsDown())
                 //AutoPinning.Instance.TrackLookedObjectToAutoPin(ModConfig.Instance.LookDistanceConfig.Value);
-                TrackingAssistant.Instance.DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);
+                TrackingHandler.Instance.DeserializeTrackedObjects(ModConfig.Instance.TrackedObjectsConfig.Value);
         }
 
         private void OnDestroy()
@@ -119,7 +119,7 @@ namespace WxAxW.PinAssistant
         {
             while (true)
             {
-                TrackingAssistant.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value);
+                TrackingHandler.Instance.PinLookedObject(ModConfig.Instance.LookDistanceConfig.Value);
                 yield return new WaitForSeconds(ModConfig.Instance.TickRateConfig.Value);
             }
         }

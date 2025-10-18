@@ -122,7 +122,7 @@ namespace WxAxW.PinAssistant.Components
         {
             if (PinHandler.Instance.DictionaryPinTypePopulated) PopulateDropdownPinType();
             else PinHandler.Instance.OnDictionaryPinTypePopulated += PopulateDropdownPinType;
-            PopulateDropdownTracked(TrackingAssistant.Instance.TrackedObjects);
+            PopulateDropdownTracked(TrackingHandler.Instance.TrackedObjects);
             ApplyStyle();
             m_versionNumber.text = $"v{Plugin.PluginVersion}";
             m_previewIconChecked.sprite = GUIManager.Instance.GetSprite("mapicon_checked");
@@ -138,8 +138,8 @@ namespace WxAxW.PinAssistant.Components
             m_dropDownTracked.onValueChanged.AddListener(OnTrackedDropDownChanged);
             m_toggleCheckPin.onValueChanged.AddListener(OnToggleCheckPinChanged);
             m_toggleExactMatch.onValueChanged.AddListener(OnToggleExactMatchChanged);
-            TrackingAssistant.Instance.OnTrackedObjectsReload += PopulateDropdownTracked;
-            TrackingAssistant.Instance.OnTrackedObjectSaved += PopulateDropdownTracked;
+            TrackingHandler.Instance.OnTrackedObjectsReload += PopulateDropdownTracked;
+            TrackingHandler.Instance.OnTrackedObjectSaved += PopulateDropdownTracked;
 
             TrackObjectUILoaded?.Invoke();
             //m_buttonUntrackCancel.onClick.AddListener()
@@ -165,10 +165,10 @@ namespace WxAxW.PinAssistant.Components
             m_dropDownTracked.onValueChanged.RemoveListener(OnTrackedDropDownChanged);
             m_toggleCheckPin.onValueChanged.RemoveListener(OnToggleCheckPinChanged);
             m_toggleExactMatch.onValueChanged.RemoveListener(OnToggleExactMatchChanged);
-            if (TrackingAssistant.Instance != null)
+            if (TrackingHandler.Instance != null)
             {
-                TrackingAssistant.Instance.OnTrackedObjectsReload -= PopulateDropdownTracked;
-                TrackingAssistant.Instance.OnTrackedObjectSaved -= PopulateDropdownTracked;
+                TrackingHandler.Instance.OnTrackedObjectsReload -= PopulateDropdownTracked;
+                TrackingHandler.Instance.OnTrackedObjectSaved -= PopulateDropdownTracked;
             }
             m_instance = null;
         }
@@ -319,7 +319,7 @@ namespace WxAxW.PinAssistant.Components
 
             if (!string.IsNullOrEmpty(objIDName))
             {
-                if (TrackingAssistant.Instance.TrackedObjects.TryGetValueLoose(objIDName, out trackedObject, _exactMatch))
+                if (TrackingHandler.Instance.TrackedObjects.TryGetValueLoose(objIDName, out trackedObject, _exactMatch))
                 {
                     formattedName = trackedObject.Name;
                     objIDName = trackedObject.ObjectID;
@@ -334,7 +334,7 @@ namespace WxAxW.PinAssistant.Components
                 }
                 else
                 {
-                    formattedName = TrackingAssistant.Instance.FormatObjectName(objIDName);
+                    formattedName = TrackingHandler.Instance.FormatObjectName(objIDName);
                     m_oldObjectID = objIDName; // to allow the user to modify the object id when they created an entry that's not "exact match"
                     IsExactMatchOnly = true;
                 }
@@ -382,14 +382,14 @@ namespace WxAxW.PinAssistant.Components
             }
 
             // double check if the objectID already exists
-            if (TrackingAssistant.Instance.TrackedObjects.TryGetValueLoose(m_inputObjectID.text, out TrackedObject existingTrackedObject, exactMatch: true))
+            if (TrackingHandler.Instance.TrackedObjects.TryGetValueLoose(m_inputObjectID.text, out TrackedObject existingTrackedObject, exactMatch: true))
             {
                 ShowMessage(Debug.Log(TextType.TRACK_FAIL, m_inputObjectID.text, existingTrackedObject)); // show error message
                 return;
             }
 
             trackedObject = CreateTrackedObject();
-            TrackingAssistant.Instance.AddTrackedObject(trackedObject, out bool conflicting);
+            TrackingHandler.Instance.AddTrackedObject(trackedObject, out bool conflicting);
             ChangeUIMode(trackedObject); // set to edit mode
 
             // todo: show warning if name and icon exists and would cause issues with pin color coding
@@ -403,7 +403,7 @@ namespace WxAxW.PinAssistant.Components
             TrackedObject trackedObjectToModify = m_edittingObject;
             TrackedObject newTrackedObjectValues = CreateTrackedObject();
 
-            bool success = TrackingAssistant.Instance.ModifyTrackedObject(
+            bool success = TrackingHandler.Instance.ModifyTrackedObject(
                 trackedObjectToModify,
                 newTrackedObjectValues,
                 m_toggleModifyPins.isOn,
@@ -457,7 +457,7 @@ namespace WxAxW.PinAssistant.Components
                 return;
             }
             // untrack entry
-            if (!TrackingAssistant.Instance.RemoveTrackedObject(m_edittingObject)) // remove entry with object id
+            if (!TrackingHandler.Instance.RemoveTrackedObject(m_edittingObject)) // remove entry with object id
             {
                 ShowMessage(Debug.Log(TextType.UNTRACK_FAIL, m_edittingObject));
                 return;

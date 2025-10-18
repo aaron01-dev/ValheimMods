@@ -10,10 +10,10 @@ using Debug = WxAxW.PinAssistant.Utils.Debug;
 
 namespace WxAxW.PinAssistant.Core
 {
-    public class TrackingAssistant : PluginComponent
+    public class TrackingHandler : PluginComponent
     {
-        private static TrackingAssistant m_instance = new TrackingAssistant();
-        public static TrackingAssistant Instance => m_instance;
+        private static TrackingHandler m_instance = new TrackingHandler();
+        public static TrackingHandler Instance => m_instance;
 
         private LooseDictionary<TrackedObject> m_trackedObjects = new LooseDictionary<TrackedObject>();
 

@@ -36,22 +36,22 @@ namespace WxAxW.PinAssistant.Core
 
         public override void OnEnable()
         {
-            OnTrackedObjectsReload(TrackingAssistant.Instance.TrackedObjects);
+            OnTrackedObjectsReload(TrackingHandler.Instance.TrackedObjects);
 
             // check if instance exists
-            TrackingAssistant.Instance.OnTrackedObjectAdd += OnTrackedObjectAdd;
-            TrackingAssistant.Instance.OnTrackedObjectRemove += OnTrackedObjectRemove;
-            TrackingAssistant.Instance.OnTrackedObjectUpdate += OnTrackedObjectUpdate;
-            TrackingAssistant.Instance.OnTrackedObjectsReload += OnTrackedObjectsReload;
+            TrackingHandler.Instance.OnTrackedObjectAdd += OnTrackedObjectAdd;
+            TrackingHandler.Instance.OnTrackedObjectRemove += OnTrackedObjectRemove;
+            TrackingHandler.Instance.OnTrackedObjectUpdate += OnTrackedObjectUpdate;
+            TrackingHandler.Instance.OnTrackedObjectsReload += OnTrackedObjectsReload;
             MinimapPatches.OnMinimapUpdatePins += OnMinimapUpdatePins;
         }
 
         public override void OnDisable()
         {
-            TrackingAssistant.Instance.OnTrackedObjectAdd -= OnTrackedObjectAdd;
-            TrackingAssistant.Instance.OnTrackedObjectRemove -= OnTrackedObjectRemove;
-            TrackingAssistant.Instance.OnTrackedObjectUpdate -= OnTrackedObjectUpdate;
-            TrackingAssistant.Instance.OnTrackedObjectsReload -= OnTrackedObjectsReload;
+            TrackingHandler.Instance.OnTrackedObjectAdd -= OnTrackedObjectAdd;
+            TrackingHandler.Instance.OnTrackedObjectRemove -= OnTrackedObjectRemove;
+            TrackingHandler.Instance.OnTrackedObjectUpdate -= OnTrackedObjectUpdate;
+            TrackingHandler.Instance.OnTrackedObjectsReload -= OnTrackedObjectsReload;
             MinimapPatches.OnMinimapUpdatePins -= OnMinimapUpdatePins; // do not color pins when mod is disabled
         }
 
