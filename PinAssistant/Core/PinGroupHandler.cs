@@ -79,7 +79,7 @@ namespace WxAxW.PinAssistant.Core
         {
             if (!m_pinGroups.TryGetValue(key, out PinGroup foundPinGroup))
             {
-                Debug.Log($"Created colored pin group for {key}");
+                Debug.Log($"Created pin group for {key}");
                 PinGroup newPinGroup = new PinGroup(pinName, pinType, pinColor);
                 m_pinGroups.Add(key, newPinGroup);
                 return newPinGroup;
@@ -87,7 +87,7 @@ namespace WxAxW.PinAssistant.Core
 
             if (forceChangeColor)
             {
-                Debug.Log($"Colored pin group named, '{key}' exists, Changing the color only instead.");
+                Debug.Log($"Pin group named, '{key}' exists, Changing the color only instead.");
                 foundPinGroup.PinColor = pinColor;
             }
             return foundPinGroup;
