@@ -2,6 +2,63 @@
 
 <details open>
 <summary><b>
+v1.8.2 Backend Updates + Fixes
+</b></summary>
+
+- Fixes
+	- Track Object UI not showing up, with certain mods enabled (PlanBuild and probably more).
+	- Fix colors of pins not changing on modify tracked object (with Modify Matching Pins disabled), requiring to relog to reflect color changes for existing pins.
+	- Fixed minor bug where you need to move the map slightly to reflect pin color changes when modifying tracked object's color with Modify Matching Pins enabled.
+
+- <details>
+	<summary>
+	Backend
+	</summary>
+
+	- Updated Jotunn dependency to 2.15.1.
+	- MinimapPatches
+		- Rename and Decoupled some events.
+		- Change isManualPin transpiler to prefix for better stability.
+		- Add Add check for redundant event invocations. SetTargetPin will only invoke OnPinSetTarget when arg is different from m_edittingPinCurrent.
+	- PinFilterHandler
+		- New class that handles filtering of pins.
+		- Subscribes to MinimapPatches events to filter pins when necessary.
+		- Change and optimize condition check of FilterOutPins to avoid problems
+			- No reason to filter out pins if the list is empty.
+			- Consolidated overload since it's unnecessary.
+	- PinGroup
+		- Use PinColor property instead of m_pinColor member, missed some.
+		- Rename ModifyPin to ModifyPinGroupPins for clarity.
+		- Publicize PinGroup m_pins using getter property.
+		- Add some debug logging.
+		- Remove unnecessary code execution for ModifyPinGroupPins. SetPinType already covers retrieving the sprite when it's null.
+		- Change transfer logic to use TransferTo. This also avoids pins from being renamed while they're in the old pin group.
+		- Change AddRange parameter to use List instead of PinGroup, to avoid using it directly potentially causing issues, instead, use TransferTo.
+		- Add helper methods for easy transferring of pins to other PinGroups. TransferTo is old AddRange alternative.
+		- Add ApplyColor on PinColor set and AddRange. This fixes a minor bug where upon modifying a pingroup, colors don't change yet due to Valheim's Minimap update behavior not executing if maps hasn't moved.
+		- Remove AddFormattedRange method.
+	- PinGroupHandler (previously MinimapAssistant)
+		- Rename to PinGroupHandler.
+		- Move Vanilla Pin related logic to PinHandler.
+		- Move PinGroup to it's own file.
+		- Move Filter logic to PinFilterHandler.
+		- Change debug messages.
+		- Rename InitializePinGroup method to InitOrGetPinGroup for clarity.
+		- Publicize GetPinKey and change to static.
+		- Publicize PinGroup name and type.
+		- Fix colors of pins not changing on modify tracked object. When Tracked object is modified with same name and icon pin colors don't get updated.
+	- PinHandler
+		- Add more static methods for editting pin data.
+	- TrackingHandler (previously TrackingAssistant) 
+		-  Rename TrackingAssistant to TrackingHandler for consistency.
+	- TrackObjectUI
+		- Fix TrackObjectUI initialization. Changed logic to wait until ingame and check if Custom GUI is available, then load, else, wait for it.
+	</details>
+
+</details>
+
+<details open>
+<summary><b>
 v1.8.1 HUD Compass Compatibility
 </b></summary>
 
