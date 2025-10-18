@@ -136,11 +136,11 @@ namespace WxAxW.PinAssistant.Core
             oldPinGroup.TransferTo(pinGroupToMerge);
         }
         
-        private string GetPinKey(Minimap.PinData pinData)
+        public static string GetPinKey(Minimap.PinData pinData)
         {
             return GetPinKey(pinData.m_name, pinData.m_type);
         }
-        private string GetPinKey(string pinName, Minimap.PinType pinType)
+        public static string GetPinKey(string pinName, Minimap.PinType pinType)
         {
             string formattedPinKey = pinName.ToLower() + "_" + pinType.ToString();
             return formattedPinKey;
@@ -148,7 +148,7 @@ namespace WxAxW.PinAssistant.Core
         
         public Color GetColor(Minimap.PinData pin)
         {
-            if (!m_instance.m_pinGroups.TryGetValue(m_instance.GetPinKey(pin), out PinGroup pinGroup)) return Color.white;
+            if (!m_pinGroups.TryGetValue(GetPinKey(pin), out PinGroup pinGroup)) return Color.white;
             return pinGroup.PinColor;
         }
 
