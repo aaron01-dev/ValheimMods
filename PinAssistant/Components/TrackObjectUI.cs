@@ -392,6 +392,8 @@ namespace WxAxW.PinAssistant.Components
             TrackingAssistant.Instance.AddTrackedObject(trackedObject, out bool conflicting);
             ChangeUIMode(trackedObject); // set to edit mode
 
+            // todo: show warning if name and icon exists and would cause issues with pin color coding
+
             if (!conflicting) ShowMessage(Debug.Log(TextType.TRACK_SUCCESS, trackedObject));
             else ShowMessage(Debug.Log(TextType.TRACK_WARNING_CONFLICT, trackedObject));
         }
@@ -417,6 +419,8 @@ namespace WxAxW.PinAssistant.Components
             // success
             if (conflicting) ShowMessage(Debug.Log(TextType.MODIFY_WARNING_CONFLICT, trackedObjectToModify, foundConflict));
             else ShowMessage(Debug.Log(TextType.MODIFY_SUCCESS, trackedObjectToModify));
+
+            // todo: show warning if name and icon exists and would cause issues with pin color coding
 
             m_edittingObject = newTrackedObjectValues;
             int newIndex = m_dropDownTrackedList.IndexOf(m_edittingObject);

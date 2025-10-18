@@ -119,21 +119,58 @@ namespace WxAxW.PinAssistant.Core
             AddPinToGroup(pinData);
         }
 
-        private void TransferPinGroup(string oldPinsName, string newPinsName, Minimap.PinType oldType, Minimap.PinType newType)
+        public void ModifyPinGroup(TrackedObject oldPinGroup, TrackedObject newPinGroup)
         {
-            if (newType == Minimap.PinType.None) return;
-            if (oldPinsName.Equals(newPinsName) && oldType == newType) return;
+            ModifyPinGroup(oldPinGroup.Name, newPinGroup.Name, oldPinGroup.Icon, newPinGroup.Icon, oldPinGroup.PinColor, newPinGroup.PinColor);
+        }
+
+        public void ModifyPinGroup(string oldPinsName, string newPinsName, Minimap.PinType oldType, Minimap.PinType newType, Color oldPinsColor, Color newPinsColor)
+        {
+            if (!oldPinsName.Equals(newPinsName) || oldType != newType)
+            {
+                TransferPinGroup(oldPinsName, newPinsName, oldType, newType, oldPinsColor, newPinsColor);
+                return; // no need to change color because pins are already transferred
+            }
+            
+            if (oldPinsColor == newPinsColor)
+            {
+                Debug.Log("No changes detected in pin group, skipping modification.");
+                return;
+            }
+
+            // todo: switch all try get value old pins to direct access since we know it exists
+            if (!m_pinGroups.TryGetValue(GetPinKey(oldPinsName, oldType), out PinGroup pinGroup))
+            {
+                Debug.Error("Pin group not found, contact dev");
+                return;
+            }
+
+            pinGroup.PinColor = newPinsColor;
+        }
+
+        private void TransferPinGroup(string oldPinsName, string newPinsName, Minimap.PinType oldType, Minimap.PinType newType, Color oldPinsColor, Color newPinsColor)
+        {
+            if (newType == Minimap.PinType.None) { // Not possible
+                Debug.Error("How did you manage to do this. Transfer was not successful as the Pin Icon is set to \"None\".");
+                return;
+            }
             string newPinsKey = GetPinKey(newPinsName, newType);
             string oldPinsKey = GetPinKey(oldPinsName, oldType);
-            if (!m_pinGroups.ContainsKey(oldPinsKey)) return;
-            PinGroup pinGroupToMerge = InitOrGetPinGroup(newPinsKey, newPinsName, newType, Color.white);
 
             if (!m_pinGroups.TryGetValue(oldPinsKey, out PinGroup oldPinGroup))
             {
-                Debug.Log("No pins exists with current pin name and type.");
+                Debug.Error("Initial Pin Group does not exist, transfer was not successful.");
                 return;
             }
-            oldPinGroup.TransferTo(pinGroupToMerge);
+
+            PinGroup newPinGroup;
+            bool pinGroupExists = m_pinGroups.TryGetValue(newPinsKey, out newPinGroup);
+            if (!pinGroupExists)
+            { 
+                newPinGroup = InitOrGetPinGroup(newPinsKey, newPinsName, newType, newPinsColor);
+            }
+            oldPinGroup.TransferTo(newPinGroup);
+            oldPinGroup.ResetColor(); // reset old pin group color to prevent color carry over
         }
         
         public static string GetPinKey(Minimap.PinData pinData)
@@ -213,18 +250,31 @@ namespace WxAxW.PinAssistant.Core
             Minimap.PinType oldPinType = trackedObject.Icon;
             string newPinName = newTrackedObject.Name;
             Minimap.PinType newPinType = newTrackedObject.Icon;
-            if (oldPinName.Equals(newPinName) && oldPinType == newPinType) return;
-            
-            string oldPinKey = GetPinKey(oldPinName, oldPinType);
-            if (!m_pinGroups.TryGetValue(oldPinKey, out PinGroup pinGroup))
+
+            string keyOld = GetPinKey(oldPinName, oldPinType);
+            string keyNew = GetPinKey(newPinName, newPinType);
+
+            bool noKeyChanges = keyOld.Equals(keyNew);
+            if (!m_pinGroups.TryGetValue(keyOld, out PinGroup pinGroup))
             {
                 Debug.Error("Failed to update group, contact dev!");
                 return;
             }
-            if (modifyPins) TransferPinGroup(oldPinName, newPinName, oldPinType, newPinType);
-
-            pinGroup.ResetColor();
-            OnTrackedObjectAdd(newTrackedObject);
+            // No changes detected no need to modify, only change color, won't do anything if new color is the same
+            if (noKeyChanges)
+            {
+                pinGroup.PinColor = newTrackedObject.PinColor;
+            } 
+            else 
+            {
+                if (modifyPins) ModifyPinGroup(trackedObject, newTrackedObject); // This will also reset the color of the old pin group
+                else // TrackedObject is no longer affecting this Pin Group, reset its color and initialize or get the new pin group
+                {
+                    // todo: when pin group removal is added, move "isTracked" from old pin group to new pin group here
+                    InitOrGetPinGroup(keyNew, newPinName, newPinType, newTrackedObject.PinColor, forceChangeColor: true);
+                    pinGroup.ResetColor(); // just reset the color of the old pin group
+                }
+            }
         }
 
         private void OnTrackedObjectsReload(LooseDictionary<TrackedObject> trackedObjects)
