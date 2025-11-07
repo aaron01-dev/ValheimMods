@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.UIElements;
 using WxAxW.PinAssistant.Configuration;
 using WxAxW.PinAssistant.Patches;
 using WxAxW.PinAssistant.Utils;
@@ -28,6 +29,17 @@ namespace WxAxW.PinAssistant.Core
             "static_solid",     // 15 - minerals ores, rocks, etc
             "terrain"           // 11 - so you won't detect through walls
             );
+        /*
+        LayerMask.GetMask(
+            "Default",          // 0 - a lot of things
+            "Default_small",    // 20 - tins, rocks, etc
+            "item",             // 12 - pickables
+            "piece",            // 10 - totems, post or possible poi
+            "piece_nonsolid",   // 16 - carrot seeds, etc
+            "static_solid",     // 15 - minerals ores, rocks, etc
+            "terrain"           // 11 - so you won't detect through walls
+            );
+        */
 
         /*
         Check ModConfig for different types
@@ -85,16 +97,44 @@ namespace WxAxW.PinAssistant.Core
             id = string.Empty;
             obj = null;
             if (GameCamera.instance == null) return false;
-
             // create a ray to check for objects output to hit var
-            if (!Physics.Raycast(GameCamera.instance.transform.position, GameCamera.instance.transform.forward,
-            out var hit, lookDistance, m_layersToCheck))
+            if (!Physics.Raycast(origin: GameCamera.instance.transform.position, 
+                                direction:GameCamera.instance.transform.forward, 
+                                hitInfo: out var hit, 
+                                maxDistance: lookDistance, 
+                                layerMask: m_layersToCheck)
+                )
                 return false; // not collision
 
-            if (hit.transform.gameObject.layer == 11) return false; // skip if terrain
-            obj = hit.transform.root.gameObject;
+            if (hit.collider.gameObject.layer == 11) return false; // skip if terrain
+            if (!EnsureValid(lookDistance, hit, out hit)) return false;
+            
+            obj = hit.collider.transform.root.gameObject;
             id = ProcessLookedObjectName(obj);
-            Debug.Log(TextType.OBJECT_INFO, id, LayerMask.LayerToName(obj.layer), obj.layer);
+            Debug.Log(TextType.OBJECT_INFO, id, LayerMask.LayerToName(hit.collider.gameObject.layer), hit.collider.gameObject.layer, LayerMask.LayerToName(obj.layer), obj.layer);
+            return true;
+        }
+
+        // Mounts' saddles block LookAt when riding, this converts the saddle's layer to the parent's layer and reshoots the raycast
+        private bool EnsureValid(float lookDistance, RaycastHit hit, out RaycastHit hit2)
+        {
+            hit2 = hit;
+            Debug.Log("Hit Transform Name: " + hit.transform.gameObject.name + " on layer " + LayerMask.LayerToName(hit.transform.gameObject.layer));
+            Debug.Log("Hit Collider Name: " + hit.collider.gameObject.name + " on layer " + LayerMask.LayerToName(hit.collider.gameObject.layer));
+            if (hit.collider.gameObject.name != "Sadel") 
+                return true; // valid hit
+            // cast again starting after the ignored hit
+            if (!Physics.Raycast(
+                origin: hit.point + GameCamera.instance.transform.forward * 0.01f,
+                direction: GameCamera.instance.transform.forward,
+                hitInfo: out hit2,
+                maxDistance: lookDistance,
+                layerMask: m_layersToCheck
+                ))
+            {
+                return false; // no collision
+            }
+            if (hit2.collider.gameObject.layer == 11) return false; // skip if terrain once more
             return true;
         }
 

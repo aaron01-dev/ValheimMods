@@ -57,7 +57,7 @@ namespace WxAxW.PinAssistant.Configuration
         // AutoPinning Messages
 
         // Info
-        [Text("{0}:\tLayerMask: {1} | {2}")] OBJECT_INFO,
+        [Text("{0}:\t LayerMask: {1} | {2}, LayerMask Root: {3} | {4}")] OBJECT_INFO,
 
         // MonitoredPins
         [Text("Minimap not found")] MINIMAP_NOT_FOUND,

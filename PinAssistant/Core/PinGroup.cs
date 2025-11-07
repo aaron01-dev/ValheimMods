@@ -109,7 +109,7 @@ namespace WxAxW.PinAssistant.Core
         {
             if (m_pins.Remove(pin))
             {
-                Debug.Log($"Removed pin from group, {m_pinName}");
+                Debug.Log($"Removed pin from group, {m_pinName} | {pin.m_type}");
                 return true;
             }
             return false;
