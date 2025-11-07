@@ -2,6 +2,16 @@
 
 <details open>
 <summary><b>
+v1.8.3 Mounted Tracking Fix
+</b></summary>
+
+- Fixes
+	- Attempting to track a new object no longer obstructed when mounted.
+
+</details>
+
+<details>
+<summary><b>
 v1.8.2 Backend Updates + Fixes
 </b></summary>
 
@@ -57,7 +67,7 @@ v1.8.2 Backend Updates + Fixes
 
 </details>
 
-<details open>
+<details>
 <summary><b>
 v1.8.1 HUD Compass Compatibility
 </b></summary>
@@ -81,7 +91,7 @@ v1.8.1 HUD Compass Compatibility
 
 </details>
 
-<details open>
+<details>
 <summary><b>
 v1.8.0 Compatibility Update
 </b></summary>
